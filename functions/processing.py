@@ -10,6 +10,8 @@ def generate_table(table_name: str) -> None:
 
         df = read_table(spark_generate, 'geographies_landingzone')
 
+        df = df.filter(~F.isnull(F.col('ID')))
+
         write_table(spark_generate, df,'geographies_raw')
     
     elif table_name == 'geographies_transform':

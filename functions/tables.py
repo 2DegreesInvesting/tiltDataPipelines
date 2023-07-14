@@ -36,7 +36,8 @@ def get_table_definition(table_name: str) -> dict:
             'location': 'geographies',
             'type': 'parquet',
             'partition_by' : '',
-            'quality_checks': [('Geographical Classification',u'[^a-zA-Z\s]')]
+            'quality_checks': [['unique', 'ID'],
+                                ['format', 'Name', r"[a-zA-Z]"]]
         },
         'geographies_transform': {
             'columns' :  StructType([
