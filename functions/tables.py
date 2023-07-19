@@ -1,4 +1,4 @@
-from pyspark.sql.types import StringType,StructType, StructField, DataType, BooleanType, FloatType
+from pyspark.sql.types import StringType,StructType, StructField, DataType, BooleanType, FloatType, ByteType, ShortType, TimestampType
 
 def create_location_path():
 
@@ -587,7 +587,7 @@ def get_table_definition(table_name: str) -> dict:
             ]  
             ), 
             'container': 'transform',
-            'location': 'companies_issues',
+            'location': 'issues_companies',
             'type': 'parquet',
             'partition_by' : '',
             'quality_checks': []
@@ -882,6 +882,615 @@ def get_table_definition(table_name: str) -> dict:
             ), 
             'container': 'transform',
             'location': 'products_companies',
+            'type': 'parquet',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+        'companies_landingzone': {
+            'columns' :  StructType([
+                StructField('companies_id', StringType(), False),
+                StructField('company_name', StringType(), True),
+                StructField('main_activity_id', StringType(), True),
+                StructField('address', StringType(), True),
+                StructField('company_city', StringType(), True),
+                StructField('postcode', StringType(), True),
+                StructField('information', StringType(), True),
+                StructField('min_headcount', StringType(), True),
+                StructField('max_headcount', StringType(), True),
+                StructField('type_of_building_for_registered_address', StringType(), True),
+                StructField('verified_by_europages', StringType(), True),
+                StructField('year_established', StringType(), True),
+                StructField('websites', StringType(), True),
+                StructField('download_datetime', StringType(), True),
+                StructField('country_id', StringType(), True)
+            ]  
+            ), 
+            'container': 'landingzone',
+            'location': 'tiltData/companies.csv',
+            'type': 'csv',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+        'companies_raw': {
+            'columns' :  StructType([
+                StructField('companies_id', StringType(), False),
+                StructField('company_name', StringType(), True),
+                StructField('main_activity_id', StringType(), True),
+                StructField('address', StringType(), True),
+                StructField('company_city', StringType(), True),
+                StructField('postcode', StringType(), True),
+                StructField('information', StringType(), True),
+                StructField('min_headcount', ByteType(), True),
+                StructField('max_headcount', ByteType(), True),
+                StructField('type_of_building_for_registered_address', StringType(), True),
+                StructField('verified_by_europages', BooleanType(), True),
+                StructField('year_established', ShortType(), True),
+                StructField('websites', StringType(), True),
+                StructField('download_datetime', TimestampType(), True),
+                StructField('country_id', StringType(), True)
+            ]  
+            ), 
+            'container': 'raw',
+            'location': 'companies',
+            'type': 'parquet',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+        'companies_transform': {
+            'columns' :  StructType([
+                StructField('companies_id', StringType(), False),
+                StructField('company_name', StringType(), True),
+                StructField('main_activity_id', StringType(), True),
+                StructField('address', StringType(), True),
+                StructField('company_city', StringType(), True),
+                StructField('postcode', StringType(), True),
+                StructField('information', StringType(), True),
+                StructField('min_headcount', ByteType(), True),
+                StructField('max_headcount', ByteType(), True),
+                StructField('type_of_building_for_registered_address', StringType(), True),
+                StructField('verified_by_europages', BooleanType(), True),
+                StructField('year_established', ShortType(), True),
+                StructField('websites', StringType(), True),
+                StructField('download_datetime', TimestampType(), True),
+                StructField('country_id', StringType(), True)
+            ]  
+            ), 
+            'container': 'transform',
+            'location': 'companies',
+            'type': 'parquet',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+         'main_activity_landingzone': {
+            'columns' :  StructType([
+                StructField('main_activity_id', StringType(), False),
+                StructField('main_activity', StringType(), True),
+                StructField('ecoinvent', StringType(), True)
+            ]  
+            ), 
+            'container': 'landingzone',
+            'location': 'tiltData/main_activity.csv',
+            'type': 'csv',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+        'main_activity_raw': {
+            'columns' :  StructType([
+                StructField('main_activity_id', StringType(), False),
+                StructField('main_activity', StringType(), True),
+                StructField('ecoinvent', StringType(), True)
+            ]  
+            ), 
+            'container': 'raw',
+            'location': 'main_activity',
+            'type': 'parquet',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+        'main_activity_transform': {
+            'columns' :  StructType([
+                StructField('main_activity_id', StringType(), False),
+                StructField('main_activity', StringType(), True),
+                StructField('ecoinvent', StringType(), True)
+            ]  
+            ), 
+            'container': 'transform',
+            'location': 'main_activity',
+            'type': 'parquet',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+         'geography_landingzone': {
+            'columns' :  StructType([
+                StructField('geography_id', StringType(), False),
+                StructField('country_id', StringType(), True),
+                StructField('ecoinvent_geography', StringType(), True),
+                StructField('priority', StringType(), True)
+            ]  
+            ), 
+            'container': 'landingzone',
+            'location': 'tiltData/geography.csv',
+            'type': 'csv',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+        'geography_raw': {
+            'columns' :  StructType([
+                StructField('geography_id', StringType(), False),
+                StructField('country_id', StringType(), True),
+                StructField('ecoinvent_geography', StringType(), True),
+                StructField('priority', StringType(), True)
+            ]  
+            ), 
+            'container': 'raw',
+            'location': 'geography',
+            'type': 'parquet',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+        'geography_transform': {
+            'columns' :  StructType([
+                StructField('geography_id', StringType(), False),
+                StructField('country_id', StringType(), True),
+                StructField('ecoinvent_geography', StringType(), True),
+                StructField('priority', StringType(), True)
+            ]  
+            ), 
+            'container': 'transform',
+            'location': 'geography',
+            'type': 'parquet',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+         'country_landingzone': {
+            'columns' :  StructType([
+                StructField('country_id', StringType(), False),
+                StructField('country', StringType(), True)
+            ]  
+            ), 
+            'container': 'landingzone',
+            'location': 'tiltData/country.csv',
+            'type': 'csv',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+        'country_raw': {
+            'columns' :  StructType([
+                StructField('country_id', StringType(), False),
+                StructField('country', StringType(), True)
+            ]  
+            ), 
+            'container': 'raw',
+            'location': 'country',
+            'type': 'parquet',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+        'country_transform': {
+            'columns' :  StructType([
+                StructField('country_id', StringType(), False),
+                StructField('country', StringType(), True)
+            ]  
+            ), 
+            'container': 'transform',
+            'location': 'country',
+            'type': 'parquet',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+         'delimited_products_landingzone': {
+            'columns' :  StructType([
+                StructField('delimited_products_id', StringType(), False),
+                StructField('delimited_id', StringType(), True),
+                StructField('products_id', StringType(), True)
+            ]  
+            ), 
+            'container': 'landingzone',
+            'location': 'tiltData/delimited_products.csv',
+            'type': 'csv',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+        'delimited_products_raw': {
+            'columns' :  StructType([
+                StructField('delimited_products_id', StringType(), False),
+                StructField('delimited_id', StringType(), True),
+                StructField('products_id', StringType(), True)
+            ]  
+            ), 
+            'container': 'raw',
+            'location': 'delimited_products',
+            'type': 'parquet',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+        'delimited_products_transform': {
+            'columns' :  StructType([
+                StructField('delimited_products_id', StringType(), False),
+                StructField('delimited_id', StringType(), True),
+                StructField('products_id', StringType(), True)
+            ]  
+            ), 
+            'container': 'transform',
+            'location': 'delimited_products',
+            'type': 'parquet',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+         'products_landingzone': {
+            'columns' :  StructType([
+                StructField('products_id', StringType(), False),
+                StructField('products_and_services', StringType(), True)
+            ]  
+            ), 
+            'container': 'landingzone',
+            'location': 'tiltData/products.csv',
+            'type': 'csv',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+        'products_raw': {
+            'columns' :  StructType([
+                StructField('products_id', StringType(), False),
+                StructField('products_and_services', StringType(), True)
+            ]  
+            ), 
+            'container': 'raw',
+            'location': 'products',
+            'type': 'parquet',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+        'products_transform': {
+            'columns' :  StructType([
+                StructField('products_id', StringType(), False),
+                StructField('products_and_services', StringType(), True)
+            ]  
+            ), 
+            'container': 'transform',
+            'location': 'products',
+            'type': 'parquet',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+         'categories_companies_landingzone': {
+            'columns' :  StructType([
+                StructField('categories_companies_id', StringType(), False),
+                StructField('categories_id', StringType(), True),
+                StructField('companies_id', StringType(), True)
+            ]  
+            ), 
+            'container': 'landingzone',
+            'location': 'tiltData/categories_companies.csv',
+            'type': 'csv',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+        'categories_companies_raw': {
+            'columns' :  StructType([
+                StructField('categories_companies_id', StringType(), False),
+                StructField('categories_id', StringType(), True),
+                StructField('companies_id', StringType(), True)
+            ]  
+            ), 
+            'container': 'raw',
+            'location': 'categories_companies',
+            'type': 'parquet',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+        'categories_companies_transform': {
+            'columns' :  StructType([
+                StructField('categories_companies_id', StringType(), False),
+                StructField('categories_id', StringType(), True),
+                StructField('companies_id', StringType(), True)
+            ]  
+            ), 
+            'container': 'transform',
+            'location': 'categories_companies',
+            'type': 'parquet',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+         'delimited_landingzone': {
+            'columns' :  StructType([
+                StructField('delimited_id', StringType(), False),
+                StructField('delimited', StringType(), True)
+            ]  
+            ), 
+            'container': 'landingzone',
+            'location': 'tiltData/delimited.csv',
+            'type': 'csv',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+        'delimited_raw': {
+            'columns' :  StructType([
+                StructField('delimited_id', StringType(), False),
+                StructField('delimited', StringType(), True)
+            ]  
+            ), 
+            'container': 'raw',
+            'location': 'delimited',
+            'type': 'parquet',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+        'delimited_transform': {
+            'columns' :  StructType([
+                StructField('delimited_id', StringType(), False),
+                StructField('delimited', StringType(), True)
+            ]  
+            ), 
+            'container': 'transform',
+            'location': 'delimited',
+            'type': 'parquet',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+         'clustered_delimited_landingzone': {
+            'columns' :  StructType([
+                StructField('clustered_delimited_id', StringType(), False),
+                StructField('clustered_id', StringType(), True),
+                StructField('delimited_id', StringType(), True)
+            ]  
+            ), 
+            'container': 'landingzone',
+            'location': 'tiltData/clustered_delimited.csv',
+            'type': 'csv',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+        'clustered_delimited_raw': {
+            'columns' :  StructType([
+                StructField('clustered_delimited_id', StringType(), False),
+                StructField('clustered_id', StringType(), True),
+                StructField('delimited_id', StringType(), True)
+            ]  
+            ), 
+            'container': 'raw',
+            'location': 'clustered_delimited',
+            'type': 'parquet',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+        'clustered_delimited_transform': {
+            'columns' :  StructType([
+                StructField('clustered_delimited_id', StringType(), False),
+                StructField('clustered_id', StringType(), True),
+                StructField('delimited_id', StringType(), True)
+            ]  
+            ), 
+            'container': 'transform',
+            'location': 'clustered_delimited',
+            'type': 'parquet',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+        'clustered_landingzone': {
+            'columns' :  StructType([
+                StructField('clustered_id', StringType(), False),
+                StructField('clustered', StringType(), True)
+            ]  
+            ), 
+            'container': 'landingzone',
+            'location': 'tiltData/clustered.csv',
+            'type': 'csv',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+        'clustered_raw': {
+            'columns' :  StructType([
+                StructField('clustered_id', StringType(), False),
+                StructField('clustered', StringType(), True)
+            ]  
+            ), 
+            'container': 'raw',
+            'location': 'clustered',
+            'type': 'parquet',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+        'clustered_transform': {
+            'columns' :  StructType([
+                StructField('clustered_id', StringType(), False),
+                StructField('clustered', StringType(), True)
+            ]  
+            ), 
+            'container': 'transform',
+            'location': 'clustered',
+            'type': 'parquet',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+        'categories_sector_ecoinvent_delimited_landingzone': {
+            'columns' :  StructType([
+                StructField('categories_sector_ecoinvent_delimited_id', StringType(), False),
+                StructField('categories_id', StringType(), True),
+                StructField('sector_ecoinvent_delimited_id', StringType(), True)
+            ]  
+            ), 
+            'container': 'landingzone',
+            'location': 'tiltData/categories_sector_ecoinvent_delimited.csv',
+            'type': 'csv',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+        'categories_sector_ecoinvent_delimited_raw': {
+            'columns' :  StructType([
+                StructField('categories_sector_ecoinvent_delimited_id', StringType(), False),
+                StructField('categories_id', StringType(), True),
+                StructField('sector_ecoinvent_delimited_id', StringType(), True)
+            ]  
+            ), 
+            'container': 'raw',
+            'location': 'categories_sector_ecoinvent_delimited',
+            'type': 'parquet',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+        'categories_sector_ecoinvent_delimited_transform': {
+            'columns' :  StructType([
+                StructField('categories_sector_ecoinvent_delimited_id', StringType(), False),
+                StructField('categories_id', StringType(), True),
+                StructField('sector_ecoinvent_delimited_id', StringType(), True)
+            ]  
+            ), 
+            'container': 'transform',
+            'location': 'categories_sector_ecoinvent_delimited',
+            'type': 'parquet',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+        'categories_landingzone': {
+            'columns' :  StructType([
+                StructField('categories_id', StringType(), False),
+                StructField('group', StringType(), True),
+                StructField('sector', StringType(), True),
+                StructField('subsector', StringType(), True)
+            ]  
+            ), 
+            'container': 'landingzone',
+            'location': 'tiltData/categories.csv',
+            'type': 'csv',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+        'categories_raw': {
+            'columns' :  StructType([
+                StructField('categories_id', StringType(), False),
+                StructField('group', StringType(), True),
+                StructField('sector', StringType(), True),
+                StructField('subsector', StringType(), True)
+            ]  
+            ), 
+            'container': 'raw',
+            'location': 'categories',
+            'type': 'parquet',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+        'categories_transform': {
+            'columns' :  StructType([
+                StructField('categories_id', StringType(), False),
+                StructField('group', StringType(), True),
+                StructField('sector', StringType(), True),
+                StructField('subsector', StringType(), True)
+            ]  
+            ), 
+            'container': 'transform',
+            'location': 'categories',
+            'type': 'parquet',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+        'sector_ecoinvent_delimited_sector_ecoinvent_landingzone': {
+            'columns' :  StructType([
+                StructField('sector_ecoinvent_delimited_sector_ecoinvent_id', StringType(), False),
+                StructField('sector_ecoinvent_delimited_id', StringType(), True),
+                StructField('sector_ecoinvent_id', StringType(), True)
+            ]  
+            ), 
+            'container': 'landingzone',
+            'location': 'tiltData/sector_ecoinvent_delimited_sector_ecoinvent.csv',
+            'type': 'csv',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+        'sector_ecoinvent_delimited_sector_ecoinvent_raw': {
+            'columns' :  StructType([
+                StructField('sector_ecoinvent_delimited_sector_ecoinvent_id', StringType(), False),
+                StructField('sector_ecoinvent_delimited_id', StringType(), True),
+                StructField('sector_ecoinvent_id', StringType(), True)
+            ]  
+            ), 
+            'container': 'raw',
+            'location': 'sector_ecoinvent_delimited_sector_ecoinvent',
+            'type': 'parquet',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+        'sector_ecoinvent_delimited_sector_ecoinvent_transform': {
+            'columns' :  StructType([
+                StructField('sector_ecoinvent_delimited_sector_ecoinvent_id', StringType(), False),
+                StructField('sector_ecoinvent_delimited_id', StringType(), True),
+                StructField('sector_ecoinvent_id', StringType(), True)
+            ]  
+            ), 
+            'container': 'transform',
+            'location': 'sector_ecoinvent_delimited_sector_ecoinvent',
+            'type': 'parquet',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+         'sector_ecoinvent_delimited_landingzone': {
+            'columns' :  StructType([
+                StructField('sector_ecoinvent_delimited_id', StringType(), False),
+                StructField('sector_ecoinvent_delimited', StringType(), True)
+            ]  
+            ), 
+            'container': 'landingzone',
+            'location': 'tiltData/sector_ecoinvent_delimited.csv',
+            'type': 'csv',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+        'sector_ecoinvent_delimited_raw': {
+            'columns' :  StructType([
+                StructField('sector_ecoinvent_delimited_id', StringType(), False),
+                StructField('sector_ecoinvent_delimited', StringType(), True)
+            ]  
+            ), 
+            'container': 'raw',
+            'location': 'sector_ecoinvent_delimited',
+            'type': 'parquet',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+        'sector_ecoinvent_delimited_transform': {
+            'columns' :  StructType([
+                StructField('sector_ecoinvent_delimited_id', StringType(), False),
+                StructField('sector_ecoinvent_delimited', StringType(), True)
+            ]  
+            ), 
+            'container': 'transform',
+            'location': 'sector_ecoinvent_delimited',
+            'type': 'parquet',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+        'sector_ecoinvent_landingzone': {
+            'columns' :  StructType([
+                StructField('sector_ecoinvent_id', StringType(), False),
+                StructField('sector_ecoinvent', StringType(), True)
+            ]  
+            ), 
+            'container': 'landingzone',
+            'location': 'tiltData/sector_ecoinvent.csv',
+            'type': 'csv',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+        'sector_ecoinvent_raw': {
+            'columns' :  StructType([
+                StructField('sector_ecoinvent_id', StringType(), False),
+                StructField('sector_ecoinvent', StringType(), True)
+            ]  
+            ), 
+            'container': 'raw',
+            'location': 'sector_ecoinvent',
+            'type': 'parquet',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+        'sector_ecoinvent_transform': {
+            'columns' :  StructType([
+                StructField('sector_ecoinvent_id', StringType(), False),
+                StructField('sector_ecoinvent', StringType(), True)
+            ]  
+            ), 
+            'container': 'transform',
+            'location': 'sector_ecoinvent',
             'type': 'parquet',
             'partition_by' : '',
             'quality_checks': []
