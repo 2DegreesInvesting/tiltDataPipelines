@@ -30,11 +30,11 @@ def generate_table(table_name: str) -> None:
 
         write_table(spark_generate, geographies_related_df, 'geographies_related')
 
-    elif table_name == 'unindentified_ao_raw':
+    elif table_name == 'undefined_ao_raw':
 
-        df = read_table(spark_generate, 'unindentified_ao_landingzone')
+        df = read_table(spark_generate, 'undefined_ao_landingzone')
 
-        write_table(spark_generate, df, 'unindentified_ao_raw')
+        write_table(spark_generate, df, 'undefined_ao_raw')
 
     elif table_name == 'cut_off_ao_raw':
 
@@ -56,12 +56,12 @@ def generate_table(table_name: str) -> None:
 
     elif table_name == 'products_activities_transformed':
 
-        unidentified_ao_df = read_table(spark_generate, 'unindentified_ao_raw')
+        undefined_ao_df = read_table(spark_generate, 'undefined_ao_raw')
         cutoff_ao_df = read_table(spark_generate, 'cut_off_ao_raw')
         en15804_ao_df = read_table(spark_generate, 'en15804_ao_raw')
         consequential_ao_df = read_table(spark_generate, 'consequential_ao_raw')
 
-        unidentified_ao_df = unidentified_ao_df.withColumn('Reference Product Name', F.lit(None))
+        undefined_ao_df = undefined_ao_df.withColumn('Reference Product Name', F.lit(None))
 
         cutoff_ao_df = cutoff_ao_df.withColumn('Product Group', F.lit(None))
         cutoff_ao_df = cutoff_ao_df.withColumn('Product Name', F.lit(None))
@@ -88,8 +88,8 @@ def generate_table(table_name: str) -> None:
         cutoff_activities = cutoff_ao_df.select(activity_list)
         cutoff_relations = cutoff_ao_df.select(relational_list)
         
-        unidentified_products = unidentified_ao_df.select(product_list)
-        unidentified_activities = unidentified_ao_df.select(activity_list)
+        undefined_products = undefined_ao_df.select(product_list)
+        undefined_activities = undefined_ao_df.select(activity_list)
 
         en15804_products = en15804_ao_df.select(product_list)
         en15804_activities = en15804_ao_df.select(activity_list)
@@ -99,11 +99,13 @@ def generate_table(table_name: str) -> None:
         consequential_activities = consequential_ao_df.select(activity_list)
         consequential_relations = consequential_ao_df.select(relational_list)
 
-        products_df = cutoff_products.union(unidentified_products)\
+        products_df = cutoff_products.union(undefined_products)\
                         .union(en15804_products).union(consequential_products).distinct()
 
-        activities_df = cutoff_activities.union(unidentified_activities)\
+        activities_df = cutoff_activities.union(undefined_activities)\
                         .union(en15804_activities).union(consequential_activities).distinct()
+
+        print(activities_df.groupBy('Activity UUID').count().show(vertical=True))
 
         relational_df = cutoff_relations.union(en15804_relations)\
                         .union(consequential_relations).distinct()

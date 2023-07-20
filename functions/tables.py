@@ -51,7 +51,7 @@ def get_table_definition(table_name: str) -> dict:
             'location': 'geographies',
             'type': 'parquet',
             'partition_by' : '',
-            'quality_checks': []
+            'quality_checks': [['unique', 'ID']]
         },
         'geographies_related': {
             'columns' :  StructType([
@@ -77,9 +77,9 @@ def get_table_definition(table_name: str) -> dict:
             'location': 'geographies',
             'type': 'parquet',
             'partition_by' : '',
-            'quality_checks': []
+            'quality_checks': [['unique', 'ID']]
         },
-        'unindentified_ao_landingzone': {
+        'undefined_ao_landingzone': {
             'columns' :  StructType([
                 StructField('Activity UUID', StringType(), True),
                 StructField('EcoQuery URL', StringType(), True),
@@ -100,12 +100,12 @@ def get_table_definition(table_name: str) -> dict:
             ]  
             ), 
             'container': 'landingzone',
-            'location': 'ecoInvent/Unidentified AO.csv',
+            'location': 'ecoInvent/Undefined AO.csv',
             'type': 'csv',
             'partition_by' : '',
             'quality_checks': []
         },
-        'unindentified_ao_raw': {
+        'undefined_ao_raw': {
             'columns' :  StructType([
                 StructField('Activity UUID', StringType(), False),
                 StructField('EcoQuery URL', StringType(), True),
@@ -126,7 +126,7 @@ def get_table_definition(table_name: str) -> dict:
             ]  
             ), 
             'container': 'raw',
-            'location': 'unidentified_ao',
+            'location': 'undefined_ao',
             'type': 'parquet',
             'partition_by' : '',
             'quality_checks': []
@@ -183,7 +183,7 @@ def get_table_definition(table_name: str) -> dict:
             'location': 'cutoff_ao',
             'type': 'parquet',
             'partition_by' : '',
-            'quality_checks': []
+            'quality_checks': [['unique', 'Activity UUID & Product UUID']]
         },
         'en15804_ao_landingzone': {
             'columns' :  StructType([
@@ -237,7 +237,7 @@ def get_table_definition(table_name: str) -> dict:
             'location': 'en15804_ao',
             'type': 'parquet',
             'partition_by' : '',
-            'quality_checks': []
+            'quality_checks': [['unique', 'Activity UUID & Product UUID']]
         },
         'consequential_ao_landingzone': {
             'columns' :  StructType([
@@ -291,7 +291,7 @@ def get_table_definition(table_name: str) -> dict:
             'location': 'consequential_ao',
             'type': 'parquet',
             'partition_by' : '',
-            'quality_checks': []
+            'quality_checks': [['unique', 'Activity UUID & Product UUID']]
         },
         'products_transformed': {
             'columns' :  StructType([
@@ -328,7 +328,7 @@ def get_table_definition(table_name: str) -> dict:
             'location': 'activities',
             'type': 'parquet',
             'partition_by' : '',
-            'quality_checks': []
+            'quality_checks': [['unique', 'Activity UUID']]
         },
         'products_activities_transformed': {
             'columns' :  StructType([
@@ -341,7 +341,7 @@ def get_table_definition(table_name: str) -> dict:
             'location': 'products_activities',
             'type': 'parquet',
             'partition_by' : 'AO Method',
-            'quality_checks': []
+            'quality_checks': [['unique', 'Activity UUID & Product UUID']]
         },
         'lcia_methods_landingzone': {
             'columns' :  StructType([
