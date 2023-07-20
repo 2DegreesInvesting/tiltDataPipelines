@@ -1,5 +1,5 @@
 from pyspark.sql import SparkSession, DataFrame
-from pyspark.sql.functions import col, lit
+from pyspark.sql.functions import col, lit, count, countDistinct
 from pyspark.sql.types import StringType
 import os
 
@@ -71,7 +71,11 @@ def read_table(read_session: SparkSession, table_name: str, partition: str = '')
 
     table_location = build_table_path(table_definition['container'], table_definition['location'], partition_path)
 
-    df = read_session.read.format(table_definition['type']).schema(table_definition['columns']).option('header', True).load(table_location)
+    if table_definition['type'] == 'csv':
+        df = read_session.read.format(table_definition['type']).schema(table_definition['columns']).option('header', True).option("quote", '"').option("multiline", 'True').load(table_location)
+    else:
+        df = read_session.read.format(table_definition['type']).schema(table_definition['columns']).option('header', True).load(table_location)
+
 
     if partition != '':
         df = df.withColumn(table_partition, lit(partition))
@@ -206,12 +210,16 @@ def validate_data_quality(spark_session: SparkSession, data_frame: DataFrame, ta
 
         # Check uniqueness by comparing the total values versus distinct values in a column
         if condition_list[0] == 'unique':
-            if data_frame.select(col(condition_list[1])).count() != data_frame.select(col(condition_list[1])).distinct().count():
-                raise ValueError(f"Column: {condition_list[1]} is not unique.")
+            # Check if the table is partitioned
+            if table_definition['partition_by']:
+                if data_frame.groupBy(table_definition['partition_by']).agg(count(col(condition_list[1])).alias('count')).collect() != data_frame.groupBy(table_definition['partition_by']).agg(countDistinct(col(condition_list[1])).alias('count')).collect():
+                    raise ValueError(f"Column: {condition_list[1]} is not unique along gropued columns.")
+            else:
+                if data_frame.select(col(condition_list[1])).count() != data_frame.select(col(condition_list[1])).distinct().count():
+                    raise ValueError(f"Column: {condition_list[1]} is not unique.")
 
         # Check if the formatting aligns with a specified pattern
         elif condition_list[0] == 'format':
-            print(condition_list)
             if data_frame.filter(dq_format(col(condition_list[1]), condition_list[2])).count() > 0:
                 raise ValueError(f'Column: {condition_list[1]} does not align with the specified format {condition_list[2]}')
 

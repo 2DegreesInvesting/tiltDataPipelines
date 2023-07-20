@@ -105,8 +105,6 @@ def generate_table(table_name: str) -> None:
         activities_df = cutoff_activities.union(undefined_activities)\
                         .union(en15804_activities).union(consequential_activities).distinct()
 
-        print(activities_df.groupBy('Activity UUID').count().show(vertical=True))
-
         relational_df = cutoff_relations.union(en15804_relations)\
                         .union(consequential_relations).distinct()
 
