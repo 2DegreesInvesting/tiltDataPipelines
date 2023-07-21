@@ -37,7 +37,7 @@ def get_table_definition(table_name: str) -> dict:
             'type': 'parquet',
             'partition_by' : '',
             'quality_checks': [['unique', 'ID'],
-                                ['format', 'Name', r"[a-zA-Z]"]]
+                                ['format', 'Geographical Classification', r"[a-zA-Z\-]"]]
         },
         'geographies_transform': {
             'columns' :  StructType([
@@ -314,7 +314,6 @@ def get_table_definition(table_name: str) -> dict:
         'activities_transformed': {
             'columns' :  StructType([
                 StructField('Activity UUID', StringType(), False),
-                StructField('EcoQuery URL', StringType(), True),
                 StructField('Activity Name', StringType(), True),
                 StructField('Geography', StringType(), True),
                 StructField('Time Period', StringType(), True),
@@ -335,6 +334,7 @@ def get_table_definition(table_name: str) -> dict:
                 StructField('Activity UUID & Product UUID', StringType(), False),
                 StructField('Activity UUID', StringType(), False),
                 StructField('Product UUID', StringType(), False),
+                StructField('EcoQuery URL', StringType(), True),
             ]  
             ), 
             'container': 'transform',

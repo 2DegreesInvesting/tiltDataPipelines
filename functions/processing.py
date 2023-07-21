@@ -78,11 +78,11 @@ def generate_table(table_name: str) -> None:
                         'CPC Classification','Unit',
                         'Product Information','CAS Number']
 
-        activity_list = ['Activity UUID','EcoQuery URL','Activity Name',
+        activity_list = ['Activity UUID','Activity Name',
                         'Geography','Time Period','Special Activity Type',
                         'Sector','ISIC Classification','ISIC Section']
 
-        relational_list = ['Activity UUID & Product UUID', 'Activity UUID', 'Product UUID','AO Method']
+        relational_list = ['Activity UUID & Product UUID', 'Activity UUID', 'Product UUID','EcoQuery URL','AO Method']
 
         cutoff_products = cutoff_ao_df.select(product_list)
         cutoff_activities = cutoff_ao_df.select(activity_list)

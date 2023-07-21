@@ -180,7 +180,7 @@ def validate_table_format(spark_session: SparkSession, data_frame: DataFrame, ta
         raise ValueError("The head of the table does not match.")
 
     # Perform additional quality checks on specific columns
-    validate_data_quality(spark_session, data_frame, table_name)
+    validated = validate_data_quality(spark_session, data_frame, table_name)
 
     # All checks passed, the format is valid
     return True
@@ -202,6 +202,7 @@ def validate_data_quality(spark_session: SparkSession, data_frame: DataFrame, ta
         ValueError: If any data quality checks fail.
 
     """
+
     table_definition = get_table_definition(table_name)
 
     for condition_list in table_definition['quality_checks']:
@@ -220,7 +221,7 @@ def validate_data_quality(spark_session: SparkSession, data_frame: DataFrame, ta
 
         # Check if the formatting aligns with a specified pattern
         elif condition_list[0] == 'format':
-            if data_frame.filter(dq_format(col(condition_list[1]), condition_list[2])).count() > 0:
+            if data_frame.filter(~col(condition_list[1]).rlike(condition_list[2])).count() > 0:
                 raise ValueError(f'Column: {condition_list[1]} does not align with the specified format {condition_list[2]}')
 
     return True
