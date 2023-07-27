@@ -1,4 +1,4 @@
-from pyspark.sql.types import StringType,StructType, StructField, DataType, BooleanType, FloatType, ByteType, ShortType, TimestampType
+from pyspark.sql.types import StringType,StructType, StructField, DataType, BooleanType, FloatType, ShortType, TimestampType, IntegerType
 
 def create_location_path():
 
@@ -809,8 +809,8 @@ def get_table_definition(table_name: str) -> dict:
                 StructField('company_city', StringType(), True),
                 StructField('postcode', StringType(), True),
                 StructField('information', StringType(), True),
-                StructField('min_headcount', ByteType(), True),
-                StructField('max_headcount', ByteType(), True),
+                StructField('min_headcount', IntegerType(), True),
+                StructField('max_headcount', IntegerType(), True),
                 StructField('type_of_building_for_registered_address', StringType(), True),
                 StructField('verified_by_europages', BooleanType(), True),
                 StructField('year_established', ShortType(), True),

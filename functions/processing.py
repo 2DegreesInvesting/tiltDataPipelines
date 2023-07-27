@@ -1,7 +1,7 @@
 from functions.spark_session import read_table, write_table, create_spark_session
 import pyspark.sql.functions as F
 from pyspark.sql.functions import col, when
-from pyspark.sql.types import FloatType, ByteType, TimestampType, BooleanType
+from pyspark.sql.types import FloatType, IntegerType, TimestampType, BooleanType
 
 
 def generate_table(table_name: str) -> None:
@@ -224,7 +224,7 @@ def generate_table(table_name: str) -> None:
         columns_to_replace_byte = ["min_headcount", "max_headcount"]
 
         for column_name in columns_to_replace_byte:
-            companies = companies.withColumn(column_name, col(column_name).cast(ByteType()))
+            companies = companies.withColumn(column_name, col(column_name).cast(IntegerType()))
 
         # to boolean values
         column_name = "verified_by_europages"
