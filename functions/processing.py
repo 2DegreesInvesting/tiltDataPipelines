@@ -192,7 +192,7 @@ def generate_table(table_name: str) -> None:
                       "supply_chain_fishing_and_aquaculture_gear_equipment", "supply_chain_other", "full_species_disclosure_for_entire_portfolio",
                       "full_species_disclosure_for_at_least_part_of_portfolio"]
         for column_name_1 in columns_to_replace:
-            print("check")
+            
             sea_food = sea_food.withColumn(column_name_1, 
                                when(col(column_name_1) == "yes", F.lit(True))
                                .when(col(column_name_1) == "no", F.lit(False))
@@ -207,7 +207,7 @@ def generate_table(table_name: str) -> None:
 
         for column_name_2 in columns_to_replace_float:
             sea_food = sea_food.withColumn(column_name_2, col(column_name_2).cast(FloatType()))
-        #print(sea_food.filter(col("global_fishing_index_access_of_foreign_fishing_fleets_assessment_score").isNotNull()).head())
+        
         write_table(spark_generate, sea_food, 'sea_food_raw')
 
     elif table_name == 'products_companies_raw':
