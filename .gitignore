@@ -163,3 +163,6 @@ cython_debug/
 settings.yaml
 
 .databricks
+
+# Ignore main.py used for testing purposes
+main.py
