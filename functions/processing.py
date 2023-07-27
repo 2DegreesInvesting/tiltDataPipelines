@@ -1,5 +1,7 @@
 from functions.spark_session import read_table, write_table, create_spark_session
 import pyspark.sql.functions as F
+from pyspark.sql.functions import col, when
+from pyspark.sql.types import FloatType, IntegerType, TimestampType, BooleanType
 
 
 def generate_table(table_name: str) -> None:
@@ -157,5 +159,165 @@ def generate_table(table_name: str) -> None:
         df = read_table(spark_generate, 'elementary_exchanges_raw')
 
         write_table(spark_generate, df, 'elementary_exchanges_transform')
+
+    elif table_name == 'issues_companies_raw':
+
+        df = read_table(spark_generate, 'issues_companies_landingzone')
+
+        write_table(spark_generate, df,'issues_companies_raw')
+        
+    elif table_name == 'issues_raw':
+
+        df = read_table(spark_generate, 'issues_landingzone')
+
+        write_table(spark_generate, df,'issues_raw')
+
+    elif table_name == 'sea_food_companies_raw':
+
+        df = read_table(spark_generate, 'sea_food_companies_landingzone')
+
+        write_table(spark_generate, df,'sea_food_companies_raw')
+
+    elif table_name == 'sea_food_raw':
+
+        df = read_table(spark_generate, 'sea_food_landingzone')
+
+        sea_food = df
+
+        # List of column names to replace to boolean values
+        columns_to_replace = ["supply_chain_feed", "supply_chain_fishing", "supply_chain_aquaculture", "supply_chain_processing",
+                      "supply_chain_wholesale_distribution", "supply_chain_retail", "supply_chain_foodservice", "supply_chain_fishing_vessels",
+                      "supply_chain_fishing_and_aquaculture_gear_equipment", "supply_chain_other", "full_species_disclosure_for_entire_portfolio",
+                      "full_species_disclosure_for_at_least_part_of_portfolio"]
+        for column_name_1 in columns_to_replace:
+            print("check")
+            sea_food = sea_food.withColumn(column_name_1, 
+                               when(col(column_name_1) == "yes", F.lit(True))
+                               .when(col(column_name_1) == "no", F.lit(False))
+                               .otherwise(F.lit(None)))    
+            
+        # List of column names to replace to float values
+        columns_to_replace_float = ["reporting_precision_pt_score", "world_benchmarking_alliance_seafood_stewardship_index", "ocean_health_index_score_2012",
+                      "ocean_health_index_score_2021", "ocean_health_index_score_percent_change_2021_2012", "fish_source_score_management_quality",
+                      "fish_source_score_managers_compliance", "fish_source_score_fishers_compliance", "fish_source_score_current_stock_health",
+                      "fish_source_score_future_stock_health", "sea_around_us_unreported_total_catch_percent","sea_around_us_bottom_trawl_total_catch_percent_35", "sea_around_us_gillnets_total_catch_percent", "global_fishing_index_data_availability_on_stock_sustainability", "global_fishing_index_proportion_of_assessed_fish_stocks_that_is_sustainable", "global_fishing_index_proportion_of_1990_2018_catches_that_is_sustainable", "global_fishing_index_proportion_of_1990_2018_catches_that_is_overfished", "global_fishing_index_proportion_of_1990_2018_catches_that_is_not_assessed", "global_fishing_index_fisheries_governance_score", "global_fishing_index_alignment_with_international_standards_for_protecting_worker_rights_and_safety_in_fisheries_assessment_score", "global_fishing_index_fishery_subsidy_program_assessment_score", "global_fishing_index_knowledge_on_fishing_fleets_assessment_score",
+                      "global_fishing_index_compliance_monitoring_and_surveillance_programs_assessment_score", "global_fishing_index_severity_of_fishery_sanctions_assessment_score", "global_fishing_index_access_of_foreign_fishing_fleets_assessment_score"]
+
+        for column_name_2 in columns_to_replace_float:
+            sea_food = sea_food.withColumn(column_name_2, col(column_name_2).cast(FloatType()))
+        #print(sea_food.filter(col("global_fishing_index_access_of_foreign_fishing_fleets_assessment_score").isNotNull()).head())
+        write_table(spark_generate, sea_food, 'sea_food_raw')
+
+    elif table_name == 'products_companies_raw':
+
+        df = read_table(spark_generate, 'products_companies_landingzone')
+
+        write_table(spark_generate, df,'products_companies_raw')
+
+    elif table_name == 'companies_raw':
+
+        df = read_table(spark_generate, 'companies_landingzone')
+
+        companies = df
+
+        # List of column names to replace to byte values
+        columns_to_replace_byte = ["min_headcount", "max_headcount"]
+
+        for column_name in columns_to_replace_byte:
+            companies = companies.withColumn(column_name, col(column_name).cast(IntegerType()))
+
+        # to boolean values
+        column_name = "verified_by_europages"
+        companies = companies.withColumn(column_name, col(column_name).cast(BooleanType()))
+
+        # to timestamp values
+        column_name = "download_datetime"
+        companies = companies.withColumn(column_name, col(column_name).cast(TimestampType()))  
+
+        write_table(spark_generate, companies, 'companies_raw')     
+
+    elif table_name == 'main_activity_raw':
+
+        df = read_table(spark_generate, 'main_activity_landingzone')
+
+        write_table(spark_generate, df,'main_activity_raw')    
+
+    elif table_name == 'geography_raw':
+
+        df = read_table(spark_generate, 'geography_landingzone')
+
+        write_table(spark_generate, df,'geography_raw') 
+
+    elif table_name == 'country_raw':
+
+        df = read_table(spark_generate, 'country_landingzone')
+
+        write_table(spark_generate, df,'country_raw') 
+
+    elif table_name == 'delimited_products_raw':
+
+        df = read_table(spark_generate, 'delimited_products_landingzone')
+
+        write_table(spark_generate, df,'delimited_products_raw') 
+
+    elif table_name == 'products_raw':
+
+        df = read_table(spark_generate, 'products_landingzone')
+
+        write_table(spark_generate, df,'products_raw') 
+
+    elif table_name == 'categories_companies_raw':
+
+        df = read_table(spark_generate, 'categories_companies_landingzone')
+
+        write_table(spark_generate, df,'categories_companies_raw') 
+
+    elif table_name == 'delimited_raw':
+
+        df = read_table(spark_generate, 'delimited_landingzone')
+
+        write_table(spark_generate, df,'delimited_raw') 
+
+    elif table_name == 'clustered_delimited_raw':
+
+        df = read_table(spark_generate, 'clustered_delimited_landingzone')
+
+        write_table(spark_generate, df,'clustered_delimited_raw') 
+
+    elif table_name == 'clustered_raw':
+
+        df = read_table(spark_generate, 'clustered_landingzone')
+
+        write_table(spark_generate, df,'clustered_raw')
+
+    elif table_name == 'categories_sector_ecoinvent_delimited_raw':
+
+        df = read_table(spark_generate, 'categories_sector_ecoinvent_delimited_landingzone')
+
+        write_table(spark_generate, df,'categories_sector_ecoinvent_delimited_raw')
+
+    elif table_name == 'categories_raw':
+
+        df = read_table(spark_generate, 'categories_landingzone')
+
+        write_table(spark_generate, df,'categories_raw')
+
+    elif table_name == 'sector_ecoinvent_delimited_sector_ecoinvent_raw':
+
+        df = read_table(spark_generate, 'sector_ecoinvent_delimited_sector_ecoinvent_landingzone')
+
+        write_table(spark_generate, df,'sector_ecoinvent_delimited_sector_ecoinvent_raw')
+
+    elif table_name == 'sector_ecoinvent_delimited_raw':
+
+        df = read_table(spark_generate, 'sector_ecoinvent_delimited_landingzone')
+
+        write_table(spark_generate, df,'sector_ecoinvent_delimited_raw')
+
+    elif table_name == 'sector_ecoinvent_raw':
+
+        df = read_table(spark_generate, 'sector_ecoinvent_landingzone')
+
+        write_table(spark_generate, df,'sector_ecoinvent_raw')
 
     spark_generate.stop()
