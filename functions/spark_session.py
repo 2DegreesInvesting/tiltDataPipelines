@@ -214,7 +214,7 @@ def validate_data_quality(spark_session: SparkSession, data_frame: DataFrame, ta
             # Check if the table is partitioned
             if table_definition['partition_by']:
                 if data_frame.groupBy(table_definition['partition_by']).agg(count(col(condition_list[1])).alias('count')).collect() != data_frame.groupBy(table_definition['partition_by']).agg(countDistinct(col(condition_list[1])).alias('count')).collect():
-                    raise ValueError(f"Column: {condition_list[1]} is not unique along gropued columns.")
+                    raise ValueError(f"Column: {condition_list[1]} is not unique along grouped columns.")
             else:
                 if data_frame.select(col(condition_list[1])).count() != data_frame.select(col(condition_list[1])).distinct().count():
                     raise ValueError(f"Column: {condition_list[1]} is not unique.")
