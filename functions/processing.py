@@ -12,6 +12,7 @@ def generate_table(table_name: str) -> None:
 
         df = read_table(spark_generate, 'geographies_landingzone')
 
+        # Filter out the empty values in the ID column, as empty records are read in from the source data.
         df = df.filter(~F.isnull(F.col('ID')))
 
         write_table(spark_generate, df,'geographies_raw')

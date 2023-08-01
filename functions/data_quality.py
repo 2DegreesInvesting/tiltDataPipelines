@@ -2,7 +2,6 @@ import pyspark.sql.functions as F
 from pyspark.sql.types import BooleanType
 import re
 
-
 @F.udf(returnType=BooleanType())
 def dq_isnull(col: str) -> bool:
     """
@@ -30,7 +29,7 @@ def dq_format(col: str, format: str) -> bool:
         format (str): The regular expression format to match against.
 
     Returns:
-        bool: True if the column matches the specified format, False otherwise.
+        bool: False if the column matches the specified format, True otherwise.
     """
     if re.match(format, col):
         return False
