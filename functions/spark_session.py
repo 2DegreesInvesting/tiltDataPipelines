@@ -1,9 +1,10 @@
 from pyspark.sql import SparkSession, DataFrame
-from pyspark.sql.functions import col, lit
+from pyspark.sql.functions import col, lit, count, countDistinct
 from pyspark.sql.types import StringType
 import os
 
 from functions.tables import get_table_definition
+from functions.data_quality import dq_format
 
 env = 'develop'
 
@@ -70,7 +71,11 @@ def read_table(read_session: SparkSession, table_name: str, partition: str = '')
 
     table_location = build_table_path(table_definition['container'], table_definition['location'], partition_path)
 
-    df = read_session.read.format(table_definition['type']).schema(table_definition['columns']).option('header', True).load(table_location)
+    if table_definition['type'] == 'csv':
+        df = read_session.read.format(table_definition['type']).schema(table_definition['columns']).option('header', True).option("quote", '"').option("multiline", 'True').load(table_location)
+    else:
+        df = read_session.read.format(table_definition['type']).schema(table_definition['columns']).option('header', True).load(table_location)
+
 
     if partition != '':
         df = df.withColumn(table_partition, lit(partition))
@@ -175,11 +180,48 @@ def validate_table_format(spark_session: SparkSession, data_frame: DataFrame, ta
         raise ValueError("The head of the table does not match.")
 
     # Perform additional quality checks on specific columns
-    for validate_column, regex_string in table_definition['quality_checks']:
-        if data_frame.filter(col(validate_column).rlike(regex_string)).count() > 0:
-            # At least one row does not pass the quality check
-            raise ValueError(f"The data quality rules on column '{validate_column}' are violated.")
+    validated = validate_data_quality(spark_session, data_frame, table_name)
 
     # All checks passed, the format is valid
     return True
 
+
+def validate_data_quality(spark_session: SparkSession, data_frame: DataFrame, table_name: str) -> bool:
+    """
+    Validates the data quality of a DataFrame against the specified table definition.
+
+    Args:
+        spark_session (SparkSession): The SparkSession object.
+        data_frame (DataFrame): The DataFrame to be validated.
+        table_name (str): The name of the table for which the data quality is validated.
+
+    Returns:
+        bool: True if the data quality checks pass, False otherwise.
+
+    Raises:
+        ValueError: If any data quality checks fail.
+
+    """
+
+    table_definition = get_table_definition(table_name)
+
+    for condition_list in table_definition['quality_checks']:
+        if condition_list[0] not in ['unique', 'format']:
+            raise ValueError(f'The quality check -{condition_list[0]}- is not implemented')
+
+        # Check uniqueness by comparing the total values versus distinct values in a column
+        if condition_list[0] == 'unique':
+            # Check if the table is partitioned
+            if table_definition['partition_by']:
+                if data_frame.groupBy(table_definition['partition_by']).agg(count(col(condition_list[1])).alias('count')).collect() != data_frame.groupBy(table_definition['partition_by']).agg(countDistinct(col(condition_list[1])).alias('count')).collect():
+                    raise ValueError(f"Column: {condition_list[1]} is not unique along grouped columns.")
+            else:
+                if data_frame.select(col(condition_list[1])).count() != data_frame.select(col(condition_list[1])).distinct().count():
+                    raise ValueError(f"Column: {condition_list[1]} is not unique.")
+
+        # Check if the formatting aligns with a specified pattern
+        elif condition_list[0] == 'format':
+            if data_frame.filter(~col(condition_list[1]).rlike(condition_list[2])).count() > 0:
+                raise ValueError(f'Column: {condition_list[1]} does not align with the specified format {condition_list[2]}')
+
+    return True
