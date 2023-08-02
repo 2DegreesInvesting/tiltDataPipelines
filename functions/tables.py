@@ -1180,7 +1180,7 @@ def get_table_definition(table_name: str) -> dict:
             'location': 'sector_ecoinvent',
             'type': 'parquet',
             'partition_by' : '',
-            'quality_checks': []
+            'quality_checks': [['unique','sector_ecoinvent_id']]
         },
         'product_matching_complete_all_cases_landingzone': {
             'columns' :  StructType([
