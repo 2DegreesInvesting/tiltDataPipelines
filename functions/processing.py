@@ -121,23 +121,11 @@ def generate_table(table_name: str) -> None:
 
         write_table(spark_generate, df, 'lcia_methods_raw')
 
-    elif table_name == 'lcia_methods_transform':
-
-        df = read_table(spark_generate, 'lcia_methods_raw')
-
-        write_table(spark_generate, df, 'lcia_methods_transform')
-
     elif table_name == 'impact_categories_raw':
 
         df = read_table(spark_generate, 'impact_categories_landingzone')
 
         write_table(spark_generate, df, 'impact_categories_raw')
-
-    elif table_name == 'impact_categories_transform':
-
-        df = read_table(spark_generate, 'impact_categories_raw')
-
-        write_table(spark_generate, df, 'impact_categories_transform')
 
     elif table_name == 'intermediate_exchanges_raw':
 
@@ -145,23 +133,11 @@ def generate_table(table_name: str) -> None:
 
         write_table(spark_generate, df, 'intermediate_exchanges_raw')
 
-    elif table_name == 'intermediate_exchanges_transform':
-
-        df = read_table(spark_generate, 'intermediate_exchanges_raw')
-
-        write_table(spark_generate, df, 'intermediate_exchanges_transform')
-
     elif table_name == 'elementary_exchanges_raw':
 
         df = read_table(spark_generate, 'elementary_exchanges_landingzone')
 
         write_table(spark_generate, df, 'elementary_exchanges_raw')
-
-    elif table_name == 'elementary_exchanges_transform':
-
-        df = read_table(spark_generate, 'elementary_exchanges_raw')
-
-        write_table(spark_generate, df, 'elementary_exchanges_transform')
 
     elif table_name == 'issues_companies_raw':
 
