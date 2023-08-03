@@ -64,7 +64,7 @@ def get_table_definition(table_name: str) -> dict:
             'partition_by' : '',
             'quality_checks': []
         },
-        'unindentified_ao_landingzone': {
+        'undefined_ao_landingzone': {
             'columns' :  StructType([
                 StructField('Activity UUID', StringType(), True),
                 StructField('EcoQuery URL', StringType(), True),
