@@ -1181,7 +1181,89 @@ def get_table_definition(table_name: str) -> dict:
             'type': 'parquet',
             'partition_by' : '',
             'quality_checks': [['unique','sector_ecoinvent_id']]
+        },
+        'product_matching_complete_all_cases_landingzone': {
+            'columns' :  StructType([
+                StructField('group_var', StringType(), False),
+                StructField('ep_id', StringType(), True),
+                StructField('ep_country', StringType(), True),
+                StructField('ep_main_act', StringType(), True),
+                StructField('ep_prod', StringType(), True),
+                StructField('lca_id', StringType(), True),
+                StructField('lca_prod', StringType(), True),
+                StructField('lca_act_name', StringType(), True),
+                StructField('lca_act_type', StringType(), True),
+                StructField('lca_geo', StringType(), True),
+                StructField('meta_mappable_main_activity', StringType(), True),
+                StructField('meta_matching_main_activity', StringType(), True),
+                StructField('score', StringType(), True),
+                StructField('priority', StringType(), True),
+                StructField('n_candidates', StringType(), True),
+                StructField('multi_match', StringType(), True),
+                StructField('cos_sim_bert_mini', StringType(), True)
+            ]  
+            ), 
+            'container': 'landingzone',
+            'location': 'Matching/product_matching_complete_all_cases.csv',
+            'type': 'csv',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+        'product_matching_complete_all_cases_raw': {
+            'columns' :  StructType([
+                StructField('group_var', StringType(), False),
+                StructField('ep_id', StringType(), True),
+                StructField('lca_id', StringType(), True)
+            ]  
+            ), 
+            'container': 'raw',
+            'location': 'product_matching_complete_all_cases',
+            'type': 'parquet',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+        'labelled_activity_v1.0_landingzone': {
+            'columns' :  StructType([
+                StructField('', StringType(), False),
+                StructField('index', StringType(), True),
+                StructField('ep_act_id', StringType(), True),
+                StructField('ep_country', StringType(), True),
+                StructField('ep_main_act', StringType(), True),
+                StructField('ep_act', StringType(), True),
+                StructField('Product UUID', StringType(), True),
+                StructField('Reference Product Name', StringType(), True),
+                StructField('Activity UUID', StringType(), True),
+                StructField('Activity Name', StringType(), True),
+                StructField('Activity UUID & Product UUID', StringType(), True),
+                StructField('Special Activity Type', StringType(), True),
+                StructField('Geography', StringType(), True),
+                StructField('bert_activities', StringType(), True),
+                StructField('completion', StringType(), True),
+                StructField('logprob', StringType(), True),
+                StructField('bert_epact_lcaprod', StringType(), True)
+            ]  
+            ), 
+            'container': 'landingzone',
+            'location': 'Matching/labelled_activity_v1.0.csv',
+            'type': 'csv',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+        'labelled_activity_v1.0_raw': {
+            'columns' :  StructType([
+                StructField('ep_act_id', StringType(), False),
+                StructField('ep_country', StringType(), True),
+                StructField('Activity UUID & Product UUID', StringType(), True)
+            ]  
+            ), 
+            'container': 'raw',
+            'location': 'labelled_activity_v1.0',
+            'type': 'parquet',
+            'partition_by' : '',
+            'quality_checks': []
         }
+        
+
     }
 
     return table_dict[table_name]

@@ -323,4 +323,20 @@ def generate_table(table_name: str) -> None:
 
         write_table(spark_generate, df,'sector_ecoinvent_raw')
 
+    elif table_name == 'product_matching_complete_all_cases_raw':
+
+        df = read_table(spark_generate, 'product_matching_complete_all_cases_landingzone')
+
+        product_matching_df = df.select('group_var', 'ep_id', 'lca_id')
+
+        write_table(spark_generate, product_matching_df, 'product_matching_complete_all_cases_raw')
+
+    elif table_name == 'labelled_activity_v1.0_raw':
+
+        df = read_table(spark_generate, 'labelled_activity_v1.0_landingzone')
+
+        activity_matching_df = df.select('ep_act_id', 'ep_country', 'Activity UUID & Product UUID')
+
+        write_table(spark_generate, activity_matching_df, 'labelled_activity_v1.0_raw')
+
     spark_generate.stop()
