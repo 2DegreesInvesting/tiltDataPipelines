@@ -108,9 +108,16 @@ def write_table(spark_session: SparkSession, data_frame: DataFrame, table_name: 
     if table_check:
         table_location = build_table_path(table_definition['container'], table_definition['location'], None)
         if partition:
-            data_frame.write.partitionBy(partition).mode('overwrite').parquet(table_location)
+            if table_definition['type'] == 'csv':
+                data_frame.write.partitionBy(partition).mode('overwrite').csv(table_location)
+            else:
+                data_frame.write.partitionBy(partition).mode('overwrite').parquet(table_location)
+            
         else:
-            data_frame.coalesce(1).write.mode('overwrite').parquet(table_location)
+            if table_definition['type'] == 'csv':
+                data_frame.coalesce(1).write.mode('overwrite').csv(table_location)
+            else:
+                data_frame.coalesce(1).write.mode('overwrite').parquet(table_location)
     else:
         raise ValueError("Table format validation failed.")
 
