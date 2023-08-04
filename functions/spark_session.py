@@ -1,5 +1,5 @@
 from pyspark.sql import SparkSession, DataFrame
-from pyspark.sql.functions import col, lit, count, countDistinct
+import pyspark.sql.functions as F
 from pyspark.sql.types import StringType
 import os
 
@@ -78,7 +78,7 @@ def read_table(read_session: SparkSession, table_name: str, partition: str = '')
 
 
     if partition != '':
-        df = df.withColumn(table_partition, lit(partition))
+        df = df.withColumn(table_partition, F.lit(partition))
 
     return df
 
@@ -102,6 +102,9 @@ def write_table(spark_session: SparkSession, data_frame: DataFrame, table_name: 
     """
 
     table_definition = get_table_definition(table_name)
+
+    # Add the SHA value to create a unique ID within tilt
+    data_frame = add_sha_value(spark_session, data_frame, partition)
 
     table_check = validate_table_format(spark_session, data_frame, table_name)
 
@@ -182,7 +185,7 @@ def validate_table_format(spark_session: SparkSession, data_frame: DataFrame, ta
         raise ValueError("The initial structure can not be joined.")
 
     # Compare the first row of the original DataFrame with the check DataFrame
-    if not data_frame.head().asDict() == check_df.head().asDict():
+    if not data_frame.orderBy(F.col('tiltRecordID')).head().asDict() == check_df.orderBy(F.col('tiltRecordID')).head().asDict():
         # The format of the DataFrame does not match the table definition
         raise ValueError("The head of the table does not match.")
 
@@ -220,15 +223,48 @@ def validate_data_quality(spark_session: SparkSession, data_frame: DataFrame, ta
         if condition_list[0] == 'unique':
             # Check if the table is partitioned
             if table_definition['partition_by']:
-                if data_frame.groupBy(table_definition['partition_by']).agg(count(col(condition_list[1])).alias('count')).collect() != data_frame.groupBy(table_definition['partition_by']).agg(countDistinct(col(condition_list[1])).alias('count')).collect():
+                if data_frame.groupBy(table_definition['partition_by']).agg(F.count(F.col(condition_list[1])).alias('count')).collect() != data_frame.groupBy(table_definition['partition_by']).agg(F.countDistinct(F.col(condition_list[1])).alias('count')).collect():
                     raise ValueError(f"Column: {condition_list[1]} is not unique along grouped columns.")
             else:
-                if data_frame.select(col(condition_list[1])).count() != data_frame.select(col(condition_list[1])).distinct().count():
+                if data_frame.select(F.col(condition_list[1])).count() != data_frame.select(F.col(condition_list[1])).distinct().count():
                     raise ValueError(f"Column: {condition_list[1]} is not unique.")
 
         # Check if the formatting aligns with a specified pattern
         elif condition_list[0] == 'format':
-            if data_frame.filter(~col(condition_list[1]).rlike(condition_list[2])).count() > 0:
+            if data_frame.filter(~F.col(condition_list[1]).rlike(condition_list[2])).count() > 0:
                 raise ValueError(f'Column: {condition_list[1]} does not align with the specified format {condition_list[2]}')
 
     return True
+
+def add_sha_value(spark_session: SparkSession, data_frame: DataFrame, partition: str = '') -> DataFrame:
+    """
+    Computes SHA-256 hash values for each row in the DataFrame and adds the hash as a new column 'tiltRecordID'.
+
+    This function takes a SparkSession object and a DataFrame as input, and it computes SHA-256 hash values
+    for each row in the DataFrame based on the values in all columns. The computed hash is then appended
+    as a new column called 'tiltRecordID' to the DataFrame. The order of columns in the DataFrame will
+    affect the generated hash value.
+
+    Args:
+        spark_session (SparkSession): The SparkSession instance.
+        data_frame (DataFrame): The input DataFrame containing the data to be processed.
+
+    Returns:
+        pyspark.sql.DataFrame: A new DataFrame with an additional 'tiltRecordID' column, where each row's
+        value represents the SHA-256 hash of the respective row's contents.
+    """
+    # Select all columns that are needed for the creation of a record ID
+    sha_columns = [F.col(col_name) for col_name in data_frame.columns if col_name not in ['tiltRecordID']]
+
+    # Create the SHA256 record ID by concatenating all columns. A delimiter of | is chosen to handle null values
+    data_frame = data_frame.withColumn('tiltRecordID',F.sha2(F.concat_ws('|',*sha_columns),256))
+
+    # Reorder the columns, to make sure the partition column is the most right column in the data frame
+    if partition:
+        col_order = [x for x in data_frame.columns if x not in ['tiltRecordID', partition]] + ['tiltRecordID',partition]
+    else:
+        col_order = [x for x in data_frame.columns if x not in ['tiltRecordID']] + ['tiltRecordID']
+    
+    data_frame = data_frame.select(col_order)
+
+    return data_frame
