@@ -2,6 +2,7 @@ from pyspark.sql import SparkSession, DataFrame
 import pyspark.sql.functions as F
 from pyspark.sql.types import StringType
 import os
+import pyspark
 
 from functions.tables import get_table_definition
 from functions.data_quality import dq_format
@@ -71,13 +72,24 @@ def read_table(read_session: SparkSession, table_name: str, partition: str = '')
 
     table_location = build_table_path(table_definition['container'], table_definition['location'], partition_path)
 
-    if table_definition['type'] == 'csv':
-        df = read_session.read.format(table_definition['type']).schema(table_definition['columns']).option('header', True).option("quote", '"').option("multiline", 'True').load(table_location)
-    else:
-        df = read_session.read.format(table_definition['type']).schema(table_definition['columns']).option('header', True).load(table_location)
+    try:
+        if table_definition['type'] == 'csv':
+            df = read_session.read.format(table_definition['type']).schema(table_definition['columns']).option('header', True).option("quote", '"').option("multiline", 'True').load(table_location)
+        else:
+            df = read_session.read.format(table_definition['type']).schema(table_definition['columns']).option('header', True).load(table_location)
+        # Force to load first record of the data to check if it throws an error
+        df.head()
+    # Try to catch the specific exception where the table to be read does not exist
+    except pyspark.errors.exceptions.connect.AnalysisException as e:
+        # If the table does not exist yet, return an empty data frame
+        if "Path does not exist:" in str(e):
+            df = read_session.createDataFrame([], table_definition['columns'])
+        # If we encounter any other error, raise as the error
+        else:
+            raise(e)
 
 
-    if partition != '':
+    if partition:
         df = df.withColumn(table_partition, F.lit(partition))
 
     return df
