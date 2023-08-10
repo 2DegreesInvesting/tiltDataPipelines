@@ -28,7 +28,8 @@ def get_table_definition(table_name: str) -> dict:
                 StructField('Name', StringType(), True),
                 StructField('Shortname', StringType(), True),
                 StructField('Geographical Classification', StringType(), True),
-                StructField('Contained and Overlapping Geographies', StringType(), True)
+                StructField('Contained and Overlapping Geographies', StringType(), True),
+                StructField('tiltRecordID', StringType(), False),
             ]  
             ), 
             'container': 'raw',
@@ -44,6 +45,7 @@ def get_table_definition(table_name: str) -> dict:
                 StructField('Name', StringType(), True),
                 StructField('Shortname', StringType(), True),
                 StructField('Geographical Classification', StringType(), True),
+                StructField('tiltRecordID', StringType(), False),
             ]  
             ), 
             'container': 'transform',
@@ -56,6 +58,7 @@ def get_table_definition(table_name: str) -> dict:
             'columns' :  StructType([
                 StructField('Shortname', StringType(), True),
                 StructField('Shortname_related', StringType(), True),
+                StructField('tiltRecordID', StringType(), False),
             ]  
             ), 
             'container': 'transform',
@@ -108,6 +111,7 @@ def get_table_definition(table_name: str) -> dict:
                 StructField('Unit', StringType(), True),
                 StructField('Product Information', StringType(), True),
                 StructField('CAS Number', StringType(), True),
+                StructField('tiltRecordID', StringType(), False),
             ]  
             ), 
             'container': 'raw',
@@ -162,6 +166,7 @@ def get_table_definition(table_name: str) -> dict:
                 StructField('Product Information', StringType(), True),
                 StructField('CAS Number', StringType(), True),
                 StructField('Cut-Off Classification', StringType(), True),
+                StructField('tiltRecordID', StringType(), False),
             ]  
             ), 
             'container': 'raw',
@@ -216,6 +221,7 @@ def get_table_definition(table_name: str) -> dict:
                 StructField('Product Information', StringType(), True),
                 StructField('CAS Number', StringType(), True),
                 StructField('Cut-Off Classification', StringType(), True),
+                StructField('tiltRecordID', StringType(), False),
             ]  
             ), 
             'container': 'raw',
@@ -270,6 +276,7 @@ def get_table_definition(table_name: str) -> dict:
                 StructField('Unit', StringType(), True),
                 StructField('Product Information', StringType(), True),
                 StructField('CAS Number', StringType(), True),
+                StructField('tiltRecordID', StringType(), False),
             ]  
             ), 
             'container': 'raw',
@@ -288,6 +295,7 @@ def get_table_definition(table_name: str) -> dict:
                 StructField('Unit', StringType(), True),
                 StructField('Product Information', StringType(), True),
                 StructField('CAS Number', StringType(), True),
+                StructField('tiltRecordID', StringType(), False),
             ]  
             ), 
             'container': 'transform',
@@ -306,6 +314,7 @@ def get_table_definition(table_name: str) -> dict:
                 StructField('Sector', StringType(), True),
                 StructField('ISIC Classification', StringType(), True),
                 StructField('ISIC Section', StringType(), True),
+                StructField('tiltRecordID', StringType(), False),
             ]  
             ), 
             'container': 'transform',
@@ -320,6 +329,7 @@ def get_table_definition(table_name: str) -> dict:
                 StructField('Activity UUID', StringType(), False),
                 StructField('Product UUID', StringType(), False),
                 StructField('EcoQuery URL', StringType(), True),
+                StructField('tiltRecordID', StringType(), False),
             ]  
             ), 
             'container': 'transform',
@@ -350,24 +360,10 @@ def get_table_definition(table_name: str) -> dict:
                 StructField('Method Version', StringType(), True),
                 StructField('Further Documentation', StringType(), True),
                 StructField('Links to Characterization Factor Successes', StringType(), True),
+                StructField('tiltRecordID', StringType(), False),
             ]  
             ), 
             'container': 'raw',
-            'location': 'lcia_methods',
-            'type': 'parquet',
-            'partition_by' : '',
-            'quality_checks': []
-        },
-        'lcia_methods_transform': {
-            'columns' :  StructType([
-                StructField('Method Name', StringType(), False),
-                StructField('Status', StringType(), False),
-                StructField('Method Version', StringType(), True),
-                StructField('Further Documentation', StringType(), True),
-                StructField('Links to Characterization Factor Successes', StringType(), True),
-            ]  
-            ), 
-            'container': 'transform',
             'location': 'lcia_methods',
             'type': 'parquet',
             'partition_by' : '',
@@ -409,31 +405,10 @@ def get_table_definition(table_name: str) -> dict:
                 StructField('Category name in method', StringType(), True),
                 StructField('Indicator name in method', StringType(), True),
                 StructField('Unit in method', StringType(), True),
+                StructField('tiltRecordID', StringType(), False),
             ]  
             ), 
             'container': 'raw',
-            'location': 'impact_categories',
-            'type': 'parquet',
-            'partition_by' : '',
-            'quality_checks': []
-        },
-        'impact_categories_transform': {
-            'columns' :  StructType([
-                StructField('Resources - Emissions - Total', StringType(), True),
-                StructField('Main impact/damage category', StringType(), True),
-                StructField('Inventory - Midpoint - Endpoint - AoP', StringType(), True),
-                StructField('Area of Protection (AoP)', StringType(), True),
-                StructField('Used in EN15804', StringType(), True),
-                StructField('Method', StringType(), True),
-                StructField('Category', StringType(), True),
-                StructField('Indicator', StringType(), True),
-                StructField('Unit', StringType(), True),
-                StructField('Category name in method', StringType(), True),
-                StructField('Indicator name in method', StringType(), True),
-                StructField('Unit in method', StringType(), True),
-            ]  
-            ), 
-            'container': 'transform',
             'location': 'impact_categories',
             'type': 'parquet',
             'partition_by' : '',
@@ -469,28 +444,10 @@ def get_table_definition(table_name: str) -> dict:
                 StructField('CPC Classification', StringType(), True),
                 StructField('Product Information', StringType(), True),
                 StructField('Synonym', StringType(), True),
+                StructField('tiltRecordID', StringType(), False),
             ]  
             ), 
             'container': 'raw',
-            'location': 'intermediate_exchanges',
-            'type': 'parquet',
-            'partition_by' : '',
-            'quality_checks': []
-        },
-        'intermediate_exchanges_transform': {
-            'columns' :  StructType([
-                StructField('ID', StringType(), True),
-                StructField('Name', StringType(), True),
-                StructField('Unit Name', StringType(), True),
-                StructField('CAS Number', StringType(), True),
-                StructField('Comment', StringType(), True),
-                StructField('By-product Classification', StringType(), True),
-                StructField('CPC Classification', StringType(), True),
-                StructField('Product Information', StringType(), True),
-                StructField('Synonym', StringType(), True),
-            ]  
-            ), 
-            'container': 'transform',
             'location': 'intermediate_exchanges',
             'type': 'parquet',
             'partition_by' : '',
@@ -526,6 +483,7 @@ def get_table_definition(table_name: str) -> dict:
                 StructField('Comment', StringType(), True),
                 StructField('Synonym', StringType(), True),
                 StructField('Formula', StringType(), True),
+                StructField('tiltRecordID', StringType(), False),
             ]  
             ), 
             'container': 'raw',
@@ -534,26 +492,6 @@ def get_table_definition(table_name: str) -> dict:
             'partition_by' : '',
             'quality_checks': []
         },
-        'elementary_exchanges_transform': {
-            'columns' :  StructType([
-                StructField('ID', StringType(), True),
-                StructField('Name', StringType(), True),
-                StructField('Compartment', StringType(), True),
-                StructField('Sub Compartment', StringType(), True),
-                StructField('Unit Name', StringType(), True),
-                StructField('CAS Number', StringType(), True),
-                StructField('Comment', StringType(), True),
-                StructField('Synonym', StringType(), True),
-                StructField('Formula', StringType(), True),
-            ]  
-            ), 
-            'container': 'transform',
-            'location': 'elementary_exchanges',
-            'type': 'parquet',
-            'partition_by' : '',
-            'quality_checks': []
-        },
-
         'issues_companies_landingzone': {
             'columns' :  StructType([
                 StructField('issues_companies_id', StringType(), False),
@@ -571,7 +509,8 @@ def get_table_definition(table_name: str) -> dict:
             'columns' :  StructType([
                 StructField('issues_companies_id', StringType(), False),
                 StructField('issues_id', StringType(), True),
-                StructField('companies_id', StringType(), True)
+                StructField('companies_id', StringType(), True),
+                StructField('tiltRecordID', StringType(), False),
             ]  
             ), 
             'container': 'raw',
@@ -599,7 +538,8 @@ def get_table_definition(table_name: str) -> dict:
                 StructField('issues_id', StringType(), False),
                 StructField('repo', StringType(), True),
                 StructField('issue', StringType(), True),
-                StructField('title', StringType(), True)
+                StructField('title', StringType(), True),
+                StructField('tiltRecordID', StringType(), False),
             ]  
             ), 
             'container': 'raw',
@@ -625,7 +565,8 @@ def get_table_definition(table_name: str) -> dict:
             'columns' :  StructType([
                 StructField('sea_food_companies_id', StringType(), False),
                 StructField('sea_food_id', StringType(), True),
-                StructField('companies_id', StringType(), True)
+                StructField('companies_id', StringType(), True),
+                StructField('tiltRecordID', StringType(), False),
             ]  
             ), 
             'container': 'raw',
@@ -741,7 +682,8 @@ def get_table_definition(table_name: str) -> dict:
                 StructField('global_fishing_index_knowledge_on_fishing_fleets_assessment_score', FloatType(), True),
                 StructField('global_fishing_index_compliance_monitoring_and_surveillance_programs_assessment_score', FloatType(), True),
                 StructField('global_fishing_index_severity_of_fishery_sanctions_assessment_score', FloatType(), True),
-                StructField('global_fishing_index_access_of_foreign_fishing_fleets_assessment_score', FloatType(), True)
+                StructField('global_fishing_index_access_of_foreign_fishing_fleets_assessment_score', FloatType(), True),
+                StructField('tiltRecordID', StringType(), False),
             ]  
             ), 
             'container': 'raw',
@@ -767,7 +709,8 @@ def get_table_definition(table_name: str) -> dict:
             'columns' :  StructType([
                 StructField('products_companies_id', StringType(), False),
                 StructField('products_id', StringType(), True),
-                StructField('companies_id', StringType(), True)
+                StructField('companies_id', StringType(), True),
+                StructField('tiltRecordID', StringType(), False),
             ]  
             ), 
             'container': 'raw',
@@ -817,7 +760,8 @@ def get_table_definition(table_name: str) -> dict:
                 StructField('year_established', ShortType(), True),
                 StructField('websites', StringType(), True),
                 StructField('download_datetime', TimestampType(), True),
-                StructField('country_id', StringType(), True)
+                StructField('country_id', StringType(), True),
+                StructField('tiltRecordID', StringType(), False),
             ]  
             ), 
             'container': 'raw',
@@ -843,7 +787,8 @@ def get_table_definition(table_name: str) -> dict:
             'columns' :  StructType([
                 StructField('main_activity_id', StringType(), False),
                 StructField('main_activity', StringType(), True),
-                StructField('ecoinvent', StringType(), True)
+                StructField('ecoinvent', StringType(), True),
+                StructField('tiltRecordID', StringType(), False),
             ]  
             ), 
             'container': 'raw',
@@ -871,7 +816,8 @@ def get_table_definition(table_name: str) -> dict:
                 StructField('geography_id', StringType(), False),
                 StructField('country_id', StringType(), True),
                 StructField('ecoinvent_geography', StringType(), True),
-                StructField('priority', StringType(), True)
+                StructField('priority', StringType(), True),
+                StructField('tiltRecordID', StringType(), False),
             ]  
             ), 
             'container': 'raw',
@@ -895,7 +841,8 @@ def get_table_definition(table_name: str) -> dict:
         'country_raw': {
             'columns' :  StructType([
                 StructField('country_id', StringType(), False),
-                StructField('country', StringType(), True)
+                StructField('country', StringType(), True),
+                StructField('tiltRecordID', StringType(), False),
             ]  
             ), 
             'container': 'raw',
@@ -921,7 +868,8 @@ def get_table_definition(table_name: str) -> dict:
             'columns' :  StructType([
                 StructField('delimited_products_id', StringType(), False),
                 StructField('delimited_id', StringType(), True),
-                StructField('products_id', StringType(), True)
+                StructField('products_id', StringType(), True),
+                StructField('tiltRecordID', StringType(), False),
             ]  
             ), 
             'container': 'raw',
@@ -945,7 +893,8 @@ def get_table_definition(table_name: str) -> dict:
         'products_raw': {
             'columns' :  StructType([
                 StructField('products_id', StringType(), False),
-                StructField('products_and_services', StringType(), True)
+                StructField('products_and_services', StringType(), True),
+                StructField('tiltRecordID', StringType(), False),
             ]  
             ), 
             'container': 'raw',
@@ -971,7 +920,8 @@ def get_table_definition(table_name: str) -> dict:
             'columns' :  StructType([
                 StructField('categories_companies_id', StringType(), False),
                 StructField('categories_id', StringType(), True),
-                StructField('companies_id', StringType(), True)
+                StructField('companies_id', StringType(), True),
+                StructField('tiltRecordID', StringType(), False),
             ]  
             ), 
             'container': 'raw',
@@ -995,7 +945,8 @@ def get_table_definition(table_name: str) -> dict:
         'delimited_raw': {
             'columns' :  StructType([
                 StructField('delimited_id', StringType(), False),
-                StructField('delimited', StringType(), True)
+                StructField('delimited', StringType(), True),
+                StructField('tiltRecordID', StringType(), False),
             ]  
             ), 
             'container': 'raw',
@@ -1021,7 +972,8 @@ def get_table_definition(table_name: str) -> dict:
             'columns' :  StructType([
                 StructField('clustered_delimited_id', StringType(), False),
                 StructField('clustered_id', StringType(), True),
-                StructField('delimited_id', StringType(), True)
+                StructField('delimited_id', StringType(), True),
+                StructField('tiltRecordID', StringType(), False),
             ]  
             ), 
             'container': 'raw',
@@ -1045,7 +997,8 @@ def get_table_definition(table_name: str) -> dict:
         'clustered_raw': {
             'columns' :  StructType([
                 StructField('clustered_id', StringType(), False),
-                StructField('clustered', StringType(), True)
+                StructField('clustered', StringType(), True),
+                StructField('tiltRecordID', StringType(), False),
             ]  
             ), 
             'container': 'raw',
@@ -1071,7 +1024,8 @@ def get_table_definition(table_name: str) -> dict:
             'columns' :  StructType([
                 StructField('categories_sector_ecoinvent_delimited_id', StringType(), False),
                 StructField('categories_id', StringType(), True),
-                StructField('sector_ecoinvent_delimited_id', StringType(), True)
+                StructField('sector_ecoinvent_delimited_id', StringType(), True),
+                StructField('tiltRecordID', StringType(), False),
             ]  
             ), 
             'container': 'raw',
@@ -1099,7 +1053,8 @@ def get_table_definition(table_name: str) -> dict:
                 StructField('categories_id', StringType(), False),
                 StructField('group', StringType(), True),
                 StructField('sector', StringType(), True),
-                StructField('subsector', StringType(), True)
+                StructField('subsector', StringType(), True),
+                StructField('tiltRecordID', StringType(), False),
             ]  
             ), 
             'container': 'raw',
@@ -1125,7 +1080,8 @@ def get_table_definition(table_name: str) -> dict:
             'columns' :  StructType([
                 StructField('sector_ecoinvent_delimited_sector_ecoinvent_id', StringType(), False),
                 StructField('sector_ecoinvent_delimited_id', StringType(), True),
-                StructField('sector_ecoinvent_id', StringType(), True)
+                StructField('sector_ecoinvent_id', StringType(), True),
+                StructField('tiltRecordID', StringType(), False),
             ]  
             ), 
             'container': 'raw',
@@ -1149,7 +1105,8 @@ def get_table_definition(table_name: str) -> dict:
         'sector_ecoinvent_delimited_raw': {
             'columns' :  StructType([
                 StructField('sector_ecoinvent_delimited_id', StringType(), False),
-                StructField('sector_ecoinvent_delimited', StringType(), True)
+                StructField('sector_ecoinvent_delimited', StringType(), True),
+                StructField('tiltRecordID', StringType(), False),
             ]  
             ), 
             'container': 'raw',
@@ -1173,7 +1130,8 @@ def get_table_definition(table_name: str) -> dict:
         'sector_ecoinvent_raw': {
             'columns' :  StructType([
                 StructField('sector_ecoinvent_id', StringType(), False),
-                StructField('sector_ecoinvent', StringType(), True)
+                StructField('sector_ecoinvent', StringType(), True),
+                StructField('tiltRecordID', StringType(), False),
             ]  
             ), 
             'container': 'raw',
@@ -1213,7 +1171,8 @@ def get_table_definition(table_name: str) -> dict:
             'columns' :  StructType([
                 StructField('group_var', StringType(), False),
                 StructField('ep_id', StringType(), True),
-                StructField('lca_id', StringType(), True)
+                StructField('lca_id', StringType(), True),
+                StructField('tiltRecordID', StringType(), False),
             ]  
             ), 
             'container': 'raw',
@@ -1253,7 +1212,8 @@ def get_table_definition(table_name: str) -> dict:
             'columns' :  StructType([
                 StructField('ep_act_id', StringType(), False),
                 StructField('ep_country', StringType(), True),
-                StructField('Activity UUID & Product UUID', StringType(), True)
+                StructField('Activity UUID & Product UUID', StringType(), True),
+                StructField('tiltRecordID', StringType(), False),
             ]  
             ), 
             'container': 'raw',
