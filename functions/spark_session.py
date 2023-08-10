@@ -116,7 +116,7 @@ def write_table(spark_session: SparkSession, data_frame: DataFrame, table_name: 
     table_definition = get_table_definition(table_name)
 
     # Add the SHA value to create a unique ID within tilt
-    data_frame = add_sha_value(spark_session, data_frame, partition)
+    data_frame = add_record_id(spark_session, data_frame, partition)
 
     table_check = validate_table_format(spark_session, data_frame, table_name)
 
@@ -248,7 +248,7 @@ def validate_data_quality(spark_session: SparkSession, data_frame: DataFrame, ta
 
     return True
 
-def add_sha_value(spark_session: SparkSession, data_frame: DataFrame, partition: str = '') -> DataFrame:
+def add_record_id(spark_session: SparkSession, data_frame: DataFrame, partition: str = '') -> DataFrame:
     """
     Computes SHA-256 hash values for each row in the DataFrame and adds the hash as a new column 'tiltRecordID'.
 
