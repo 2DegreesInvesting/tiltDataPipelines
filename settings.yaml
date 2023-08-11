@@ -1,4 +1,4 @@
 databricks:
-  workspace_name: workspace_name
-  access_token: access_token
-  cluster_id: cluster_id
+  workspace_name: sc://adb-7031535908756861.1.azuredatabricks.net
+  access_token: dapi1244abd4437d82388d2fa35b5184a35b-2
+  cluster_id: 0721-074826-tx3qbg2w

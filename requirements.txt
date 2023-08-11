@@ -31,13 +31,14 @@ oauthlib==3.2.2
 pandas==2.0.2
 portalocker==2.7.0
 protobuf==4.23.2
-py4j==0.10.9.5
+py4j==0.10.9.7
 pyarrow==12.0.0
 pyasn1==0.5.0
 pyasn1-modules==0.3.0
 pycparser==2.21
 PyJWT==2.7.0
 pyparsing==3.0.9
+pyspark==3.4.1
 python-dateutil==2.8.2
 pytz==2023.3
 pywin32==306

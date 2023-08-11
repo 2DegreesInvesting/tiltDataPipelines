@@ -226,7 +226,7 @@ def validate_data_quality(spark_session: SparkSession, data_frame: DataFrame, ta
                 if data_frame.groupBy(table_definition['partition_by']).agg(F.count(F.col(condition_list[1])).alias('count')).collect() != data_frame.groupBy(table_definition['partition_by']).agg(F.countDistinct(F.col(condition_list[1])).alias('count')).collect():
                     raise ValueError(f"Column: {condition_list[1]} is not unique along grouped columns.")
             else:
-                if data_frame.select(F.col(condition_list[1])).count() != data_frame.select(F.col(condition_list[1])).distinct().count():
+                if data_frame.select(*[F.col(column) for column in condition_list[1]]).count() != data_frame.select(*[F.col(column) for column in condition_list[1]]).distinct().count():
                     raise ValueError(f"Column: {condition_list[1]} is not unique.")
 
         # Check if the formatting aligns with a specified pattern
