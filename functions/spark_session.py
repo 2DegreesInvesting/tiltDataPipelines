@@ -268,8 +268,9 @@ def add_record_id(spark_session: SparkSession, data_frame: DataFrame, partition:
     # Select all columns that are needed for the creation of a record ID
     sha_columns = [F.col(col_name) for col_name in data_frame.columns if col_name not in ['tiltRecordID']]
 
-    # Create the SHA256 record ID by concatenating all columns. A delimiter of | is chosen to handle null values
-    data_frame = data_frame.withColumn('tiltRecordID',F.sha2(F.concat_ws('|',*sha_columns),256))
+    # Create the SHA256 record ID by concatenating all relevant columns
+    data_frame = create_sha_values(spark_session, data_frame, sha_columns)
+    data_frame = data_frame.withColumnRenamed('shaValue','tiltRecordID')
 
     # Reorder the columns, to make sure the partition column is the most right column in the data frame
     if partition:
@@ -280,3 +281,40 @@ def add_record_id(spark_session: SparkSession, data_frame: DataFrame, partition:
     data_frame = data_frame.select(col_order)
 
     return data_frame
+
+def create_sha_values(spark_session: SparkSession, data_frame: DataFrame, col_list: list) -> DataFrame:
+
+    data_frame = data_frame.withColumn('shaValue',F.sha2(F.concat_ws('|',*col_list),256))
+
+    return data_frame
+
+def compare_tables(spark_session: SparkSession, data_frame: DataFrame, table_name: str) -> DataFrame:
+
+    # Select the columns that contain values that should be compared
+    value_columns = [F.col(col_name) for col_name in data_frame.columns if col_name not in ['tiltRecordID','from_date','to_date']]
+
+    # Read the already existing table
+    old_df = read_table(spark_session,table_name)
+
+    # Add the SHA representation of the old records and rename to unique name
+    old_df = create_sha_values(spark_session, old_df, value_columns)
+    old_df = old_df.withColumnRenamed('shaValue','shaValueOld')
+
+    # Add the SHA representation of the incoming records and rename to unique name
+    new_data_frame = create_sha_values(spark_session, data_frame, value_columns)
+    new_data_frame = new_data_frame.withColumn('from_date',F.lit('20230101')).withColumn('to_date',F.lit('20991231'))
+    new_data_frame = new_data_frame.withColumnRenamed('shaValue','shaValueNew')
+
+    # Join the SHA values of both tables together
+    combined_df = new_data_frame.select(F.col('shaValueNew')).join(old_df.select('shaValueOld'),on=old_df.shaValueOld==new_data_frame.shaValueNew,how='full')
+
+    identical_records = combined_df.filter((F.col('shaValueOld').isNotNull())&(F.col('shaValueNew').isNotNull())).join(old_df,on=combined_df.shaValueOld==old_df.shaValueOld)
+    closed_records = combined_df.filter((F.col('shaValueOld').isNotNull())&(F.col('shaValueNew').isNull()))
+    new_records = combined_df.filter((F.col('shaValueOld').isNull())&(F.col('shaValueNew').isNotNull()))
+
+
+
+
+
+
+    return identical_records
