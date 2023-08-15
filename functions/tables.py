@@ -302,7 +302,7 @@ def get_table_definition(table_name: str) -> dict:
             'location': 'products',
             'type': 'parquet',
             'partition_by' : '',
-            'quality_checks': [['unique', ['Product UUID']]]
+            'quality_checks': []
         },
         'activities_transformed': {
             'columns' :  StructType([
@@ -336,7 +336,7 @@ def get_table_definition(table_name: str) -> dict:
             'location': 'products_activities',
             'type': 'parquet',
             'partition_by' : 'AO Method',
-            'quality_checks': []
+            'quality_checks': [['unique', ['Activity UUID & Product UUID']]]
         },
         'lcia_methods_landingzone': {
             'columns' :  StructType([
