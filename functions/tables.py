@@ -1,4 +1,4 @@
-from pyspark.sql.types import StringType,StructType, StructField, DataType, BooleanType, FloatType, ShortType, TimestampType, IntegerType
+from pyspark.sql.types import StringType,StructType, StructField, DataType, BooleanType, FloatType, ShortType, TimestampType, IntegerType, DecimalType
 
 def create_location_path():
 
@@ -1218,6 +1218,119 @@ def get_table_definition(table_name: str) -> dict:
             ), 
             'container': 'raw',
             'location': 'labelled_activity_v1.0',
+            'type': 'parquet',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+        'ep_companies_NL_postcode_landingzone': {
+            'columns' :  StructType([
+                StructField('id', StringType(), False),
+                StructField('company_name', StringType(), True),
+                StructField('postcode', StringType(), True)
+            ]  
+            ), 
+            'container': 'landingzone',
+            'location': 'tiltIndicatorBefore/ep_companies_NL_postcode.csv',
+            'type': 'csv',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+        'ep_companies_NL_postcode_raw': {
+            'columns' :  StructType([
+                StructField('id', StringType(), False),
+                StructField('company_name', StringType(), True),
+                StructField('postcode', StringType(), True),
+                StructField('tiltRecordID', StringType(), False)
+            ]  
+            ), 
+            'container': 'raw',
+            'location': 'ep_companies_NL_postcode',
+            'type': 'parquet',
+            'partition_by' : '',
+            'quality_checks': [['unique','id']]
+        },
+        'ep_ei_matcher_landingzone': {
+            'columns' :  StructType([
+                StructField('group_var', StringType(), False),
+                StructField('ep_id', StringType(), True),
+                StructField('ep_country', StringType(), True),
+                StructField('ep_main_act', StringType(), True),
+                StructField('ep_clustered', StringType(), True),
+                StructField('activity_uuid_product_uuid', StringType(), True),
+                StructField('multi_match', StringType(), True),
+                StructField('completion', StringType(), True),
+                StructField('logprob', StringType(), True),
+                StructField('category', StringType(), True),
+                StructField('bert_activities', StringType(), True),
+                StructField('bert_epact_lcaprod', StringType(), True)
+            ]  
+            ), 
+            'container': 'landingzone',
+            'location': 'tiltIndicatorBefore/ep_ei_matcher.csv',
+            'type': 'csv',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+        'ep_ei_matcher_raw': {
+            'columns' :  StructType([
+                StructField('group_var', StringType(), False),
+                StructField('ep_id', StringType(), True),
+                StructField('ep_country', StringType(), True),
+                StructField('ep_main_act', StringType(), True),
+                StructField('ep_clustered', StringType(), True),
+                StructField('activity_uuid_product_uuid', StringType(), True),
+                StructField('multi_match', BooleanType(), True),
+                StructField('completion', StringType(), True),
+                StructField('logprob', DecimalType(), True),
+                StructField('category', StringType(), True),
+                StructField('bert_activities', StringType(), True),
+                StructField('bert_epact_lcaprod', StringType(), True),
+                StructField('tiltRecordID', StringType(), False)
+            ]  
+            ), 
+            'container': 'raw',
+            'location': 'ep_ei_matcher',
+            'type': 'parquet',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+        'scenario_targets_IPR_NEW_landingzone': {
+            'columns' :  StructType([
+                StructField('Scenario', StringType(), False),
+                StructField('Region', StringType(), True),
+                StructField('Variable Class', StringType(), True),
+                StructField('Sub Variable Class', StringType(), True),
+                StructField('Sector', StringType(), True),
+                StructField('Sub Sector', StringType(), True),
+                StructField('Units', StringType(), True),
+                StructField('Year', StringType(), True),
+                StructField('Value', StringType(), True),
+                StructField('Reductions', StringType(), True)
+            ]  
+            ), 
+            'container': 'landingzone',
+            'location': 'tiltIndicatorBefore/scenario_targets_IPR_NEW.csv',
+            'type': 'csv',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+        'scenario_targets_IPR_NEW_raw': {
+            'columns' :  StructType([
+                StructField('Scenario', StringType(), False),
+                StructField('Region', StringType(), True),
+                StructField('Variable Class', StringType(), True),
+                StructField('Sub Variable Class', StringType(), True),
+                StructField('Sector', StringType(), True),
+                StructField('Sub Sector', StringType(), True),
+                StructField('Units', StringType(), True),
+                StructField('Year', ShortType(), True),
+                StructField('Value', DecimalType(), True),
+                StructField('Reductions', DecimalType(), True),
+                StructField('tiltRecordID', StringType(), False)
+            ]  
+            ), 
+            'container': 'raw',
+            'location': 'scenario_targets_IPR_NEW',
             'type': 'parquet',
             'partition_by' : '',
             'quality_checks': []

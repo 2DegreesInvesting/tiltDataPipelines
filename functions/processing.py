@@ -1,7 +1,7 @@
 from functions.spark_session import read_table, write_table, create_spark_session
 import pyspark.sql.functions as F
 from pyspark.sql.functions import col, when
-from pyspark.sql.types import FloatType, IntegerType, TimestampType, BooleanType
+from pyspark.sql.types import FloatType, IntegerType, TimestampType, BooleanType, DecimalType, ShortType
 
 
 def generate_table(table_name: str) -> None:
@@ -314,5 +314,47 @@ def generate_table(table_name: str) -> None:
         activity_matching_df = df.select('ep_act_id', 'ep_country', 'Activity UUID & Product UUID')
 
         write_table(spark_generate, activity_matching_df, 'labelled_activity_v1.0_raw')
+
+    elif table_name == 'ep_companies_NL_postcode_raw':
+
+        df = read_table(spark_generate, 'ep_companies_NL_postcode_landingzone')
+
+        write_table(spark_generate, df, 'ep_companies_NL_postcode_raw')
+
+    elif table_name == 'ep_ei_matcher_raw':
+
+        df = read_table(spark_generate, 'ep_ei_matcher_landingzone')
+
+        ep_ei_matcher = df
+
+        # to replace to boolean values
+        column_name = "multi_match"
+        ep_ei_matcher = ep_ei_matcher.withColumn(column_name, col(column_name).cast(BooleanType()))
+
+        # to decimal values
+        column_name = "logprob"
+        ep_ei_matcher = ep_ei_matcher.withColumn(column_name, col(column_name).cast(DecimalType()))  
+
+        write_table(spark_generate, ep_ei_matcher, 'ep_ei_matcher_raw')  
+
+    elif table_name == 'scenario_targets_IPR_NEW_raw':
+
+        df = read_table(spark_generate, 'scenario_targets_IPR_NEW_landingzone')
+
+        scenario_targets_IPR_NEW = df
+
+        # to replace to integer values
+        column_name = "Year"
+        scenario_targets_IPR_NEW = scenario_targets_IPR_NEW.withColumn(column_name, col(column_name).cast(ShortType()))
+
+        # to decimal values
+        column_name = "Value"
+        scenario_targets_IPR_NEW = scenario_targets_IPR_NEW.withColumn(column_name, col(column_name).cast(DecimalType()))  
+
+        # to decimal values
+        column_name = "Reductions"
+        scenario_targets_IPR_NEW = scenario_targets_IPR_NEW.withColumn(column_name, col(column_name).cast(DecimalType())) 
+
+        write_table(spark_generate, scenario_targets_IPR_NEW, 'scenario_targets_IPR_NEW_raw') 
 
     spark_generate.stop()
