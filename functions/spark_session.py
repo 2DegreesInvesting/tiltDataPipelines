@@ -115,6 +115,9 @@ def write_table(spark_session: SparkSession, data_frame: DataFrame, table_name: 
 
     table_definition = get_table_definition(table_name)
 
+    # Compare the newly created records with the existing tables
+    data_frame = compare_tables(spark_session, data_frame, table_name)
+
     # Add the SHA value to create a unique ID within tilt
     data_frame = add_record_id(spark_session, data_frame, partition)
 
@@ -266,7 +269,7 @@ def add_record_id(spark_session: SparkSession, data_frame: DataFrame, partition:
         value represents the SHA-256 hash of the respective row's contents.
     """
     # Select all columns that are needed for the creation of a record ID
-    sha_columns = [F.col(col_name) for col_name in data_frame.columns if col_name not in ['tiltRecordID']]
+    sha_columns = [F.col(col_name) for col_name in data_frame.columns if col_name not in ['tiltRecordID','to_date']]
 
     # Create the SHA256 record ID by concatenating all relevant columns
     data_frame = create_sha_values(spark_session, data_frame, sha_columns)
@@ -290,11 +293,17 @@ def create_sha_values(spark_session: SparkSession, data_frame: DataFrame, col_li
 
 def compare_tables(spark_session: SparkSession, data_frame: DataFrame, table_name: str) -> DataFrame:
 
+    # Determine the processing date
+    processing_date = F.current_date()
+    future_date = F.lit('2099-12-31')
+
     # Select the columns that contain values that should be compared
     value_columns = [F.col(col_name) for col_name in data_frame.columns if col_name not in ['tiltRecordID','from_date','to_date']]
 
     # Read the already existing table
     old_df = read_table(spark_session,table_name)
+    old_closed_records = old_df.filter(F.col('to_date')!=future_date).select(value_columns + ['from_date','to_date'])
+    old_df = old_df.filter(F.col('to_date')==future_date).select(value_columns + ['from_date','to_date'])
 
     # Add the SHA representation of the old records and rename to unique name
     old_df = create_sha_values(spark_session, old_df, value_columns)
@@ -302,19 +311,26 @@ def compare_tables(spark_session: SparkSession, data_frame: DataFrame, table_nam
 
     # Add the SHA representation of the incoming records and rename to unique name
     new_data_frame = create_sha_values(spark_session, data_frame, value_columns)
-    new_data_frame = new_data_frame.withColumn('from_date',F.lit('20230101')).withColumn('to_date',F.lit('20991231'))
+    new_data_frame = new_data_frame.withColumn('from_date',processing_date).withColumn('to_date',F.to_date(future_date))
     new_data_frame = new_data_frame.withColumnRenamed('shaValue','shaValueNew')
 
     # Join the SHA values of both tables together
     combined_df = new_data_frame.select(F.col('shaValueNew')).join(old_df.select('shaValueOld'),on=old_df.shaValueOld==new_data_frame.shaValueNew,how='full')
 
-    identical_records = combined_df.filter((F.col('shaValueOld').isNotNull())&(F.col('shaValueNew').isNotNull())).join(old_df,on=combined_df.shaValueOld==old_df.shaValueOld)
-    closed_records = combined_df.filter((F.col('shaValueOld').isNotNull())&(F.col('shaValueNew').isNull()))
-    new_records = combined_df.filter((F.col('shaValueOld').isNull())&(F.col('shaValueNew').isNotNull()))
+    # Records that did not change are taken from the existing set of data
+    identical_records = combined_df.filter((F.col('shaValueOld').isNotNull())&(F.col('shaValueNew').isNotNull())).join(old_df,on='shaValueOld',how='inner')
+    # Records that do not exist anymore are taken from the existing set of data
+    # Records are closed by filling the to_date column with the current date
+    closed_records = combined_df.filter((F.col('shaValueOld').isNotNull())&(F.col('shaValueNew').isNull())).join(old_df,on='shaValueOld',how='inner').withColumn('to_date',processing_date)
+    # Records that are new are taken from the new set of data
+    new_records = combined_df.filter((F.col('shaValueOld').isNull())&(F.col('shaValueNew').isNotNull())).join(new_data_frame,on='shaValueNew',how='inner')
 
+    # Select the relevant columns, as the SHA values are not relevant anymore
+    identical_records = identical_records.select(value_columns + ['from_date','to_date'])
+    closed_records = closed_records.select(value_columns + ['from_date','to_date'])
+    new_records = new_records.select(value_columns + ['from_date','to_date'])
 
+    # Union all of the records, meaning all already closed, identical, closed and new records
+    all_records = old_closed_records.union(identical_records).union(closed_records).union(new_records)
 
-
-
-
-    return identical_records
+    return all_records

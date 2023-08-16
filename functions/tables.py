@@ -1,4 +1,4 @@
-from pyspark.sql.types import StringType,StructType, StructField, DataType, BooleanType, FloatType, ShortType, TimestampType, IntegerType
+from pyspark.sql.types import StringType,StructType, StructField, DataType, BooleanType, FloatType, ShortType, TimestampType, IntegerType, DateType
 
 def create_location_path():
 
@@ -761,6 +761,8 @@ def get_table_definition(table_name: str) -> dict:
                 StructField('websites', StringType(), True),
                 StructField('download_datetime', TimestampType(), True),
                 StructField('country_id', StringType(), True),
+                StructField('from_date', DateType(), False),
+                StructField('to_date', DateType(), False),
                 StructField('tiltRecordID', StringType(), False),
             ]  
             ), 
