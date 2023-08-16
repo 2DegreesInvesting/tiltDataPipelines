@@ -311,7 +311,7 @@ def generate_table(table_name: str) -> None:
 
         df = read_table(spark_generate, 'labelled_activity_v1.0_landingzone')
 
-        activity_matching_df = df.select('ep_act_id', 'ep_country', 'Activity UUID & Product UUID')
+        activity_matching_df = df.select('index','ep_act_id', 'ep_country', 'Activity UUID & Product UUID')
 
         write_table(spark_generate, activity_matching_df, 'labelled_activity_v1.0_raw')
 
