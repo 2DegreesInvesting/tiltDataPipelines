@@ -1248,7 +1248,7 @@ def get_table_definition(table_name: str) -> dict:
             'location': 'ep_companies_NL_postcode',
             'type': 'parquet',
             'partition_by' : '',
-            'quality_checks': [['unique','id']]
+            'quality_checks': [['unique',['id']]]
         },
         'ep_ei_matcher_landingzone': {
             'columns' :  StructType([
