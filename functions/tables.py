@@ -1334,7 +1334,143 @@ def get_table_definition(table_name: str) -> dict:
             'type': 'parquet',
             'partition_by' : '',
             'quality_checks': []
-        }
+        },
+        'scenario_targets_WEO_NEW_landingzone': {
+            'columns' :  StructType([
+                StructField('PUBLICATION', StringType(), False),
+                StructField('SCENARIO', StringType(), True),
+                StructField('CATEGORY', StringType(), True),
+                StructField('PRODUCT', StringType(), True),
+                StructField('FLOW', StringType(), True),
+                StructField('UNIT', StringType(), True),
+                StructField('REGION', StringType(), True),
+                StructField('YEAR', StringType(), True),
+                StructField('VALUE', StringType(), True),
+                StructField('REDUCTIONS', StringType(), True)
+            ]  
+            ), 
+            'container': 'landingzone',
+            'location': 'tiltIndicatorBefore/scenario_targets_WEO_NEW.csv',
+            'type': 'csv',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+        'scenario_targets_WEO_NEW_raw': {
+            'columns' :  StructType([
+                StructField('PUBLICATION', StringType(), False),
+                StructField('SCENARIO', StringType(), True),
+                StructField('CATEGORY', StringType(), True),
+                StructField('PRODUCT', StringType(), True),
+                StructField('FLOW', StringType(), True),
+                StructField('UNIT', StringType(), True),
+                StructField('REGION', StringType(), True),
+                StructField('YEAR', ShortType(), True),
+                StructField('VALUE', DecimalType(), True),
+                StructField('REDUCTIONS', DecimalType(), True),
+                StructField('tiltRecordID', StringType(), False)
+            ]  
+            ), 
+            'container': 'raw',
+            'location': 'scenario_targets_WEO_NEW',
+            'type': 'parquet',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+        'scenario_tilt_mapper_2023-07-20_landingzone': {
+            'columns' :  StructType([
+                StructField('tilt_sector', StringType(), False),
+                StructField('tilt_subsector', StringType(), True),
+                StructField('weo_product', StringType(), True),
+                StructField('weo_flow', StringType(), True),
+                StructField('ipr_sector', StringType(), True),
+                StructField('ipr_subsector', StringType(), True)
+            ]  
+            ), 
+            'container': 'landingzone',
+            'location': 'tiltIndicatorBefore/scenario_tilt_mapper_2023-07-20.csv',
+            'type': 'csv',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+        'scenario_tilt_mapper_2023-07-20_raw': {
+            'columns' :  StructType([
+                StructField('tilt_sector', StringType(), False),
+                StructField('tilt_subsector', StringType(), True),
+                StructField('weo_product', StringType(), True),
+                StructField('weo_flow', StringType(), True),
+                StructField('ipr_sector', StringType(), True),
+                StructField('ipr_subsector', StringType(), True),
+                StructField('tiltRecordID', StringType(), False)
+            ]  
+            ), 
+            'container': 'raw',
+            'location': 'scenario_tilt_mapper_2023-07-20',
+            'type': 'parquet',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+        'sector_resolve_landingzone': {
+            'columns' :  StructType([
+                StructField('index', StringType(), False),     #renamed to index from ...1
+                StructField('clustered', StringType(), True),
+                StructField('tilt_sector', StringType(), True),
+                StructField('tilt_subsector', StringType(), True)
+            ]  
+            ), 
+            'container': 'landingzone',
+            'location': 'tiltIndicatorBefore/sector_resolve.csv',
+            'type': 'csv',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+        'sector_resolve_raw': {
+            'columns' :  StructType([
+                StructField('index', IntegerType(), False),
+                StructField('clustered', StringType(), True),
+                StructField('tilt_sector', StringType(), True),
+                StructField('tilt_subsector', StringType(), True),
+                StructField('tiltRecordID', StringType(), False)
+            ]  
+            ), 
+            'container': 'raw',
+            'location': 'sector_resolve',
+            'type': 'parquet',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+        'tilt_isic_mapper_2023-07-20_landingzone': {
+            'columns' :  StructType([
+                StructField('tilt_sector', StringType(), False),
+                StructField('tilt_subsector', StringType(), True),
+                StructField('isic_4digit', StringType(), True),
+                StructField('isic_4digit_name_ecoinvent', StringType(), True),
+                StructField('isic_section', StringType(), True),
+                StructField('Comments', StringType(), True)
+            ]  
+            ), 
+            'container': 'landingzone',
+            'location': 'tiltIndicatorBefore/tilt_isic_mapper_2023-07-20.csv',
+            'type': 'csv',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+        'tilt_isic_mapper_2023-07-20_raw': {
+            'columns' :  StructType([
+                StructField('tilt_sector', StringType(), False),
+                StructField('tilt_subsector', StringType(), True),
+                StructField('isic_4digit', ShortType(), True),
+                StructField('isic_4digit_name_ecoinvent', StringType(), True),
+                StructField('isic_section', StringType(), True),
+                StructField('Comments', StringType(), True),
+                StructField('tiltRecordID', StringType(), False)
+            ]  
+            ), 
+            'container': 'raw',
+            'location': 'tilt_isic_mapper_2023-07-20',
+            'type': 'parquet',
+            'partition_by' : '',
+            'quality_checks': []
+         }
         
 
     }

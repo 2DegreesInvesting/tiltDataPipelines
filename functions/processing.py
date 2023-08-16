@@ -357,4 +357,53 @@ def generate_table(table_name: str) -> None:
 
         write_table(spark_generate, scenario_targets_IPR_NEW, 'scenario_targets_IPR_NEW_raw') 
 
+    elif table_name == 'scenario_targets_WEO_NEW_raw':
+
+        df = read_table(spark_generate, 'scenario_targets_WEO_NEW_landingzone')
+
+        scenario_targets_WEO_NEW = df
+
+        # to replace to integer values
+        column_name = "YEAR"
+        scenario_targets_WEO_NEW = scenario_targets_WEO_NEW.withColumn(column_name, col(column_name).cast(ShortType()))
+
+        # to decimal values
+        column_name = "VALUE"
+        scenario_targets_WEO_NEW = scenario_targets_WEO_NEW.withColumn(column_name, col(column_name).cast(DecimalType()))  
+
+        # to decimal values
+        column_name = "REDUCTIONS"
+        scenario_targets_WEO_NEW = scenario_targets_WEO_NEW.withColumn(column_name, col(column_name).cast(DecimalType())) 
+
+        write_table(spark_generate, scenario_targets_WEO_NEW, 'scenario_targets_WEO_NEW_raw') 
+
+    elif table_name == 'scenario_tilt_mapper_2023-07-20_raw':
+
+        df = read_table(spark_generate, 'scenario_tilt_mapper_2023-07-20_landingzone')
+
+        write_table(spark_generate, df, 'scenario_tilt_mapper_2023-07-20_raw')
+
+    elif table_name == 'sector_resolve_raw':
+
+        df = read_table(spark_generate, 'sector_resolve_landingzone')
+
+        sector_resolve = df
+
+        column_name = "index"
+        sector_resolve = sector_resolve.withColumn(column_name, col(column_name).cast(IntegerType()))
+
+        write_table(spark_generate, sector_resolve, 'sector_resolve_raw') 
+
+    elif table_name == 'tilt_isic_mapper_2023-07-20_raw':
+
+        df = read_table(spark_generate, 'tilt_isic_mapper_2023-07-20_landingzone')
+
+        tilt_isic_mapper = df
+
+        # to replace to integer values
+        column_name = "isic_4digit"
+        tilt_isic_mapper = tilt_isic_mapper.withColumn(column_name, col(column_name).cast(ShortType()))
+
+        write_table(spark_generate, tilt_isic_mapper, 'tilt_isic_mapper_2023-07-20_raw') 
+
     spark_generate.stop()
