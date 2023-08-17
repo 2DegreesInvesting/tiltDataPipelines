@@ -230,6 +230,8 @@ def validate_data_quality(spark_session: SparkSession, data_frame: DataFrame, ta
 
     table_definition = get_table_definition(table_name)
 
+    writing_data_frame = data_frame.filter(F.col('to_date').isNull())
+
     for condition_list in table_definition['quality_checks']:
         if condition_list[0] not in ['unique', 'format']:
             raise ValueError(f'The quality check -{condition_list[0]}- is not implemented')
@@ -238,15 +240,15 @@ def validate_data_quality(spark_session: SparkSession, data_frame: DataFrame, ta
         if condition_list[0] == 'unique':
             # Check if the table is partitioned
             if table_definition['partition_by']:
-                if data_frame.groupBy(table_definition['partition_by']).agg(F.count(*[F.col(column) for column in condition_list[1]]).alias('count')).collect() != data_frame.groupBy(table_definition['partition_by']).agg(F.countDistinct(*[F.col(column) for column in condition_list[1]]).alias('count')).collect():
+                if writing_data_frame.groupBy(table_definition['partition_by']).agg(F.count(*[F.col(column) for column in condition_list[1]]).alias('count')).collect() != writing_data_frame.groupBy(table_definition['partition_by']).agg(F.countDistinct(*[F.col(column) for column in condition_list[1]]).alias('count')).collect():
                     raise ValueError(f"Column: {condition_list[1]} is not unique along grouped columns.")
             else:
-                if data_frame.select(*[F.col(column) for column in condition_list[1]]).count() != data_frame.select(*[F.col(column) for column in condition_list[1]]).distinct().count():
+                if writing_data_frame.select(*[F.col(column) for column in condition_list[1]]).count() != writing_data_frame.select(*[F.col(column) for column in condition_list[1]]).distinct().count():
                     raise ValueError(f"Column: {condition_list[1]} is not unique.")
 
         # Check if the formatting aligns with a specified pattern
         elif condition_list[0] == 'format':
-            if data_frame.filter(~F.col(condition_list[1]).rlike(condition_list[2])).count() > 0:
+            if writing_data_frame.filter(~F.col(condition_list[1]).rlike(condition_list[2])).count() > 0:
                 raise ValueError(f'Column: {condition_list[1]} does not align with the specified format {condition_list[2]}')
 
     return True

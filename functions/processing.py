@@ -195,9 +195,9 @@ def generate_table(table_name: str) -> None:
 
     elif table_name == 'companies_raw':
 
-        df = read_table(spark_generate, 'companies_landingzone')
+        companies = read_table(spark_generate, 'companies_landingzone')
 
-        companies = df
+        companies = companies.withColumn('year_established',F.lit(1000))
 
         # List of column names to replace to byte values
         columns_to_replace_byte = ["min_headcount", "max_headcount", "year_established"]
