@@ -1221,7 +1221,7 @@ def get_table_definition(table_name: str) -> dict:
             'location': 'labelled_activity_v1.0',
             'type': 'parquet',
             'partition_by' : '',
-            'quality_checks': []
+            'quality_checks': [['unique',['index','ep_act_id', 'ep_country', 'Activity UUID & Product UUID']]]
         },
         'ep_companies_NL_postcode_landingzone': {
             'columns' :  StructType([
@@ -1468,6 +1468,139 @@ def get_table_definition(table_name: str) -> dict:
             ), 
             'container': 'raw',
             'location': 'tilt_isic_mapper_2023-07-20',
+            'type': 'parquet',
+            'partition_by' : '',
+            'quality_checks': []
+         },
+        'ecoinvent-v3.9.1_landingzone': {
+            'columns' :  StructType([
+                StructField('activity_uuid_product_uuid', StringType(), False),
+                StructField('activity_uuid', StringType(), True),
+                StructField('activity_name', StringType(), True),
+                StructField('geography', StringType(), True),
+                StructField('special_activity_type', StringType(), True),
+                StructField('sector', StringType(), True),
+                StructField('product_uuid', StringType(), True),
+                StructField('reference_product_name', StringType(), True),
+                StructField('cpc_classification', StringType(), True),
+                StructField('unit', StringType(), True),
+                StructField('method_category_indicator_product_information', StringType(), True),
+                StructField('product_inputs_tbc', StringType(), True),
+                StructField('ipcc_2021_climate_change_global_warming_potential_gwp100_kg_co2_eq', StringType(), True)
+            ]  
+            ), 
+            'container': 'landingzone',
+            'location': 'tiltIndicatorBefore/ecoinvent-v3.9.1.csv',
+            'type': 'csv',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+        'ecoinvent-v3.9.1_raw': {
+            'columns' :  StructType([
+                StructField('activity_uuid_product_uuid', StringType(), False),
+                StructField('activity_uuid', StringType(), True),
+                StructField('activity_name', StringType(), True),
+                StructField('geography', StringType(), True),
+                StructField('special_activity_type', StringType(), True),
+                StructField('sector', StringType(), True),
+                StructField('product_uuid', StringType(), True),
+                StructField('reference_product_name', StringType(), True),
+                StructField('cpc_classification', StringType(), True),
+                StructField('unit', StringType(), True),
+                StructField('method_category_indicator_product_information', StringType(), True),
+                StructField('product_inputs_tbc', StringType(), True),
+                StructField('ipcc_2021_climate_change_global_warming_potential_gwp100_kg_co2_eq', DecimalType(), True),
+                StructField('tiltRecordID', StringType(), False)
+            ]  
+            ), 
+            'container': 'raw',
+            'location': 'ecoinvent-v3.9.1',
+            'type': 'parquet',
+            'partition_by' : '',
+            'quality_checks': []
+         },
+        'ecoinvent_inputs_overview_raw_landingzone': {
+            'columns' :  StructType([
+                StructField('ID', StringType(), False),
+                StructField('Name', StringType(), True),
+                StructField('Unit Name', StringType(), True),
+                StructField('CAS Number', StringType(), True),
+                StructField('Comment', StringType(), True),
+                StructField('By-product Classification', StringType(), True),
+                StructField('CPC Classification', StringType(), True),
+                StructField('Product Information', StringType(), True),
+                StructField('Synonym', StringType(), True)
+            ]  
+            ), 
+            'container': 'landingzone',
+            'location': 'tiltIndicatorBefore/ecoinvent_inputs_overview_raw.csv',
+            'type': 'csv',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+        'ecoinvent_inputs_overview_raw_raw': {
+            'columns' :  StructType([
+                StructField('ID', StringType(), False),
+                StructField('Name', StringType(), True),
+                StructField('Unit Name', StringType(), True),
+                StructField('CAS Number', StringType(), True),
+                StructField('Comment', StringType(), True),
+                StructField('By-product Classification', StringType(), True),
+                StructField('CPC Classification', StringType(), True),
+                StructField('Product Information', StringType(), True),
+                StructField('Synonym', StringType(), True),
+                StructField('tiltRecordID', StringType(), False)
+            ]  
+            ), 
+            'container': 'raw',
+            'location': 'ecoinvent_inputs_overview_raw',
+            'type': 'parquet',
+            'partition_by' : '',
+            'quality_checks': []
+         },
+        'ecoinvent_input_data_relevant_columns_landingzone': {
+            'columns' :  StructType([
+                StructField('activityId', StringType(), False),
+                StructField('activityName', StringType(), True),
+                StructField('geography', StringType(), True),
+                StructField('reference product', StringType(), True),
+                StructField('group', StringType(), True),
+                StructField('exchange name', StringType(), True),
+                StructField('activityLinkId', StringType(), True),
+                StructField('activityLink_activityName', StringType(), True),
+                StructField('activityLink_geography', StringType(), True),
+                StructField('exchange unitName', StringType(), True),
+                StructField('exchange amount', StringType(), True),
+                StructField('CPC_classificationValue', StringType(), True),
+                StructField('By-product classification_classificationValue', StringType(), True)
+            ]  
+            ), 
+            'container': 'landingzone',
+            'location': 'tiltIndicatorBefore/ecoinvent_input_data_relevant_columns.csv',
+            'type': 'csv',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+        'ecoinvent_input_data_relevant_columns_raw': {
+            'columns' :  StructType([
+                StructField('activityId', StringType(), False),
+                StructField('activityName', StringType(), True),
+                StructField('geography', StringType(), True),
+                StructField('reference product', StringType(), True),
+                StructField('group', StringType(), True),
+                StructField('exchange name', StringType(), True),
+                StructField('activityLinkId', StringType(), True),
+                StructField('activityLink_activityName', StringType(), True),
+                StructField('activityLink_geography', StringType(), True),
+                StructField('exchange unitName', StringType(), True),
+                StructField('exchange amount', DecimalType(), True),
+                StructField('CPC_classificationValue', StringType(), True),
+                StructField('By-product classification_classificationValue', StringType(), True),
+                StructField('tiltRecordID', StringType(), False)
+            ]  
+            ), 
+            'container': 'raw',
+            'location': 'ecoinvent_input_data_relevant_columns_raw',
             'type': 'parquet',
             'partition_by' : '',
             'quality_checks': []
