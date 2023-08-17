@@ -1,7 +1,7 @@
 from functions.spark_session import read_table, write_table, create_spark_session
 import pyspark.sql.functions as F
 from pyspark.sql.functions import col, when
-from pyspark.sql.types import FloatType, IntegerType, TimestampType, BooleanType
+from pyspark.sql.types import FloatType, IntegerType, TimestampType, BooleanType, DecimalType, ShortType
 
 
 def generate_table(table_name: str) -> None:
@@ -314,5 +314,120 @@ def generate_table(table_name: str) -> None:
         activity_matching_df = df.select('index','ep_act_id', 'ep_country', 'Activity UUID & Product UUID')
 
         write_table(spark_generate, activity_matching_df, 'labelled_activity_v1.0_raw')
+
+    elif table_name == 'ep_companies_NL_postcode_raw':
+
+        df = read_table(spark_generate, 'ep_companies_NL_postcode_landingzone')
+
+        write_table(spark_generate, df, 'ep_companies_NL_postcode_raw')
+
+    elif table_name == 'ep_ei_matcher_raw':
+
+        df = read_table(spark_generate, 'ep_ei_matcher_landingzone')
+
+        ep_ei_matcher = df
+
+        # to replace to boolean values
+        column_name = "multi_match"
+        ep_ei_matcher = ep_ei_matcher.withColumn(column_name, col(column_name).cast(BooleanType()))
+
+        # to decimal values
+        column_name = "logprob"
+        ep_ei_matcher = ep_ei_matcher.withColumn(column_name, col(column_name).cast(DecimalType()))  
+
+        write_table(spark_generate, ep_ei_matcher, 'ep_ei_matcher_raw')  
+
+    elif table_name == 'scenario_targets_IPR_NEW_raw':
+
+        df = read_table(spark_generate, 'scenario_targets_IPR_NEW_landingzone')
+
+        scenario_targets_IPR_NEW = df
+
+        # to replace to integer values
+        column_name = "Year"
+        scenario_targets_IPR_NEW = scenario_targets_IPR_NEW.withColumn(column_name, col(column_name).cast(ShortType()))
+
+        column_names = ["Value", "Reductions"]
+        # to decimal values
+        for column in column_names:
+            scenario_targets_IPR_NEW = scenario_targets_IPR_NEW.withColumn(column, col(column).cast(DecimalType())) 
+
+        write_table(spark_generate, scenario_targets_IPR_NEW, 'scenario_targets_IPR_NEW_raw') 
+
+    elif table_name == 'scenario_targets_WEO_NEW_raw':
+
+        df = read_table(spark_generate, 'scenario_targets_WEO_NEW_landingzone')
+
+        scenario_targets_WEO_NEW = df
+
+        # to replace to integer values
+        column_name = "YEAR"
+        scenario_targets_WEO_NEW = scenario_targets_WEO_NEW.withColumn(column_name, col(column_name).cast(ShortType()))
+
+        column_names = ["VALUE", "REDUCTIONS"]
+        # to decimal values
+        for column in column_names:
+            scenario_targets_WEO_NEW = scenario_targets_WEO_NEW.withColumn(column, col(column).cast(DecimalType()))  
+
+        write_table(spark_generate, scenario_targets_WEO_NEW, 'scenario_targets_WEO_NEW_raw') 
+
+    elif table_name == 'scenario_tilt_mapper_2023-07-20_raw':
+
+        df = read_table(spark_generate, 'scenario_tilt_mapper_2023-07-20_landingzone')
+
+        write_table(spark_generate, df, 'scenario_tilt_mapper_2023-07-20_raw')
+
+    elif table_name == 'sector_resolve_raw':
+
+        df = read_table(spark_generate, 'sector_resolve_landingzone')
+
+        sector_resolve = df
+
+        column_name = "index"
+        sector_resolve = sector_resolve.withColumn(column_name, col(column_name).cast(IntegerType()))
+
+        write_table(spark_generate, sector_resolve, 'sector_resolve_raw') 
+
+    elif table_name == 'tilt_isic_mapper_2023-07-20_raw':
+
+        df = read_table(spark_generate, 'tilt_isic_mapper_2023-07-20_landingzone')
+
+        tilt_isic_mapper = df
+
+        # to replace to integer values
+        column_name = "isic_4digit"
+        tilt_isic_mapper = tilt_isic_mapper.withColumn(column_name, col(column_name).cast(ShortType()))
+
+        write_table(spark_generate, tilt_isic_mapper, 'tilt_isic_mapper_2023-07-20_raw') 
+
+    elif table_name == 'ecoinvent-v3.9.1_raw':
+
+        df = read_table(spark_generate, 'ecoinvent-v3.9.1_landingzone')
+
+        ecoinvent_licenced = df
+
+        # to replace to decimal values
+        column_name = "ipcc_2021_climate_change_global_warming_potential_gwp100_kg_co2_eq"
+        ecoinvent_licenced = ecoinvent_licenced.withColumn(column_name, col(column_name).cast(DecimalType()))
+
+        write_table(spark_generate, ecoinvent_licenced, 'ecoinvent-v3.9.1_raw') 
+
+    elif table_name == 'ecoinvent_inputs_overview_raw_raw':
+
+        df = read_table(spark_generate, 'ecoinvent_inputs_overview_raw_landingzone')
+
+        write_table(spark_generate, df, 'ecoinvent_inputs_overview_raw_raw')
+
+    elif table_name == 'ecoinvent_input_data_relevant_columns_raw':
+
+        df = read_table(spark_generate, 'ecoinvent_input_data_relevant_columns_landingzone')
+
+        ecoinvent_input_data_relevant_columns_raw = df
+
+        # to replace to decimal values
+        column_name = "exchange amount"
+        ecoinvent_input_data_relevant_columns_raw = ecoinvent_input_data_relevant_columns_raw.withColumn(column_name, col(column_name).cast(DecimalType()))
+
+        write_table(spark_generate, ecoinvent_input_data_relevant_columns_raw, 'ecoinvent_input_data_relevant_columns_raw') 
 
     spark_generate.stop()
