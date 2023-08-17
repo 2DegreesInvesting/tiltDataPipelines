@@ -1,4 +1,4 @@
-from pyspark.sql.types import StringType,StructType, StructField, DataType, BooleanType, FloatType, ShortType, TimestampType, IntegerType, DateType
+from pyspark.sql.types import StringType,StructType, StructField, DataType, BooleanType, FloatType, ShortType, TimestampType, IntegerType, DecimalType, DateType
 
 def create_location_path():
 
@@ -1224,7 +1224,389 @@ def get_table_definition(table_name: str) -> dict:
             'type': 'parquet',
             'partition_by' : '',
             'quality_checks': [['unique',['index','ep_act_id', 'ep_country', 'Activity UUID & Product UUID']]]
-        }
+        },
+        'ep_companies_NL_postcode_landingzone': {
+            'columns' :  StructType([
+                StructField('id', StringType(), False),
+                StructField('company_name', StringType(), True),
+                StructField('postcode', StringType(), True)
+            ]  
+            ), 
+            'container': 'landingzone',
+            'location': 'tiltIndicatorBefore/ep_companies_NL_postcode.csv',
+            'type': 'csv',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+        'ep_companies_NL_postcode_raw': {
+            'columns' :  StructType([
+                StructField('id', StringType(), False),
+                StructField('company_name', StringType(), True),
+                StructField('postcode', StringType(), True),
+                StructField('tiltRecordID', StringType(), False)
+            ]  
+            ), 
+            'container': 'raw',
+            'location': 'ep_companies_NL_postcode',
+            'type': 'parquet',
+            'partition_by' : '',
+            'quality_checks': [['unique',['id']]]
+        },
+        'ep_ei_matcher_landingzone': {
+            'columns' :  StructType([
+                StructField('group_var', StringType(), False),
+                StructField('ep_id', StringType(), True),
+                StructField('ep_country', StringType(), True),
+                StructField('ep_main_act', StringType(), True),
+                StructField('ep_clustered', StringType(), True),
+                StructField('activity_uuid_product_uuid', StringType(), True),
+                StructField('multi_match', StringType(), True),
+                StructField('completion', StringType(), True),
+                StructField('logprob', StringType(), True),
+                StructField('category', StringType(), True),
+                StructField('bert_activities', StringType(), True),
+                StructField('bert_epact_lcaprod', StringType(), True)
+            ]  
+            ), 
+            'container': 'landingzone',
+            'location': 'tiltIndicatorBefore/ep_ei_matcher.csv',
+            'type': 'csv',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+        'ep_ei_matcher_raw': {
+            'columns' :  StructType([
+                StructField('group_var', StringType(), False),
+                StructField('ep_id', StringType(), True),
+                StructField('ep_country', StringType(), True),
+                StructField('ep_main_act', StringType(), True),
+                StructField('ep_clustered', StringType(), True),
+                StructField('activity_uuid_product_uuid', StringType(), True),
+                StructField('multi_match', BooleanType(), True),
+                StructField('completion', StringType(), True),
+                StructField('logprob', DecimalType(), True),
+                StructField('category', StringType(), True),
+                StructField('bert_activities', StringType(), True),
+                StructField('bert_epact_lcaprod', StringType(), True),
+                StructField('tiltRecordID', StringType(), False)
+            ]  
+            ), 
+            'container': 'raw',
+            'location': 'ep_ei_matcher',
+            'type': 'parquet',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+        'scenario_targets_IPR_NEW_landingzone': {
+            'columns' :  StructType([
+                StructField('Scenario', StringType(), False),
+                StructField('Region', StringType(), True),
+                StructField('Variable Class', StringType(), True),
+                StructField('Sub Variable Class', StringType(), True),
+                StructField('Sector', StringType(), True),
+                StructField('Sub Sector', StringType(), True),
+                StructField('Units', StringType(), True),
+                StructField('Year', StringType(), True),
+                StructField('Value', StringType(), True),
+                StructField('Reductions', StringType(), True)
+            ]  
+            ), 
+            'container': 'landingzone',
+            'location': 'tiltIndicatorBefore/scenario_targets_IPR_NEW.csv',
+            'type': 'csv',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+        'scenario_targets_IPR_NEW_raw': {
+            'columns' :  StructType([
+                StructField('Scenario', StringType(), False),
+                StructField('Region', StringType(), True),
+                StructField('Variable Class', StringType(), True),
+                StructField('Sub Variable Class', StringType(), True),
+                StructField('Sector', StringType(), True),
+                StructField('Sub Sector', StringType(), True),
+                StructField('Units', StringType(), True),
+                StructField('Year', ShortType(), True),
+                StructField('Value', DecimalType(), True),
+                StructField('Reductions', DecimalType(), True),
+                StructField('tiltRecordID', StringType(), False)
+            ]  
+            ), 
+            'container': 'raw',
+            'location': 'scenario_targets_IPR_NEW',
+            'type': 'parquet',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+        'scenario_targets_WEO_NEW_landingzone': {
+            'columns' :  StructType([
+                StructField('PUBLICATION', StringType(), False),
+                StructField('SCENARIO', StringType(), True),
+                StructField('CATEGORY', StringType(), True),
+                StructField('PRODUCT', StringType(), True),
+                StructField('FLOW', StringType(), True),
+                StructField('UNIT', StringType(), True),
+                StructField('REGION', StringType(), True),
+                StructField('YEAR', StringType(), True),
+                StructField('VALUE', StringType(), True),
+                StructField('REDUCTIONS', StringType(), True)
+            ]  
+            ), 
+            'container': 'landingzone',
+            'location': 'tiltIndicatorBefore/scenario_targets_WEO_NEW.csv',
+            'type': 'csv',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+        'scenario_targets_WEO_NEW_raw': {
+            'columns' :  StructType([
+                StructField('PUBLICATION', StringType(), False),
+                StructField('SCENARIO', StringType(), True),
+                StructField('CATEGORY', StringType(), True),
+                StructField('PRODUCT', StringType(), True),
+                StructField('FLOW', StringType(), True),
+                StructField('UNIT', StringType(), True),
+                StructField('REGION', StringType(), True),
+                StructField('YEAR', ShortType(), True),
+                StructField('VALUE', DecimalType(), True),
+                StructField('REDUCTIONS', DecimalType(), True),
+                StructField('tiltRecordID', StringType(), False)
+            ]  
+            ), 
+            'container': 'raw',
+            'location': 'scenario_targets_WEO_NEW',
+            'type': 'parquet',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+        'scenario_tilt_mapper_2023-07-20_landingzone': {
+            'columns' :  StructType([
+                StructField('tilt_sector', StringType(), False),
+                StructField('tilt_subsector', StringType(), True),
+                StructField('weo_product', StringType(), True),
+                StructField('weo_flow', StringType(), True),
+                StructField('ipr_sector', StringType(), True),
+                StructField('ipr_subsector', StringType(), True)
+            ]  
+            ), 
+            'container': 'landingzone',
+            'location': 'tiltIndicatorBefore/scenario_tilt_mapper_2023-07-20.csv',
+            'type': 'csv',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+        'scenario_tilt_mapper_2023-07-20_raw': {
+            'columns' :  StructType([
+                StructField('tilt_sector', StringType(), False),
+                StructField('tilt_subsector', StringType(), True),
+                StructField('weo_product', StringType(), True),
+                StructField('weo_flow', StringType(), True),
+                StructField('ipr_sector', StringType(), True),
+                StructField('ipr_subsector', StringType(), True),
+                StructField('tiltRecordID', StringType(), False)
+            ]  
+            ), 
+            'container': 'raw',
+            'location': 'scenario_tilt_mapper_2023-07-20',
+            'type': 'parquet',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+        'sector_resolve_landingzone': {
+            'columns' :  StructType([
+                StructField('index', StringType(), False),     #renamed to index from ...1
+                StructField('clustered', StringType(), True),
+                StructField('tilt_sector', StringType(), True),
+                StructField('tilt_subsector', StringType(), True)
+            ]  
+            ), 
+            'container': 'landingzone',
+            'location': 'tiltIndicatorBefore/sector_resolve.csv',
+            'type': 'csv',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+        'sector_resolve_raw': {
+            'columns' :  StructType([
+                StructField('index', IntegerType(), False),
+                StructField('clustered', StringType(), True),
+                StructField('tilt_sector', StringType(), True),
+                StructField('tilt_subsector', StringType(), True),
+                StructField('tiltRecordID', StringType(), False)
+            ]  
+            ), 
+            'container': 'raw',
+            'location': 'sector_resolve',
+            'type': 'parquet',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+        'tilt_isic_mapper_2023-07-20_landingzone': {
+            'columns' :  StructType([
+                StructField('tilt_sector', StringType(), False),
+                StructField('tilt_subsector', StringType(), True),
+                StructField('isic_4digit', StringType(), True),
+                StructField('isic_4digit_name_ecoinvent', StringType(), True),
+                StructField('isic_section', StringType(), True),
+                StructField('Comments', StringType(), True)
+            ]  
+            ), 
+            'container': 'landingzone',
+            'location': 'tiltIndicatorBefore/tilt_isic_mapper_2023-07-20.csv',
+            'type': 'csv',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+        'tilt_isic_mapper_2023-07-20_raw': {
+            'columns' :  StructType([
+                StructField('tilt_sector', StringType(), False),
+                StructField('tilt_subsector', StringType(), True),
+                StructField('isic_4digit', ShortType(), True),
+                StructField('isic_4digit_name_ecoinvent', StringType(), True),
+                StructField('isic_section', StringType(), True),
+                StructField('Comments', StringType(), True),
+                StructField('tiltRecordID', StringType(), False)
+            ]  
+            ), 
+            'container': 'raw',
+            'location': 'tilt_isic_mapper_2023-07-20',
+            'type': 'parquet',
+            'partition_by' : '',
+            'quality_checks': []
+         },
+        'ecoinvent-v3.9.1_landingzone': {
+            'columns' :  StructType([
+                StructField('activity_uuid_product_uuid', StringType(), False),
+                StructField('activity_uuid', StringType(), True),
+                StructField('activity_name', StringType(), True),
+                StructField('geography', StringType(), True),
+                StructField('special_activity_type', StringType(), True),
+                StructField('sector', StringType(), True),
+                StructField('product_uuid', StringType(), True),
+                StructField('reference_product_name', StringType(), True),
+                StructField('cpc_classification', StringType(), True),
+                StructField('unit', StringType(), True),
+                StructField('method_category_indicator_product_information', StringType(), True),
+                StructField('product_inputs_tbc', StringType(), True),
+                StructField('ipcc_2021_climate_change_global_warming_potential_gwp100_kg_co2_eq', StringType(), True)
+            ]  
+            ), 
+            'container': 'landingzone',
+            'location': 'tiltIndicatorBefore/ecoinvent-v3.9.1.csv',
+            'type': 'csv',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+        'ecoinvent-v3.9.1_raw': {
+            'columns' :  StructType([
+                StructField('activity_uuid_product_uuid', StringType(), False),
+                StructField('activity_uuid', StringType(), True),
+                StructField('activity_name', StringType(), True),
+                StructField('geography', StringType(), True),
+                StructField('special_activity_type', StringType(), True),
+                StructField('sector', StringType(), True),
+                StructField('product_uuid', StringType(), True),
+                StructField('reference_product_name', StringType(), True),
+                StructField('cpc_classification', StringType(), True),
+                StructField('unit', StringType(), True),
+                StructField('method_category_indicator_product_information', StringType(), True),
+                StructField('product_inputs_tbc', StringType(), True),
+                StructField('ipcc_2021_climate_change_global_warming_potential_gwp100_kg_co2_eq', DecimalType(), True),
+                StructField('tiltRecordID', StringType(), False)
+            ]  
+            ), 
+            'container': 'raw',
+            'location': 'ecoinvent-v3.9.1',
+            'type': 'parquet',
+            'partition_by' : '',
+            'quality_checks': []
+         },
+        'ecoinvent_inputs_overview_raw_landingzone': {
+            'columns' :  StructType([
+                StructField('ID', StringType(), False),
+                StructField('Name', StringType(), True),
+                StructField('Unit Name', StringType(), True),
+                StructField('CAS Number', StringType(), True),
+                StructField('Comment', StringType(), True),
+                StructField('By-product Classification', StringType(), True),
+                StructField('CPC Classification', StringType(), True),
+                StructField('Product Information', StringType(), True),
+                StructField('Synonym', StringType(), True)
+            ]  
+            ), 
+            'container': 'landingzone',
+            'location': 'tiltIndicatorBefore/ecoinvent_inputs_overview_raw.csv',
+            'type': 'csv',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+        'ecoinvent_inputs_overview_raw_raw': {
+            'columns' :  StructType([
+                StructField('ID', StringType(), False),
+                StructField('Name', StringType(), True),
+                StructField('Unit Name', StringType(), True),
+                StructField('CAS Number', StringType(), True),
+                StructField('Comment', StringType(), True),
+                StructField('By-product Classification', StringType(), True),
+                StructField('CPC Classification', StringType(), True),
+                StructField('Product Information', StringType(), True),
+                StructField('Synonym', StringType(), True),
+                StructField('tiltRecordID', StringType(), False)
+            ]  
+            ), 
+            'container': 'raw',
+            'location': 'ecoinvent_inputs_overview_raw',
+            'type': 'parquet',
+            'partition_by' : '',
+            'quality_checks': []
+         },
+        'ecoinvent_input_data_relevant_columns_landingzone': {
+            'columns' :  StructType([
+                StructField('activityId', StringType(), False),
+                StructField('activityName', StringType(), True),
+                StructField('geography', StringType(), True),
+                StructField('reference product', StringType(), True),
+                StructField('group', StringType(), True),
+                StructField('exchange name', StringType(), True),
+                StructField('activityLinkId', StringType(), True),
+                StructField('activityLink_activityName', StringType(), True),
+                StructField('activityLink_geography', StringType(), True),
+                StructField('exchange unitName', StringType(), True),
+                StructField('exchange amount', StringType(), True),
+                StructField('CPC_classificationValue', StringType(), True),
+                StructField('By-product classification_classificationValue', StringType(), True)
+            ]  
+            ), 
+            'container': 'landingzone',
+            'location': 'tiltIndicatorBefore/ecoinvent_input_data_relevant_columns.csv',
+            'type': 'csv',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+        'ecoinvent_input_data_relevant_columns_raw': {
+            'columns' :  StructType([
+                StructField('activityId', StringType(), False),
+                StructField('activityName', StringType(), True),
+                StructField('geography', StringType(), True),
+                StructField('reference product', StringType(), True),
+                StructField('group', StringType(), True),
+                StructField('exchange name', StringType(), True),
+                StructField('activityLinkId', StringType(), True),
+                StructField('activityLink_activityName', StringType(), True),
+                StructField('activityLink_geography', StringType(), True),
+                StructField('exchange unitName', StringType(), True),
+                StructField('exchange amount', DecimalType(), True),
+                StructField('CPC_classificationValue', StringType(), True),
+                StructField('By-product classification_classificationValue', StringType(), True),
+                StructField('tiltRecordID', StringType(), False)
+            ]  
+            ), 
+            'container': 'raw',
+            'location': 'ecoinvent_input_data_relevant_columns_raw',
+            'type': 'parquet',
+            'partition_by' : '',
+            'quality_checks': []
+         }
         
 
     }
