@@ -1600,7 +1600,7 @@ def get_table_definition(table_name: str) -> dict:
             ]  
             ), 
             'container': 'raw',
-            'location': 'ecoinvent_input_data_relevant_columns_raw',
+            'location': 'ecoinvent_input_data_relevant_columns',
             'type': 'parquet',
             'partition_by' : '',
             'quality_checks': []
