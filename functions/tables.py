@@ -1282,7 +1282,7 @@ def get_table_definition(table_name: str) -> dict:
                 StructField('activity_uuid_product_uuid', StringType(), True),
                 StructField('multi_match', BooleanType(), True),
                 StructField('completion', StringType(), True),
-                StructField('logprob', DecimalType(), True),
+                StructField('logprob', FloatType(), True),
                 StructField('category', StringType(), True),
                 StructField('bert_activities', StringType(), True),
                 StructField('bert_epact_lcaprod', StringType(), True),
@@ -1325,8 +1325,8 @@ def get_table_definition(table_name: str) -> dict:
                 StructField('Sub Sector', StringType(), True),
                 StructField('Units', StringType(), True),
                 StructField('Year', ShortType(), True),
-                StructField('Value', DecimalType(), True),
-                StructField('Reductions', DecimalType(), True),
+                StructField('Value', FloatType(), True),
+                StructField('Reductions', FloatType(), True),
                 StructField('tiltRecordID', StringType(), False)
             ]  
             ), 
@@ -1366,8 +1366,8 @@ def get_table_definition(table_name: str) -> dict:
                 StructField('UNIT', StringType(), True),
                 StructField('REGION', StringType(), True),
                 StructField('YEAR', ShortType(), True),
-                StructField('VALUE', DecimalType(), True),
-                StructField('REDUCTIONS', DecimalType(), True),
+                StructField('VALUE', FloatType(), True),
+                StructField('REDUCTIONS', FloatType(), True),
                 StructField('tiltRecordID', StringType(), False)
             ]  
             ), 
@@ -1509,7 +1509,7 @@ def get_table_definition(table_name: str) -> dict:
                 StructField('unit', StringType(), True),
                 StructField('method_category_indicator_product_information', StringType(), True),
                 StructField('product_inputs_tbc', StringType(), True),
-                StructField('ipcc_2021_climate_change_global_warming_potential_gwp100_kg_co2_eq', DecimalType(), True),
+                StructField('ipcc_2021_climate_change_global_warming_potential_gwp100_kg_co2_eq', FloatType(), True),
                 StructField('tiltRecordID', StringType(), False)
             ]  
             ), 
@@ -1593,7 +1593,7 @@ def get_table_definition(table_name: str) -> dict:
                 StructField('activityLink_activityName', StringType(), True),
                 StructField('activityLink_geography', StringType(), True),
                 StructField('exchange unitName', StringType(), True),
-                StructField('exchange amount', DecimalType(), True),
+                StructField('exchange amount', FloatType(), True),
                 StructField('CPC_classificationValue', StringType(), True),
                 StructField('By-product classification_classificationValue', StringType(), True),
                 StructField('tiltRecordID', StringType(), False)

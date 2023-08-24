@@ -1,7 +1,7 @@
 from functions.spark_session import read_table, write_table, create_spark_session
 import pyspark.sql.functions as F
 from pyspark.sql.functions import col, when
-from pyspark.sql.types import FloatType, IntegerType, TimestampType, BooleanType, DecimalType, ShortType
+from pyspark.sql.types import FloatType, IntegerType, TimestampType, BooleanType, DecimalType, ShortType, FloatType
 
 
 def generate_table(table_name: str) -> None:
@@ -333,7 +333,7 @@ def generate_table(table_name: str) -> None:
 
         # to decimal values
         column_name = "logprob"
-        ep_ei_matcher = ep_ei_matcher.withColumn(column_name, col(column_name).cast(DecimalType(38,18)))  
+        ep_ei_matcher = ep_ei_matcher.withColumn(column_name, col(column_name).cast(FloatType()))  
 
         write_table(spark_generate, ep_ei_matcher, 'ep_ei_matcher_raw')  
 
@@ -350,7 +350,7 @@ def generate_table(table_name: str) -> None:
         column_names = ["Value", "Reductions"]
         # to decimal values
         for column in column_names:
-            scenario_targets_IPR_NEW = scenario_targets_IPR_NEW.withColumn(column, col(column).cast(DecimalType(38,2))) 
+            scenario_targets_IPR_NEW = scenario_targets_IPR_NEW.withColumn(column, col(column).cast(FloatType())) 
 
         write_table(spark_generate, scenario_targets_IPR_NEW, 'scenario_targets_IPR_NEW_raw') 
 
@@ -367,7 +367,7 @@ def generate_table(table_name: str) -> None:
         column_names = ["VALUE", "REDUCTIONS"]
         # to decimal values
         for column in column_names:
-            scenario_targets_WEO_NEW = scenario_targets_WEO_NEW.withColumn(column, col(column).cast(DecimalType(38,2)))  
+            scenario_targets_WEO_NEW = scenario_targets_WEO_NEW.withColumn(column, col(column).cast(FloatType()))  
 
         write_table(spark_generate, scenario_targets_WEO_NEW, 'scenario_targets_WEO_NEW_raw') 
 
@@ -408,7 +408,7 @@ def generate_table(table_name: str) -> None:
 
         # to replace to decimal values
         column_name = "ipcc_2021_climate_change_global_warming_potential_gwp100_kg_co2_eq"
-        ecoinvent_licenced = ecoinvent_licenced.withColumn(column_name, col(column_name).cast(DecimalType(38,10)))
+        ecoinvent_licenced = ecoinvent_licenced.withColumn(column_name, col(column_name).cast(FloatType()))
 
         write_table(spark_generate, ecoinvent_licenced, 'ecoinvent-v3.9.1_raw') 
 
@@ -426,7 +426,7 @@ def generate_table(table_name: str) -> None:
 
         # to replace to decimal values
         column_name = "exchange amount"
-        ecoinvent_input_data_relevant_columns_raw = ecoinvent_input_data_relevant_columns_raw.withColumn(column_name, col(column_name).cast(DecimalType(38,18)))
+        ecoinvent_input_data_relevant_columns_raw = ecoinvent_input_data_relevant_columns_raw.withColumn(column_name, col(column_name).cast(FloatType()))
 
         write_table(spark_generate, ecoinvent_input_data_relevant_columns_raw, 'ecoinvent_input_data_relevant_columns_raw') 
 
