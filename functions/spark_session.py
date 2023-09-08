@@ -80,7 +80,7 @@ def read_table(read_session: SparkSession, table_name: str, partition: str = '')
         # Force to load first record of the data to check if it throws an error
         df.head()
     # Try to catch the specific exception where the table to be read does not exist
-    except pyspark.errors.exceptions.connect.AnalysisException as e:
+    except Exception as e:
         # If the table does not exist yet, return an empty data frame
         if "Path does not exist:" in str(e):
             df = read_session.createDataFrame([], table_definition['columns'])
@@ -294,18 +294,38 @@ def create_sha_values(spark_session: SparkSession, data_frame: DataFrame, col_li
     return data_frame
 
 def compare_tables(spark_session: SparkSession, data_frame: DataFrame, table_name: str) -> DataFrame:
+    """
+    Compare an incoming DataFrame with an existing table, identifying new, identical, and closed records.
 
+    Parameters:
+    - spark_session (SparkSession): The SparkSession used for Spark operations.
+    - data_frame (DataFrame): The incoming DataFrame to be compared.
+    - table_name (str): The name of the existing table to compare against.
+
+    Returns:
+    - DataFrame: A DataFrame containing records that are new, identical, or closed compared to the existing table.
+
+    This function compares an incoming DataFrame with an existing table and identifies the following types of records:
+    - New records: Records in the incoming DataFrame that do not exist in the existing table.
+    - Identical records: Records with unchanged values present in both the incoming and existing table.
+    - Closed records: Records that exist in the existing table but are no longer present in the incoming DataFrame.
+
+    The comparison is based on SHA values of selected columns, and the function returns a DataFrame containing all relevant records.
+
+    Note: The function assumes that the incoming DataFrame and existing table have a common set of columns for comparison.
+    """
     # Determine the processing date
     processing_date = F.current_date()
     future_date = F.lit('2099-12-31')
-
+    from_to_list = [F.col('from_date'),F.col('to_date')]
+    
     # Select the columns that contain values that should be compared
     value_columns = [F.col(col_name) for col_name in data_frame.columns if col_name not in ['tiltRecordID','from_date','to_date']]
 
     # Read the already existing table
     old_df = read_table(spark_session,table_name)
-    old_closed_records = old_df.filter(F.col('to_date')!=future_date).select(value_columns + ['from_date','to_date'])
-    old_df = old_df.filter(F.col('to_date')==future_date).select(value_columns + ['from_date','to_date'])
+    old_closed_records = old_df.filter(F.col('to_date')!=future_date).select(value_columns + from_to_list)
+    old_df = old_df.filter(F.col('to_date')==future_date).select(value_columns + from_to_list)
 
     # Add the SHA representation of the old records and rename to unique name
     old_df = create_sha_values(spark_session, old_df, value_columns)
@@ -318,21 +338,30 @@ def compare_tables(spark_session: SparkSession, data_frame: DataFrame, table_nam
 
     # Join the SHA values of both tables together
     combined_df = new_data_frame.select(F.col('shaValueNew')).join(old_df.select('shaValueOld'),on=old_df.shaValueOld==new_data_frame.shaValueNew,how='full')
-
+    
+    # Set the base of all records to the already expired/ closed records
+    all_records = old_closed_records
     # Records that did not change are taken from the existing set of data
-    identical_records = combined_df.filter((F.col('shaValueOld').isNotNull())&(F.col('shaValueNew').isNotNull())).join(old_df,on='shaValueOld',how='inner')
+    identical_records = combined_df.filter((F.col('shaValueOld').isNotNull())&(F.col('shaValueNew').isNotNull()))
+    if identical_records.count() > 0:
+        identical_records = combined_df.filter((F.col('shaValueOld').isNotNull())&(F.col('shaValueNew').isNotNull())).join(old_df,on='shaValueOld',how='inner')
+        identical_records = identical_records.select(value_columns + from_to_list)
+        all_records = all_records.union(identical_records)
+
     # Records that do not exist anymore are taken from the existing set of data
     # Records are closed by filling the to_date column with the current date
-    closed_records = combined_df.filter((F.col('shaValueOld').isNotNull())&(F.col('shaValueNew').isNull())).join(old_df,on='shaValueOld',how='inner').withColumn('to_date',processing_date)
+    closed_records = combined_df.filter((F.col('shaValueOld').isNotNull())&(F.col('shaValueNew').isNull()))
+    if closed_records.count() > 0:
+        closed_records = combined_df.filter((F.col('shaValueOld').isNotNull())&(F.col('shaValueNew').isNull())).join(old_df,on='shaValueOld',how='inner')
+        closed_records = closed_records.select(value_columns + from_to_list)
+        closed_records = closed_records.withColumn('to_date',processing_date)
+        all_records = all_records.union(closed_records)
+
     # Records that are new are taken from the new set of data
-    new_records = combined_df.filter((F.col('shaValueOld').isNull())&(F.col('shaValueNew').isNotNull())).join(new_data_frame,on='shaValueNew',how='inner')
-
-    # Select the relevant columns, as the SHA values are not relevant anymore
-    identical_records = identical_records.select(value_columns + ['from_date','to_date'])
-    closed_records = closed_records.select(value_columns + ['from_date','to_date'])
-    new_records = new_records.select(value_columns + ['from_date','to_date'])
-
-    # Union all of the records, meaning all already closed, identical, closed and new records
-    all_records = old_closed_records.union(identical_records).union(closed_records).union(new_records)
+    new_records = combined_df.filter((F.col('shaValueOld').isNull())&(F.col('shaValueNew').isNotNull()))
+    if new_records.count() > 0:
+        new_records = combined_df.filter((F.col('shaValueOld').isNull())&(F.col('shaValueNew').isNotNull())).join(new_data_frame,on='shaValueNew',how='inner')
+        new_records = new_records.select(value_columns + from_to_list)
+        all_records = all_records.union(new_records)
 
     return all_records
