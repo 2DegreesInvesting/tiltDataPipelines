@@ -53,26 +53,33 @@ def calculate_filled_values(spark_session: SparkSession, dataframe: DataFrame, c
             "total_count" - The total number of rows in the DataFrame.
             "valid_count" - The count of valid values (excluding null, "NA," and empty) in the column.
     """
-    summary_data_list = []
+    df = read_table(spark_session,'dummy_quality_check')
     for column in column_names:
         total_count = dataframe.count()
         valid_count = dataframe.filter(
             (col(column).isNotNull()) |
             (col(column) != "NA")
         ).count()
-        #summary_data_list.append((column, total_count, valid_count))
+    
+    filled_values_data = df.withColumn('column_name', F.lit(column))\
+                                        .withColumn('total_count', F.lit(total_count))\
+                                        .withColumn('valid_count', F.lit(valid_count))\
+                                        .withColumn('check_name',F.lit('Check if values are filled'))\
+                                        .withColumn('check_id',F.lit('tilt_1'))
+    temp_df = df.union(filled_values_data)
+    final_filled_values_data = df.union(temp_df)
+        
 
-    # schema = StructType([
-    #     StructField("column_name", StringType(), False),
-    #     StructField("total_count", IntegerType(), False),
-    #     StructField("valid_count", IntegerType(), False)
-    # ])
-    # FUNCTION WORKS, but creating a dataframe using spark session doesn't, NEED TO FIX
-    quality_checks_data = read_table(spark_session,'dummy_quality_check')
-    quality_checks_data = quality_checks_data.withColumn('column_name', F.lit(column))
-    quality_checks_data = quality_checks_data.withColumn('total_count', F.lit(total_count))
-    quality_checks_data = quality_checks_data.withColumn('valid_count', F.lit(valid_count))
-    return quality_checks_data
+    return final_filled_values_data
+
+spark_generate = create_spark_session()
+dataframe = read_table(spark_generate, 'geographies_raw')
+column_names = dataframe.columns
+print(column_names)
+df = calculate_filled_values(spark_generate, dataframe, column_names)
+print(df)
+
+
 
 
 def check_values_in_range(spark_session: SparkSession, dataframe: DataFrame, column_name: str, range_start: int, range_end: int) -> DataFrame:

@@ -1620,6 +1620,22 @@ def get_table_definition(table_name: str) -> dict:
             'type': 'csv',
             'partition_by' : '',
             'quality_checks': []
+        },
+        'validity_values_in_range': {
+            'columns' :  StructType([
+                StructField('check_id', StringType(), False),
+                StructField('table_name', StringType(), True),
+                StructField('column_name', StringType(), True),
+                StructField('check_name', StringType(), True),
+                StructField('total_count', IntegerType(), True),
+                StructField('valid_count', IntegerType(), True)
+            ]  
+            ),
+            'container': 'monitoring',
+            'location': 'validity_values_in_range_check',
+            'type': 'parquet',
+            'partition_by' : '',
+            'quality_checks': []
         }
         
 

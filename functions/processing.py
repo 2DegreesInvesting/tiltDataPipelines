@@ -200,7 +200,7 @@ def generate_table(table_name: str) -> None:
         companies = df
 
         # List of column names to replace to byte values
-        columns_to_replace_byte = ["min_headcount", "max_headcount"]
+        columns_to_replace_byte = ["min_headcount", "max_headcount", "year_established"]
 
         for column_name in columns_to_replace_byte:
             companies = companies.withColumn(column_name, col(column_name).cast(IntegerType()))
@@ -212,6 +212,9 @@ def generate_table(table_name: str) -> None:
         # to timestamp values
         column_name = "download_datetime"
         companies = companies.withColumn(column_name, col(column_name).cast(TimestampType()))  
+
+        # to integer
+
 
         write_table(spark_generate, companies, 'companies_raw')     
 
