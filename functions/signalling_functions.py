@@ -2,6 +2,10 @@ from pyspark.sql import DataFrame, SparkSession
 from functions.spark_session import read_table, create_spark_session
 from pyspark.sql.functions import col
 import pyspark.sql.functions as F
+from signalling_tables import table_name_list
+from functions.signalling_rules import signalling_checks_dictionary
+
+spark_session = create_spark_session()
 
 
 def check_value_within_list(spark_session: SparkSession, dataframe: DataFrame, column_name: str, value_list: list) -> DataFrame:
@@ -28,7 +32,6 @@ def check_value_within_list(spark_session: SparkSession, dataframe: DataFrame, c
     value_within_list_data = value_within_list_data.withColumn('valid_count', F.lit(valid_count))
 
     return value_within_list_data
-
 
 
 def calculate_filled_values(spark_session: SparkSession, dataframe: DataFrame, column_names: list) -> DataFrame:
@@ -71,8 +74,6 @@ def calculate_filled_values(spark_session: SparkSession, dataframe: DataFrame, c
     return df
 
 
-
-
 def check_values_in_range(spark_session: SparkSession, dataframe: DataFrame, column_name: str, range_start: int, range_end: int) -> DataFrame:
     """
     Check if values in a column are within a specified range.
@@ -100,4 +101,53 @@ def check_values_in_range(spark_session: SparkSession, dataframe: DataFrame, col
 
 
 
+def check_signalling_issues(table_name):
+    """
+    Checks the signalling data quality of a DataFrame against the specified quality rule.
 
+    Args:
+        table_name (str): The name of the table for which the data quality is monitored.
+
+    Returns:
+        A dataframe, contraining check_id, table_name, column_name, check_name, total_count and valid_count for every signalling data quality check.
+
+    """
+
+    for table_name in table_name_list:
+
+        dataframe = read_table(spark_session, table_name)
+        dataframe_columns = dataframe.columns
+
+        df = calculate_filled_values(spark_session, dataframe, dataframe_columns)
+        df = df.withColumn('table_name',F.lit(table_name))
+
+    for table_name in signalling_checks_dictionary:
+            tables_list = signalling_checks_dictionary[table_name][0]
+            check_types = tables_list.get('check')
+            column_name = tables_list.get('columns')[0]
+
+            dataframe_2 = read_table(spark_session, table_name)
+
+            if check_types == 'values within list':
+                value_list = tables_list.get('value_list')
+
+                df_2 = check_value_within_list(spark_session, dataframe_2, column_name, value_list)
+
+                df_2 = df_2.withColumn('table_name',F.lit(table_name))\
+                        .withColumn('column_name',F.lit(column_name))\
+                        .withColumn('check_name',F.lit(check_types))\
+                        .withColumn('check_id',F.lit('tilt_2'))
+                
+            elif check_types == 'values in range':
+
+                range_start = tables_list.get('range_start')
+                range_end = tables_list.get('range_end')
+
+                df_3 = check_values_in_range(spark_session, dataframe_2, column_name, range_start, range_end)
+
+                df_3 = df_3.withColumn('table_name',F.lit(table_name))\
+                        .withColumn('column_name',F.lit(column_name))\
+                        .withColumn('check_name',F.lit(check_types))\
+                        .withColumn('check_id',F.lit('tilt_3'))
+
+    return None

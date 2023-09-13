@@ -1612,7 +1612,8 @@ def get_table_definition(table_name: str) -> dict:
                 StructField('column_name', StringType(), True),
                 StructField('check_name', StringType(), True),
                 StructField('total_count', StringType(), True),
-                StructField('valid_count', StringType(), True)
+                StructField('valid_count', StringType(), True),
+                StructField('tiltRecordID', StringType(), False)
             ]  
             ),
             'container': 'monitoring',
@@ -1628,7 +1629,8 @@ def get_table_definition(table_name: str) -> dict:
                 StructField('column_name', StringType(), True),
                 StructField('check_name', StringType(), True),
                 StructField('total_count', IntegerType(), True),
-                StructField('valid_count', IntegerType(), True)
+                StructField('valid_count', IntegerType(), True),
+                StructField('tiltRecordID', StringType(), False)
             ]  
             ),
             'container': 'monitoring',

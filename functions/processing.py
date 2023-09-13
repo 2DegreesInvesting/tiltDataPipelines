@@ -213,9 +213,6 @@ def generate_table(table_name: str) -> None:
         column_name = "download_datetime"
         companies = companies.withColumn(column_name, col(column_name).cast(TimestampType()))  
 
-        # to integer
-
-
         write_table(spark_generate, companies, 'companies_raw')     
 
     elif table_name == 'main_activity_raw':
