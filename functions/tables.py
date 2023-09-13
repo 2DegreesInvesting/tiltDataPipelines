@@ -1621,7 +1621,7 @@ def get_table_definition(table_name: str) -> dict:
             'partition_by' : '',
             'quality_checks': []
         },
-        'validity_values_in_range': {
+        'completeness_filled_values': {
             'columns' :  StructType([
                 StructField('check_id', StringType(), False),
                 StructField('table_name', StringType(), True),
@@ -1632,7 +1632,7 @@ def get_table_definition(table_name: str) -> dict:
             ]  
             ),
             'container': 'monitoring',
-            'location': 'validity_values_in_range_check',
+            'location': 'filled_values',
             'type': 'parquet',
             'partition_by' : '',
             'quality_checks': []

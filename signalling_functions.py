@@ -1,6 +1,5 @@
-from pyspark.sql import DataFrame, SparkSession, Row
+from pyspark.sql import DataFrame, SparkSession
 from functions.spark_session import read_table, create_spark_session
-from pyspark.sql.types import StringType, IntegerType, StructType, StructField
 from pyspark.sql.functions import col
 import pyspark.sql.functions as F
 
@@ -15,25 +14,19 @@ def check_value_within_list(spark_session: SparkSession, dataframe: DataFrame, c
     value_list (list): A list of valid values to check against.
     
     Returns:
-         DataFrame: A DataFrame containing columns "column_name," "total_count," and "valid_count."
-            "column_name" - The name of the column.
+         DataFrame: A DataFrame containing columns "total_count" and "valid_count."
             "total_count" - The total number of rows in the DataFrame.
             "valid_count" - The count of valid values within a list.
     """
 
-    summary_data_list = []
     total_count = dataframe.count()
     valid_count = dataframe.filter(col(column_name).isin(value_list)).count()
 
-    #summary_data_list.append((column_name, total_count, valid_count))
-    #summary_data_list += [Row(column_name = column_name, total_count = total_count, valid_count = valid_count)]
-   
 
-    # FUNCTION WORKS, but creating a dataframe using spark session doesn't, NEED TO FIX
     value_within_list_data = read_table(spark_session,'dummy_quality_check')
     value_within_list_data = value_within_list_data.withColumn('total_count', F.lit(total_count))
     value_within_list_data = value_within_list_data.withColumn('valid_count', F.lit(valid_count))
-    #result_data = result_data.union(summary_data_list)
+
     return value_within_list_data
 
 
@@ -48,36 +41,34 @@ def calculate_filled_values(spark_session: SparkSession, dataframe: DataFrame, c
         column_names (list): List of column names to calculate valid counts.
 
     Returns:
-        DataFrame: A DataFrame containing columns "column_name," "total_count," and "valid_count."
-            "column_name" - The name of the column.
+        DataFrame: A DataFrame containing columns "total_count", "valid_count", "check_name" and "check_id"
             "total_count" - The total number of rows in the DataFrame.
             "valid_count" - The count of valid values (excluding null, "NA," and empty) in the column.
+            "check_name" - The name of the quality check.
+            "check_id" - The id of the quality check.
     """
+
+    spark_session = create_spark_session()
     df = read_table(spark_session,'dummy_quality_check')
+    # remove first row
+    value_to_remove = "column_dummy"
+    df = df.filter(df["column_name"] != value_to_remove)
     for column in column_names:
         total_count = dataframe.count()
         valid_count = dataframe.filter(
             (col(column).isNotNull()) |
             (col(column) != "NA")
         ).count()
-    
-    filled_values_data = df.withColumn('column_name', F.lit(column))\
-                                        .withColumn('total_count', F.lit(total_count))\
-                                        .withColumn('valid_count', F.lit(valid_count))\
-                                        .withColumn('check_name',F.lit('Check if values are filled'))\
-                                        .withColumn('check_id',F.lit('tilt_1'))
-    temp_df = df.union(filled_values_data)
-    final_filled_values_data = df.union(temp_df)
+        temp_df = read_table(spark_session,'dummy_quality_check')
+        temp_df = temp_df.withColumn('column_name', F.lit(column))\
+                                            .withColumn('total_count', F.lit(total_count))\
+                                            .withColumn('valid_count', F.lit(valid_count))\
+                                            .withColumn('check_name',F.lit('Check if values are filled'))\
+                                            .withColumn('check_id',F.lit('tilt_1'))
+        df = df.union(temp_df)
         
 
-    return final_filled_values_data
-
-spark_generate = create_spark_session()
-dataframe = read_table(spark_generate, 'geographies_raw')
-column_names = dataframe.columns
-print(column_names)
-df = calculate_filled_values(spark_generate, dataframe, column_names)
-print(df)
+    return df
 
 
 
@@ -93,12 +84,10 @@ def check_values_in_range(spark_session: SparkSession, dataframe: DataFrame, col
         range_end (int): The end of the range.
 
     Returns:
-        DataFrame: A DataFrame containing columns "column_name," "total_count," and "valid_count."
-            "column_name" - The name of the column.
+        DataFrame: A DataFrame containing columns "total_count" and "valid_count."
             "total_count" - The total number of rows in the DataFrame.
             "valid_count" - The count of valid values within a specified range.
     """
-    #condition = (df[column_name] >= range_start) & (df[column_name] <= range_end)
     
     total_count = dataframe.count()
     valid_count = dataframe.filter(col(column_name).between(range_start, range_end)).count()
