@@ -1611,8 +1611,8 @@ def get_table_definition(table_name: str) -> dict:
                 StructField('table_name', StringType(), True),
                 StructField('column_name', StringType(), True),
                 StructField('check_name', StringType(), True),
-                StructField('total_count', StringType(), True),
-                StructField('valid_count', StringType(), True),
+                StructField('total_count', IntegerType(), True),
+                StructField('valid_count', IntegerType(), True),
                 StructField('tiltRecordID', StringType(), False)
             ]  
             ),
@@ -1622,7 +1622,7 @@ def get_table_definition(table_name: str) -> dict:
             'partition_by' : '',
             'quality_checks': []
         },
-        'completeness_filled_values': {
+        'monitoring_values': {
             'columns' :  StructType([
                 StructField('check_id', StringType(), False),
                 StructField('table_name', StringType(), True),
@@ -1634,7 +1634,7 @@ def get_table_definition(table_name: str) -> dict:
             ]  
             ),
             'container': 'monitoring',
-            'location': 'filled_values',
+            'location': 'monitoring_values',
             'type': 'parquet',
             'partition_by' : '',
             'quality_checks': []

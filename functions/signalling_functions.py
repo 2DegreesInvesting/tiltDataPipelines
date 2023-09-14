@@ -1,11 +1,9 @@
 from pyspark.sql import DataFrame, SparkSession
-from functions.spark_session import read_table, create_spark_session
+from functions.spark_session import read_table, create_spark_session, write_table
 from pyspark.sql.functions import col
 import pyspark.sql.functions as F
-from signalling_tables import table_name_list
 from functions.signalling_rules import signalling_checks_dictionary
-
-spark_session = create_spark_session()
+from pyspark.sql.types import IntegerType
 
 
 def check_value_within_list(spark_session: SparkSession, dataframe: DataFrame, column_name: str, value_list: list) -> DataFrame:
@@ -28,8 +26,8 @@ def check_value_within_list(spark_session: SparkSession, dataframe: DataFrame, c
 
 
     value_within_list_data = read_table(spark_session,'dummy_quality_check')
-    value_within_list_data = value_within_list_data.withColumn('total_count', F.lit(total_count))
-    value_within_list_data = value_within_list_data.withColumn('valid_count', F.lit(valid_count))
+    value_within_list_data = value_within_list_data.withColumn('total_count', F.lit(total_count).cast(IntegerType()))
+    value_within_list_data = value_within_list_data.withColumn('valid_count', F.lit(valid_count).cast(IntegerType()))
 
     return value_within_list_data
 
@@ -64,8 +62,8 @@ def calculate_filled_values(spark_session: SparkSession, dataframe: DataFrame, c
         ).count()
         temp_df = read_table(spark_session,'dummy_quality_check')
         temp_df = temp_df.withColumn('column_name', F.lit(column))\
-                                            .withColumn('total_count', F.lit(total_count))\
-                                            .withColumn('valid_count', F.lit(valid_count))\
+                                            .withColumn('total_count', F.lit(total_count).cast(IntegerType()))\
+                                            .withColumn('valid_count', F.lit(valid_count).cast(IntegerType()))\
                                             .withColumn('check_name',F.lit('Check if values are filled'))\
                                             .withColumn('check_id',F.lit('tilt_1'))
         df = df.union(temp_df)
@@ -95,13 +93,13 @@ def check_values_in_range(spark_session: SparkSession, dataframe: DataFrame, col
 
     
     values_within_range_data = read_table(spark_session,'dummy_quality_check')
-    values_within_range_data = values_within_range_data.withColumn('total_count', F.lit(total_count))
-    values_within_range_data = values_within_range_data.withColumn('valid_count', F.lit(valid_count))
+    values_within_range_data = values_within_range_data.withColumn('total_count', F.lit(total_count).cast(IntegerType()))
+    values_within_range_data = values_within_range_data.withColumn('valid_count', F.lit(valid_count).cast(IntegerType()))
     return values_within_range_data
 
 
 
-def check_signalling_issues(table_name):
+def check_signalling_issues(spark_session: SparkSession, table_name: str):
     """
     Checks the signalling data quality of a DataFrame against the specified quality rule.
 
@@ -113,41 +111,44 @@ def check_signalling_issues(table_name):
 
     """
 
-    for table_name in table_name_list:
+    dataframe = read_table(spark_session, table_name)
+    dataframe_columns = dataframe.columns
 
-        dataframe = read_table(spark_session, table_name)
-        dataframe_columns = dataframe.columns
+    df = calculate_filled_values(spark_session, dataframe, dataframe_columns)
+    df = df.withColumn('table_name',F.lit(table_name))
 
-        df = calculate_filled_values(spark_session, dataframe, dataframe_columns)
-        df = df.withColumn('table_name',F.lit(table_name))
+    if table_name in signalling_checks_dictionary.keys():
+            for signalling_check in signalling_checks_dictionary[table_name]:
+                check_types = signalling_check.get('check')
+                column_name = signalling_check.get('columns')[0]
 
-    for table_name in signalling_checks_dictionary:
-            tables_list = signalling_checks_dictionary[table_name][0]
-            check_types = tables_list.get('check')
-            column_name = tables_list.get('columns')[0]
+                if check_types == 'values within list':
+                    value_list = signalling_check.get('value_list')
 
-            dataframe_2 = read_table(spark_session, table_name)
+                    df_2 = check_value_within_list(spark_session, dataframe, column_name, value_list)
 
-            if check_types == 'values within list':
-                value_list = tables_list.get('value_list')
+                    df_2 = df_2.withColumn('table_name',F.lit(table_name))\
+                            .withColumn('column_name',F.lit(column_name))\
+                            .withColumn('check_name',F.lit(check_types))\
+                            .withColumn('check_id',F.lit('tilt_2'))
+                    df = df.union(df_2)
+                elif check_types == 'values in range':
 
-                df_2 = check_value_within_list(spark_session, dataframe_2, column_name, value_list)
+                    range_start = signalling_check.get('range_start')
+                    range_end = signalling_check.get('range_end')
 
-                df_2 = df_2.withColumn('table_name',F.lit(table_name))\
-                        .withColumn('column_name',F.lit(column_name))\
-                        .withColumn('check_name',F.lit(check_types))\
-                        .withColumn('check_id',F.lit('tilt_2'))
-                
-            elif check_types == 'values in range':
+                    df_3 = check_values_in_range(spark_session, dataframe, column_name, range_start, range_end)
 
-                range_start = tables_list.get('range_start')
-                range_end = tables_list.get('range_end')
+                    df_3 = df_3.withColumn('table_name',F.lit(table_name))\
+                            .withColumn('column_name',F.lit(column_name))\
+                            .withColumn('check_name',F.lit(check_types))\
+                            .withColumn('check_id',F.lit('tilt_3'))
+                    df = df.union(df_3)
 
-                df_3 = check_values_in_range(spark_session, dataframe_2, column_name, range_start, range_end)
-
-                df_3 = df_3.withColumn('table_name',F.lit(table_name))\
-                        .withColumn('column_name',F.lit(column_name))\
-                        .withColumn('check_name',F.lit(check_types))\
-                        .withColumn('check_id',F.lit('tilt_3'))
-
-    return None
+    monitoring_values_df = read_table(spark_session,'monitoring_values')   
+  # filter the monitoring values table to exclude all records that already exists for that table
+    monitoring_values_df_filtered = monitoring_values_df.filter(F.col('table_name')!= table_name)
+    monitoring_values_df = monitoring_values_df_filtered.union(df)
+    
+    write_table(spark_session, monitoring_values_df, 'monitoring_values')
+    return monitoring_values_df
