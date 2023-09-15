@@ -87,9 +87,7 @@ def read_table(read_session: SparkSession, table_name: str, partition: str = '')
         # If we encounter any other error, raise as the error
         else:
             raise(e)
-
-
-    if partition:
+    if partition != '':
         df = df.withColumn(table_partition, F.lit(partition))
 
     return df
