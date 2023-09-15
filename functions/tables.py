@@ -1722,6 +1722,8 @@ def get_table_definition(table_name: str) -> dict:
                 StructField('check_name', StringType(), True),
                 StructField('total_count', IntegerType(), True),
                 StructField('valid_count', IntegerType(), True),
+                StructField('from_date', DateType(), False),
+                StructField('to_date', DateType(), False),
                 StructField('tiltRecordID', StringType(), False)
             ]  
             ),

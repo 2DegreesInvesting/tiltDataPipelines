@@ -146,6 +146,7 @@ def check_signalling_issues(spark_session: SparkSession, table_name: str):
                     df = df.union(df_3)
 
     monitoring_values_df = read_table(spark_session,'monitoring_values')   
+    monitoring_values_df = monitoring_values_df.filter(F.col('to_date')=='2099-12-31').select([F.col(column) for column in df.columns if column not in ['from_date','to_date']])
   # filter the monitoring values table to exclude all records that already exists for that table
     monitoring_values_df_filtered = monitoring_values_df.filter(F.col('table_name')!= table_name)
     monitoring_values_df = monitoring_values_df_filtered.union(df)
