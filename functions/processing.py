@@ -159,9 +159,7 @@ def generate_table(table_name: str) -> None:
 
     elif table_name == 'sea_food_raw':
 
-        df = read_table(spark_generate, 'sea_food_landingzone')
-
-        sea_food = df
+        sea_food = read_table(spark_generate, 'sea_food_landingzone')
 
         # List of column names to replace to boolean values
         columns_to_replace = ["supply_chain_feed", "supply_chain_fishing", "supply_chain_aquaculture", "supply_chain_processing",
@@ -184,6 +182,12 @@ def generate_table(table_name: str) -> None:
 
         for column_name_2 in columns_to_replace_float:
             sea_food = sea_food.withColumn(column_name_2, col(column_name_2).cast(FloatType()))
+
+        # writing the dataframe is a temporary fix to avoid getting an error within the grpc package
+        temp_seafood_location = 'abfss://raw@storagetiltdevelop.dfs.core.windows.net/sea_food_temp/'
+        sea_food.coalesce(1).write.mode('overwrite').parquet(temp_seafood_location)
+
+        sea_food = spark_generate.read.format('parquet').load(temp_seafood_location)
         
         write_table(spark_generate, sea_food, 'sea_food_raw')
 
@@ -191,13 +195,11 @@ def generate_table(table_name: str) -> None:
 
         df = read_table(spark_generate, 'products_companies_landingzone')
 
-        write_table(spark_generate, df,'products_companies_raw')
+        write_table(spark_generate, df, 'products_companies_raw')
 
     elif table_name == 'companies_raw':
 
-        df = read_table(spark_generate, 'companies_landingzone')
-
-        companies = df
+        companies = read_table(spark_generate, 'companies_landingzone')
 
         # List of column names to replace to byte values
         columns_to_replace_byte = ["min_headcount", "max_headcount", "year_established"]
