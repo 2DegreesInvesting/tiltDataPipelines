@@ -230,7 +230,7 @@ def validate_data_quality(spark_session: SparkSession, data_frame: DataFrame, ta
 
     table_definition = get_table_definition(table_name)
 
-    writing_data_frame = data_frame.filter(F.col('to_date').isNull())
+    writing_data_frame = data_frame.filter(F.col('to_date')=='2099-12-31')
 
     for condition_list in table_definition['quality_checks']:
         if condition_list[0] not in ['unique', 'format']:
@@ -238,13 +238,20 @@ def validate_data_quality(spark_session: SparkSession, data_frame: DataFrame, ta
 
         # Check uniqueness by comparing the total values versus distinct values in a column
         if condition_list[0] == 'unique':
+            # Get the list of columns that have to be unique
+            unique_columns = condition_list[1]
             # Check if the table is partitioned
             if table_definition['partition_by']:
-                if writing_data_frame.groupBy(table_definition['partition_by']).agg(F.count(*[F.col(column) for column in condition_list[1]]).alias('count')).collect() != writing_data_frame.groupBy(table_definition['partition_by']).agg(F.countDistinct(*[F.col(column) for column in condition_list[1]]).alias('count')).collect():
-                    raise ValueError(f"Column: {condition_list[1]} is not unique along grouped columns.")
+                # If the table is partitioned, the unique columns have to be unique within one partition
+                # Compare the total count of values agains the distinct count of values per partition
+                if writing_data_frame.groupBy(table_definition['partition_by']).agg(F.count(*[F.col(column) for column in unique_columns]).alias('count')).collect() != writing_data_frame.groupBy(table_definition['partition_by']).agg(F.countDistinct(*[F.col(column) for column in unique_columns]).alias('count')).collect():
+                    # If the values of count and distinct count are not identical, the columns are not unique.
+                    raise ValueError(f"Column: {unique_columns} is not unique along grouped columns.")
             else:
-                if writing_data_frame.select(*[F.col(column) for column in condition_list[1]]).count() != writing_data_frame.select(*[F.col(column) for column in condition_list[1]]).distinct().count():
-                    raise ValueError(f"Column: {condition_list[1]} is not unique.")
+                # Compare the total count of values in the tables against the distinct count
+                if writing_data_frame.select(*[F.col(column) for column in unique_columns]).count() != writing_data_frame.select(*[F.col(column) for column in unique_columns]).distinct().count():
+                    # If the values of count and distinct count are not identical, the columns are not unique.
+                    raise ValueError(f"Column: {unique_columns} is not unique.")
 
         # Check if the formatting aligns with a specified pattern
         elif condition_list[0] == 'format':

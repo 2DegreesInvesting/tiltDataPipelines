@@ -183,8 +183,7 @@ def generate_table(table_name: str) -> None:
         for column_name_2 in columns_to_replace_float:
             sea_food = sea_food.withColumn(column_name_2, col(column_name_2).cast(FloatType()))
 
-        # writing the dataframe is a temporary fix to avoid getting a error within the grpc package
-        # The idea would be that writing the dataframe before validation to a generic location to free up resources.
+        # writing the dataframe is a temporary fix to avoid getting an error within the grpc package
         temp_seafood_location = 'abfss://raw@storagetiltdevelop.dfs.core.windows.net/sea_food_temp/'
         sea_food.coalesce(1).write.mode('overwrite').parquet(temp_seafood_location)
 
