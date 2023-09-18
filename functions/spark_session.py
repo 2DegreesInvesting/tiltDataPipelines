@@ -74,7 +74,9 @@ def read_table(read_session: SparkSession, table_name: str, partition: str = '')
 
     try:
         if table_definition['type'] == 'csv':
-            df = read_session.read.format(table_definition['type']).schema(table_definition['columns']).option('header', True).option("quote", '"').option("multiline", 'True').load(table_location)
+            df = read_session.read.format('csv').schema(table_definition['columns']).option('header', True).option("quote", '"').option("multiline", 'True').load(table_location)
+        if table_definition['type'] == 'ecoInvent':
+            df = read_session.read.format('csv').schema(table_definition['columns']).option('header', True).option("quote", '~').option('delimiter',';').option("multiline", 'True').load(table_location)
         else:
             df = read_session.read.format(table_definition['type']).schema(table_definition['columns']).option('header', True).load(table_location)
         # Force to load first record of the data to check if it throws an error

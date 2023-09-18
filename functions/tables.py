@@ -18,7 +18,7 @@ def get_table_definition(table_name: str) -> dict:
             ), 
             'container': 'landingzone',
             'location': 'ecoInvent/Geographies.csv',
-            'type': 'csv',
+            'type': 'ecoInvent',
             'partition_by' : '',
             'quality_checks': []
         },
@@ -95,7 +95,7 @@ def get_table_definition(table_name: str) -> dict:
             ), 
             'container': 'landingzone',
             'location': 'ecoInvent/Undefined AO.csv',
-            'type': 'csv',
+            'type': 'ecoInvent',
             'partition_by' : '',
             'quality_checks': []
         },
@@ -151,7 +151,7 @@ def get_table_definition(table_name: str) -> dict:
             ), 
             'container': 'landingzone',
             'location': 'ecoInvent/Cut-OFF AO.csv',
-            'type': 'csv',
+            'type': 'ecoInvent',
             'partition_by' : '',
             'quality_checks': []
         },
@@ -208,7 +208,7 @@ def get_table_definition(table_name: str) -> dict:
             ), 
             'container': 'landingzone',
             'location': 'ecoInvent/EN15804 AO.csv',
-            'type': 'csv',
+            'type': 'ecoInvent',
             'partition_by' : '',
             'quality_checks': []
         },
@@ -265,7 +265,7 @@ def get_table_definition(table_name: str) -> dict:
             ), 
             'container': 'landingzone',
             'location': 'ecoInvent/Consequential AO.csv',
-            'type': 'csv',
+            'type': 'ecoInvent',
             'partition_by' : '',
             'quality_checks': []
         },
@@ -369,7 +369,7 @@ def get_table_definition(table_name: str) -> dict:
             ), 
             'container': 'landingzone',
             'location': 'ecoInvent/LCIA Methods.csv',
-            'type': 'csv',
+            'type': 'ecoInvent',
             'partition_by' : '',
             'quality_checks': []
         },
@@ -409,7 +409,7 @@ def get_table_definition(table_name: str) -> dict:
             ), 
             'container': 'landingzone',
             'location': 'ecoInvent/Impact Categories.csv',
-            'type': 'csv',
+            'type': 'ecoInvent',
             'partition_by' : '',
             'quality_checks': []
         },
@@ -453,7 +453,7 @@ def get_table_definition(table_name: str) -> dict:
             ), 
             'container': 'landingzone',
             'location': 'ecoInvent/Intermediate Exchanges.csv',
-            'type': 'csv',
+            'type': 'ecoInvent',
             'partition_by' : '',
             'quality_checks': []
         },
@@ -494,7 +494,7 @@ def get_table_definition(table_name: str) -> dict:
             ), 
             'container': 'landingzone',
             'location': 'ecoInvent/Elementary Exchanges.csv',
-            'type': 'csv',
+            'type': 'ecoInvent',
             'partition_by' : '',
             'quality_checks': []
         },
