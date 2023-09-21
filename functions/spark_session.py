@@ -47,19 +47,34 @@ def create_spark_session() -> SparkSession:
 
 def read_table(read_session: SparkSession, table_name: str, partition: str = '', history: str = 'recent') -> DataFrame:
     """
-    Reads a table with the specified table name and optional partition.
+    Read data from a specified table.
+
+    This function reads data from a table specified by its name and an optional partition. It provides flexibility
+    for reading different types of tables and handling historical data.
 
     Args:
         read_session (SparkSession): The SparkSession object for reading the table.
         table_name (str): The name of the table to be read.
         partition (str, optional): The partition value (default: '').
+        history (str, optional): Specify 'recent' to read the most recent data, or 'complete' to read all data history.
 
     Returns:
-        DataFrame: The DataFrame representing the table data.
+        DataFrame: A DataFrame representing the table data.
 
     Raises:
-        None
+        ValueError: If 'history' argument is not 'recent' or 'complete'.
 
+    Note:
+        - The function dynamically determines the file format and schema based on the table definition.
+        - If the specified table does not exist yet, it returns an empty DataFrame.
+        - If 'history' is set to 'recent' and a 'to_date' column exists, it filters data for the most recent records.
+
+    Example:
+        # Read the most recent data from a table named 'my_table'
+        recent_data = read_table(spark, 'my_table', history='recent')
+
+        # Read all historical data from a partitioned table named 'my_partitioned_table' for a specific partition '2023-09-21'
+        all_data = read_table(spark, 'my_partitioned_table', partition='2023-09-21', history='complete')
     """
 
     if history not in ['recent','complete']:
