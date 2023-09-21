@@ -136,9 +136,6 @@ def write_table(spark_session: SparkSession, data_frame: DataFrame, table_name: 
                 data_frame.coalesce(1).write.mode('overwrite').csv(table_location)
             else:
                 data_frame.coalesce(1).write.mode('overwrite').parquet(table_location)
-
-
-    
     else:
         raise ValueError("Table format validation failed.")
 
