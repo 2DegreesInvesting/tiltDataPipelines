@@ -71,33 +71,10 @@ def read_table(read_session: SparkSession, table_name: str, partition: str = '')
 
     table_location = build_table_path(table_definition['container'], table_definition['location'], partition_path)
 
-    
     if table_definition['type'] == 'csv':
         df = read_session.read.format(table_definition['type']).schema(table_definition['columns']).option('header', True).option("quote", '"').option("multiline", 'True').load(table_location)
     else:
         df = read_session.read.format(table_definition['type']).schema(table_definition['columns']).option('header', True).load(table_location)
-
-    # first_line = read_session.read.load(table_location).readline()
-    # # Determine the delimiter based on the content of the first line
-    # if ";" in first_line:
-    #     delimiter = ";"
-    # else:
-    #     delimiter = ","
-    # #     # Configure read options
-    # read_options = {
-    #     "header": True,          # Assumes first row is the header
-    #     "inferSchema": True,    # Handle flexible content
-    #     "delimiter": delimiter,  # Specify the delimiter
-    #     "escape": "\\",          # Specify the escape character
-    #     "quote": '"',            # Specify the quote character
-    #     "multiline": True        # Allow multiline cells
-    #     }
-
-    # if table_definition['type'] == 'csv':
-    #     df = read_session.read.format(table_definition['type']).schema(table_definition['columns']).options(**read_options).load(table_location)
-    # else:
-    #     df = read_session.read.format(table_definition['type']).schema(table_definition['columns']).option('header', True).load(table_location)
-
 
     if partition != '':
         df = df.withColumn(table_partition, F.lit(partition))
@@ -166,7 +143,6 @@ def build_table_path(container: str, location: str, partition: str) -> str:
         None
 
     """
-
     if partition:
         # Return the table path with the specified partition
         return f'abfss://{container}@storagetilt{env}.dfs.core.windows.net/{location}/{partition}'
