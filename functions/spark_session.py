@@ -156,7 +156,6 @@ def build_table_path(container: str, location: str, partition: str) -> str:
         None
 
     """
-
     if partition:
         # Return the table path with the specified partition
         return f'abfss://{container}@storagetilt{env}.dfs.core.windows.net/{location}/{partition}'
