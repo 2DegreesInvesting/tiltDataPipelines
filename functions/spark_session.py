@@ -45,7 +45,7 @@ def create_spark_session() -> SparkSession:
     return spark_session
 
 
-def read_table(read_session: SparkSession, table_name: str, partition: str = '') -> DataFrame:
+def read_table(read_session: SparkSession, table_name: str, partition: str = '', history: str = 'recent') -> DataFrame:
     """
     Reads a table with the specified table name and optional partition.
 
@@ -61,6 +61,9 @@ def read_table(read_session: SparkSession, table_name: str, partition: str = '')
         None
 
     """
+
+    if history not in ['recent','complete']:
+        raise ValueError(f"Value {history} is not in valid arguments [recent,complete] for history argument")
 
     table_definition = get_table_definition(table_name)
 
@@ -89,8 +92,12 @@ def read_table(read_session: SparkSession, table_name: str, partition: str = '')
         # If we encounter any other error, raise as the error
         else:
             raise(e)
+
     if partition != '':
         df = df.withColumn(table_partition, F.lit(partition))
+
+    if history == 'recent' and 'to_date' in df.columns:
+        df = df.filter(F.col('to_date')=='2099-12-31')
 
     return df
 
