@@ -109,10 +109,10 @@ def check_values_unique(spark_session: SparkSession, dataframe: DataFrame, colum
     values_within_range_data = values_within_range_data.withColumn('valid_count', F.lit(valid_count).cast(IntegerType()))
     return values_within_range_data
 
-def check_values_unique(spark_session: SparkSession, dataframe: DataFrame, column_name: str, format: str) -> DataFrame:
+def check_values_format(spark_session: SparkSession, dataframe: DataFrame, column_name: str, format: str) -> DataFrame:
 
     total_count = dataframe.count()
-    valid_count = dataframe.filter(F.col(column_name)).rlike(format).count() 
+    valid_count = dataframe.filter(F.col(column_name).rlike(format)).count() 
 
     
     values_within_range_data = read_table(spark_session,'dummy_quality_check')
@@ -179,8 +179,10 @@ def check_signalling_issues(spark_session: SparkSession, table_name: str):
                     df = df.union(signalling_coutcome)
 
                 elif check_types == 'values have format':
+                    
+                    check_format = signalling_check.get('format')
 
-                    format_outcome = check_values_unique(spark_session, dataframe, column_name)
+                    format_outcome = check_values_format(spark_session, dataframe, column_name, check_format)
 
                     format_outcome = format_outcome.withColumn('table_name',F.lit(table_name))\
                             .withColumn('column_name',F.lit(column_name))\

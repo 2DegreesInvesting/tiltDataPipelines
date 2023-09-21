@@ -5,6 +5,15 @@ signalling_checks_dictionary = {
             'columns':['year_established'],
             'range_start' : 1800,
             'range_end': 2023
+        },
+        {
+            'check': 'values have format',
+            'columns':['year_established'],
+            'format' : '[0-9]{4}'
+        },
+        {
+            'check': 'values are unique',
+            'columns':['company_name']
         }
         ],
     'main_activity_raw' : [{
