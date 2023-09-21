@@ -98,6 +98,29 @@ def check_values_in_range(spark_session: SparkSession, dataframe: DataFrame, col
     return values_within_range_data
 
 
+def check_values_unique(spark_session: SparkSession, dataframe: DataFrame, column_name: str) -> DataFrame:
+    
+    total_count = dataframe.count()
+    valid_count = dataframe.select(F.col(column_name)).distinct().count()
+
+    
+    values_within_range_data = read_table(spark_session,'dummy_quality_check')
+    values_within_range_data = values_within_range_data.withColumn('total_count', F.lit(total_count).cast(IntegerType()))
+    values_within_range_data = values_within_range_data.withColumn('valid_count', F.lit(valid_count).cast(IntegerType()))
+    return values_within_range_data
+
+def check_values_unique(spark_session: SparkSession, dataframe: DataFrame, column_name: str, format: str) -> DataFrame:
+
+    total_count = dataframe.count()
+    valid_count = dataframe.filter(F.col(column_name)).rlike(format).count() 
+
+    
+    values_within_range_data = read_table(spark_session,'dummy_quality_check')
+    values_within_range_data = values_within_range_data.withColumn('total_count', F.lit(total_count).cast(IntegerType()))
+    values_within_range_data = values_within_range_data.withColumn('valid_count', F.lit(valid_count).cast(IntegerType()))
+    return values_within_range_data
+
+
 
 def check_signalling_issues(spark_session: SparkSession, table_name: str):
     """
@@ -144,6 +167,26 @@ def check_signalling_issues(spark_session: SparkSession, table_name: str):
                             .withColumn('check_name',F.lit(check_types))\
                             .withColumn('check_id',F.lit('tilt_3'))
                     df = df.union(df_3)
+
+                elif check_types == 'values are unique':
+
+                    signalling_coutcome = check_values_unique(spark_session, dataframe, column_name)
+
+                    signalling_coutcome = signalling_coutcome.withColumn('table_name',F.lit(table_name))\
+                            .withColumn('column_name',F.lit(column_name))\
+                            .withColumn('check_name',F.lit(check_types))\
+                            .withColumn('check_id',F.lit('tilt_4'))
+                    df = df.union(signalling_coutcome)
+
+                elif check_types == 'values have format':
+
+                    format_outcome = check_values_unique(spark_session, dataframe, column_name)
+
+                    format_outcome = format_outcome.withColumn('table_name',F.lit(table_name))\
+                            .withColumn('column_name',F.lit(column_name))\
+                            .withColumn('check_name',F.lit(check_types))\
+                            .withColumn('check_id',F.lit('tilt_5'))
+                    df = df.union(format_outcome)
 
     monitoring_values_df = read_table(spark_session,'monitoring_values')   
     monitoring_values_df = monitoring_values_df.filter(F.col('to_date')=='2099-12-31').select([F.col(column) for column in df.columns if column not in ['from_date','to_date']])
