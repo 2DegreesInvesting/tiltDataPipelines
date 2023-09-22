@@ -6,30 +6,25 @@ from functions.signalling_rules import signalling_checks_dictionary
 from pyspark.sql.types import IntegerType
 
 
-def check_value_within_list(spark_session: SparkSession, dataframe: DataFrame, column_name: str, value_list: list) -> DataFrame:
+def check_value_within_list(dataframe: DataFrame, column_name: str, value_list: list) -> DataFrame:
     """
-    Check if the values in a specified column of a PySpark DataFrame are within a list of valid values.
-    
-    Args:
-    dataframe (DataFrame): The PySpark DataFrame to be processed.
-    column_name (str): The name of the column to check for valid values.
-    value_list (list): A list of valid values to check against.
-    
+    Filter a DataFrame based on a list of values within a specific column and return the count of valid rows.
+
+    This function takes a DataFrame and filters it to include only rows where the values in the specified
+    column match any of the values in the provided 'value_list'. It then returns the count of valid rows
+    that meet this criterion.
+
+    Parameters:
+    - dataframe (DataFrame): The input DataFrame to filter.
+    - column_name (str): The name of the column in the DataFrame to filter by.
+    - value_list (list): A list of values to compare with the values in the specified column.
+
     Returns:
-         DataFrame: A DataFrame containing columns "total_count" and "valid_count."
-            "total_count" - The total number of rows in the DataFrame.
-            "valid_count" - The count of valid values within a list.
+    - valid_count (int): The count of rows in the DataFrame where the values in 'column_name' match any
+      of the values in 'value_list'.
     """
-
-    total_count = dataframe.count()
-    valid_count = dataframe.filter(col(column_name).isin(value_list)).count()
-
-
-    value_within_list_data = read_table(spark_session,'dummy_quality_check')
-    value_within_list_data = value_within_list_data.withColumn('total_count', F.lit(total_count).cast(IntegerType()))
-    value_within_list_data = value_within_list_data.withColumn('valid_count', F.lit(valid_count).cast(IntegerType()))
-
-    return value_within_list_data
+    valid_count = dataframe.filter(F.col(column_name).isin(value_list)).count()
+    return valid_count
 
 
 def calculate_filled_values(spark_session: SparkSession, dataframe: DataFrame, column_names: list) -> DataFrame:
@@ -72,54 +67,68 @@ def calculate_filled_values(spark_session: SparkSession, dataframe: DataFrame, c
     return df
 
 
-def check_values_in_range(spark_session: SparkSession, dataframe: DataFrame, column_name: str, range_start: int, range_end: int) -> DataFrame:
+def check_values_in_range(dataframe: DataFrame, column_name: str, range_start: int, range_end: int) -> DataFrame:
     """
-    Check if values in a column are within a specified range.
+    Filter a Spark DataFrame to include rows where values in a specified column are within a given range,
+    and return the count of valid rows.
 
-    Args:
-        dataframe (DataFrame): The PySpark DataFrame to be processed.
-        column_name (str): The name of the column to check.
-        range_start (int): The start of the range.
-        range_end (int): The end of the range.
+    This function takes a Spark DataFrame and filters it to include only rows where the values in the specified
+    'column_name' fall within the inclusive range specified by 'range_start' and 'range_end'. It then returns
+    the count of valid rows that meet this criterion.
+
+    Parameters:
+    - dataframe (DataFrame): The input Spark DataFrame to filter.
+    - column_name (str): The name of the column in the DataFrame to filter by.
+    - range_start (int): The inclusive lower bound of the range for filtering.
+    - range_end (int): The inclusive upper bound of the range for filtering.
 
     Returns:
-        DataFrame: A DataFrame containing columns "total_count" and "valid_count."
-            "total_count" - The total number of rows in the DataFrame.
-            "valid_count" - The count of valid values within a specified range.
+    - valid_count (int): The count of rows in the DataFrame where the values in 'column_name' fall within
+      the specified range.   
     """
-    
-    total_count = dataframe.count()
+
     valid_count = dataframe.filter(col(column_name).between(range_start, range_end)).count()
 
-    
-    values_within_range_data = read_table(spark_session,'dummy_quality_check')
-    values_within_range_data = values_within_range_data.withColumn('total_count', F.lit(total_count).cast(IntegerType()))
-    values_within_range_data = values_within_range_data.withColumn('valid_count', F.lit(valid_count).cast(IntegerType()))
-    return values_within_range_data
+    return valid_count
 
+def check_values_unique(dataframe: DataFrame, column_name: str) -> int:
+    """
+    Check the uniqueness of values in a specified column of a Spark DataFrame and return the count of unique values.
 
-def check_values_unique(spark_session: SparkSession, dataframe: DataFrame, column_name: str) -> DataFrame:
-    
-    total_count = dataframe.count()
+    This function takes a Spark DataFrame and evaluates the uniqueness of values in the specified 'column_name'.
+    It returns the count of unique values in that column.
+
+    Parameters:
+    - dataframe (DataFrame): The input Spark DataFrame to analyze.
+    - column_name (str): The name of the column in the DataFrame to check for uniqueness.
+
+    Returns:
+    - valid_count (int): The count of unique values in the specified column.
+    """
     valid_count = dataframe.select(F.col(column_name)).distinct().count()
+    return valid_count
 
-    
-    values_within_range_data = read_table(spark_session,'dummy_quality_check')
-    values_within_range_data = values_within_range_data.withColumn('total_count', F.lit(total_count).cast(IntegerType()))
-    values_within_range_data = values_within_range_data.withColumn('valid_count', F.lit(valid_count).cast(IntegerType()))
-    return values_within_range_data
 
-def check_values_format(spark_session: SparkSession, dataframe: DataFrame, column_name: str, format: str) -> DataFrame:
+def check_values_format(dataframe: DataFrame, column_name: str, format: str) -> int:
+    """
+    Check if values in a specified column of a Spark DataFrame match a given regular expression pattern,
+    and return the count of matching values.
 
-    total_count = dataframe.count()
-    valid_count = dataframe.filter(F.col(column_name).rlike(format)).count() 
+    This function takes a Spark DataFrame and filters it to include only rows where the values in the specified
+    'column_name' match the regular expression pattern provided in 'format'. It then returns the count of rows
+    that meet this criterion.
 
-    
-    values_within_range_data = read_table(spark_session,'dummy_quality_check')
-    values_within_range_data = values_within_range_data.withColumn('total_count', F.lit(total_count).cast(IntegerType()))
-    values_within_range_data = values_within_range_data.withColumn('valid_count', F.lit(valid_count).cast(IntegerType()))
-    return values_within_range_data
+    Parameters:
+    - dataframe (DataFrame): The input Spark DataFrame to filter.
+    - column_name (str): The name of the column in the DataFrame to check for format compliance.
+    - format (str): The regular expression pattern to match against the values in the specified column.
 
+    Returns:
+    - valid_count (int): The count of rows in the DataFrame where the values in 'column_name' match the
+      specified regular expression pattern.
+    """
+    valid_count = dataframe.filter(F.col(column_name).rlike(format)).count()
+    return valid_count
 
 
 def check_signalling_issues(spark_session: SparkSession, table_name: str):
@@ -137,7 +146,8 @@ def check_signalling_issues(spark_session: SparkSession, table_name: str):
     dataframe = read_table(spark_session, table_name)
     dataframe_columns = dataframe.columns
 
-    df = calculate_filled_values(spark_session, dataframe, dataframe_columns)
+    # df = calculate_filled_values(spark_session, dataframe, dataframe_columns)
+    df = read_table(spark_session,'dummy_quality_check')
     df = df.withColumn('table_name',F.lit(table_name))
 
     if table_name in signalling_checks_dictionary.keys():
@@ -145,56 +155,48 @@ def check_signalling_issues(spark_session: SparkSession, table_name: str):
                 check_types = signalling_check.get('check')
                 column_name = signalling_check.get('columns')[0]
 
-                if check_types == 'values within list':
-                    value_list = signalling_check.get('value_list')
+                total_count = dataframe.count()
 
-                    df_2 = check_value_within_list(spark_session, dataframe, column_name, value_list)
-
-                    df_2 = df_2.withColumn('table_name',F.lit(table_name))\
+                signalling_check_df = read_table(spark_session,'dummy_quality_check')
+                signalling_check_df = signalling_check_df.withColumn('table_name',F.lit(table_name))\
                             .withColumn('column_name',F.lit(column_name))\
                             .withColumn('check_name',F.lit(check_types))\
-                            .withColumn('check_id',F.lit('tilt_2'))
-                    df = df.union(df_2)
+                            .withColumn('total_count',F.lit(total_count).cast(IntegerType()))
+
+                if check_types == 'values within list':
+
+                    value_list = signalling_check.get('value_list')
+                    valid_count = check_value_within_list(dataframe, column_name, value_list)
+                    check_id = 'tilt_2'
+                    
                 elif check_types == 'values in range':
 
                     range_start = signalling_check.get('range_start')
                     range_end = signalling_check.get('range_end')
-
-                    df_3 = check_values_in_range(spark_session, dataframe, column_name, range_start, range_end)
-
-                    df_3 = df_3.withColumn('table_name',F.lit(table_name))\
-                            .withColumn('column_name',F.lit(column_name))\
-                            .withColumn('check_name',F.lit(check_types))\
-                            .withColumn('check_id',F.lit('tilt_3'))
-                    df = df.union(df_3)
+                    valid_count = check_values_in_range(dataframe, column_name, range_start, range_end)
+                    check_id = 'tilt_3'
 
                 elif check_types == 'values are unique':
 
-                    signalling_coutcome = check_values_unique(spark_session, dataframe, column_name)
-
-                    signalling_coutcome = signalling_coutcome.withColumn('table_name',F.lit(table_name))\
-                            .withColumn('column_name',F.lit(column_name))\
-                            .withColumn('check_name',F.lit(check_types))\
-                            .withColumn('check_id',F.lit('tilt_4'))
-                    df = df.union(signalling_coutcome)
+                    valid_count = check_values_unique(dataframe, column_name)
+                    check_id = 'tilt_4'
 
                 elif check_types == 'values have format':
                     
                     check_format = signalling_check.get('format')
+                    valid_count = check_values_format(dataframe, column_name, check_format)
+                    check_id = 'tilt_5'
+    
+                signalling_check_df = signalling_check_df.withColumn('valid_count', F.lit(valid_count).cast(IntegerType()))
+                signalling_check_df = signalling_check_df.withColumn('check_id',F.lit(check_id))
 
-                    format_outcome = check_values_format(spark_session, dataframe, column_name, check_format)
-
-                    format_outcome = format_outcome.withColumn('table_name',F.lit(table_name))\
-                            .withColumn('column_name',F.lit(column_name))\
-                            .withColumn('check_name',F.lit(check_types))\
-                            .withColumn('check_id',F.lit('tilt_5'))
-                    df = df.union(format_outcome)
+                df = df.union(signalling_check_df)
 
     monitoring_values_df = read_table(spark_session,'monitoring_values')   
     monitoring_values_df = monitoring_values_df.filter(F.col('to_date')=='2099-12-31').select([F.col(column) for column in df.columns if column not in ['from_date','to_date']])
   # filter the monitoring values table to exclude all records that already exists for that table
     monitoring_values_df_filtered = monitoring_values_df.filter(F.col('table_name')!= table_name)
     monitoring_values_df = monitoring_values_df_filtered.union(df)
-    
-    write_table(spark_session, monitoring_values_df, 'monitoring_values')
+    print(monitoring_values_df.show(vertical=True))
+    # write_table(spark_session, monitoring_values_df, 'monitoring_values')
     return monitoring_values_df
