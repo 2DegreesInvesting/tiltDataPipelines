@@ -59,7 +59,7 @@ def read_table(read_session: SparkSession, table_name: str, partition: str = '',
         history (str, optional): Specify 'recent' to read the most recent data, or 'complete' to read all data history.
 
     Returns:
-        DataFrame: A DataFrame representing the table data.
+        DataFrame: A DataFrame representing the data in the specified location based on either the full or most resent history.
 
     Raises:
         ValueError: If 'history' argument is not 'recent' or 'complete'.
@@ -73,8 +73,8 @@ def read_table(read_session: SparkSession, table_name: str, partition: str = '',
         # Read the most recent data from a table named 'my_table'
         recent_data = read_table(spark, 'my_table', history='recent')
 
-        # Read all historical data from a partitioned table named 'my_partitioned_table' for a specific partition '2023-09-21'
-        all_data = read_table(spark, 'my_partitioned_table', partition='2023-09-21', history='complete')
+        # Read all historical data from a partitioned table named 'products_activities_transformed' for a specific partition 'CutOff'
+        all_data = read_table(spark, 'products_activities_transformed', partition='CutOff', history='complete')
     """
 
     if history not in ['recent','complete']:
