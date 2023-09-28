@@ -12,6 +12,12 @@ signalling_checks_dictionary = {
             'format' : '[0-9]{4}'
         },
         {
+            'check': 'values are consistent',
+            'columns':['company_name'],
+            'compare_table':'companies_raw',
+            'join_columns':['companies_id']
+        },
+        {
             'check': 'values are unique',
             'columns':['company_name']
         }
