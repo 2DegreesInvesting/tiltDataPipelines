@@ -10,8 +10,6 @@ table_name_list = ['categories_raw', 'categories_companies_raw', 'categories_sec
                     'sea_food_companies_raw', 'sector_ecoinvent_raw', 'sector_ecoinvent_delimited_raw', 'sector_ecoinvent_delimited_sector_ecoinvent_raw', 'sector_resolve_raw', 'undefined_ao_raw', 
                     'activities_transformed']
 
-table_name1 = ['companies_raw']
-
 # Apply the checks from dictionary
-for table_name in table_name1:
+for table_name in table_name:
     df = check_signalling_issues(signalling_spark_session, table_name)
