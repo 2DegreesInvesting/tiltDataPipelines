@@ -26,6 +26,9 @@ signalling_checks_dictionary = {
             'check':'values within list',
             'columns':['main_activity'],
             'value_list':['distributor', 'agent/ representative', 'manufacturer/ producer', 'missing', 'multi-category', 'retailer', 'service provider', 'subcontractor', 'wholesaler']
+    },{
+            'check':'values are unique',
+            'columns':['main_activity_id']
     }],
     'undefined_ao_raw' : [
         {
@@ -61,6 +64,11 @@ signalling_checks_dictionary = {
             'columns':['Special Activity Type'],
             'value_list':['market group', 'market activity', 'ordinary transforming activity']
         }
+    ],
+    'ecoinvent-v3.9.1_raw': [{
+            'check':'values are unique',
+            'columns':['activity_name']
+    }
     ]
 
 

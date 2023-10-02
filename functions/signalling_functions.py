@@ -68,18 +68,18 @@ def calculate_filled_values(table_name: str, dataframe: DataFrame) -> DataFrame:
     - DataFrame: A summary DataFrame containing the following columns:
         - 'check_id': A constant identifier ('tilt_1') for this specific check.
         - 'table_name': The name of the table associated with the DataFrame.
-        - 'column_name': The name of the DataFrame's columns.
+        - 'invalid_count_column': The column that contains the invalid count.
         - 'check_name': A constant description ('Check if values are filled') for this check.
         - 'total_count': The total number of rows in the DataFrame.
-        - 'valid_count': The count of filled (non-null) values for each column.
+        - 'invalid_count': The count of filled (non-null) values for each column.
 
     """
     total_count = dataframe.count()
     df = dataframe.select([(F.count(F.when(F.isnull(c), c).when(F.col(c) == 'NA', None))).alias(c) for c in dataframe.columns]) \
-            .withColumn('column_name', F.lit('valid_count'))
-    df = TransposeDF(df, dataframe.columns, 'column_name')
+            .withColumn('invalid_count_column', F.lit('invalid_count'))
+    df = TransposeDF(df, dataframe.columns, 'invalid_count_column')
     df = df.withColumn('total_count', F.lit(total_count).cast(IntegerType())) \
-            .withColumn('valid_count', F.lit(total_count).cast(IntegerType()) - F.col('valid_count').cast(IntegerType())) \
+            .withColumn('valid_count', F.lit(total_count).cast(IntegerType()) - F.col('invalid_count').cast(IntegerType())) \
             .withColumn('check_name', F.lit('Check if values are filled')) \
             .withColumn('check_id', F.lit('tilt_1'))
     col_order = ['check_id', 'table_name', 'column_name', 'check_name', 'total_count', 'valid_count']

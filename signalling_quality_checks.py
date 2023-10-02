@@ -11,5 +11,5 @@ table_name_list = ['categories_raw', 'categories_companies_raw', 'categories_sec
                     'activities_transformed']
 
 # Apply the checks from dictionary
-for table_name in table_name:
+for table_name in table_name_list:
     df = check_signalling_issues(signalling_spark_session, table_name)
