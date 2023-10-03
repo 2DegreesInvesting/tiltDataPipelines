@@ -1,4 +1,4 @@
-from pyspark.sql.types import StringType,StructType, StructField, DataType, BooleanType, FloatType, ShortType, TimestampType, IntegerType, DecimalType, DateType
+from pyspark.sql.types import StringType,StructType, StructField, DataType, BooleanType, FloatType, ShortType, TimestampType, IntegerType, DoubleType, DateType
 
 def create_location_path():
 
@@ -1401,8 +1401,8 @@ def get_table_definition(table_name: str) -> dict:
                 StructField('Sub Sector', StringType(), True),
                 StructField('Units', StringType(), True),
                 StructField('Year', ShortType(), True),
-                StructField('Value', DecimalType(), True),
-                StructField('Reductions', DecimalType(), True),
+                StructField('Value', DoubleType(), True),
+                StructField('Reductions', DoubleType(), True),
                 StructField('from_date', DateType(), False),
                 StructField('to_date', DateType(), False),
                 StructField('tiltRecordID', StringType(), False),
@@ -1444,8 +1444,8 @@ def get_table_definition(table_name: str) -> dict:
                 StructField('UNIT', StringType(), True),
                 StructField('REGION', StringType(), True),
                 StructField('YEAR', ShortType(), True),
-                StructField('VALUE', DecimalType(), True),
-                StructField('REDUCTIONS', DecimalType(), True),
+                StructField('VALUE', DoubleType(), True),
+                StructField('REDUCTIONS', DoubleType(), True),
                 StructField('from_date', DateType(), False),
                 StructField('to_date', DateType(), False),
                 StructField('tiltRecordID', StringType(), False),
@@ -1595,7 +1595,7 @@ def get_table_definition(table_name: str) -> dict:
                 StructField('unit', StringType(), True),
                 StructField('method_category_indicator_product_information', StringType(), True),
                 StructField('product_inputs_tbc', StringType(), True),
-                StructField('ipcc_2021_climate_change_global_warming_potential_gwp100_kg_co2_eq', DecimalType(), True),
+                StructField('ipcc_2021_climate_change_global_warming_potential_gwp100_kg_co2_eq', DoubleType(), True),
                 StructField('from_date', DateType(), False),
                 StructField('to_date', DateType(), False),
                 StructField('tiltRecordID', StringType(), False),
@@ -1683,7 +1683,7 @@ def get_table_definition(table_name: str) -> dict:
                 StructField('activityLink_activityName', StringType(), True),
                 StructField('activityLink_geography', StringType(), True),
                 StructField('exchange unitName', StringType(), True),
-                StructField('exchange amount', FloatType(), True),
+                StructField('exchange amount', DoubleType(), True),
                 StructField('CPC_classificationValue', StringType(), True),
                 StructField('By-product classification_classificationValue', StringType(), True),
                 StructField('from_date', DateType(), False),

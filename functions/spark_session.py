@@ -45,22 +45,40 @@ def create_spark_session() -> SparkSession:
     return spark_session
 
 
-def read_table(read_session: SparkSession, table_name: str, partition: str = '') -> DataFrame:
+def read_table(read_session: SparkSession, table_name: str, partition: str = '', history: str = 'recent') -> DataFrame:
     """
-    Reads a table with the specified table name and optional partition.
+    Read data from a specified table.
+
+    This function reads data from a table specified by its name and an optional partition. It provides flexibility
+    for reading different types of tables and handling historical data.
 
     Args:
         read_session (SparkSession): The SparkSession object for reading the table.
         table_name (str): The name of the table to be read.
         partition (str, optional): The partition value (default: '').
+        history (str, optional): Specify 'recent' to read the most recent data, or 'complete' to read all data history.
 
     Returns:
-        DataFrame: The DataFrame representing the table data.
+        DataFrame: A DataFrame representing the data in the specified location based on either the full or most resent history.
 
     Raises:
-        None
+        ValueError: If 'history' argument is not 'recent' or 'complete'.
 
+    Note:
+        - The function dynamically determines the file format and schema based on the table definition.
+        - If the specified table does not exist yet, it returns an empty DataFrame.
+        - If 'history' is set to 'recent' and a 'to_date' column exists, it filters data for the most recent records.
+
+    Example:
+        # Read the most recent data from a table named 'my_table'
+        recent_data = read_table(spark, 'my_table', history='recent')
+
+        # Read all historical data from a partitioned table named 'products_activities_transformed' for a specific partition 'CutOff'
+        all_data = read_table(spark, 'products_activities_transformed', partition='CutOff', history='complete')
     """
+
+    if history not in ['recent','complete']:
+        raise ValueError(f"Value {history} is not in valid arguments [recent,complete] for history argument")
 
     table_definition = get_table_definition(table_name)
 
@@ -89,9 +107,15 @@ def read_table(read_session: SparkSession, table_name: str, partition: str = '')
         # If we encounter any other error, raise as the error
         else:
             raise(e)
+
     if partition != '':
         df = df.withColumn(table_partition, F.lit(partition))
 
+    if history == 'recent' and 'to_date' in df.columns:
+        df = df.filter(F.col('to_date')=='2099-12-31')
+
+    df = df.replace('NA', None)
+    
     return df
 
 
