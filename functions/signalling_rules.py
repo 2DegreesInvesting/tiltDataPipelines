@@ -5,12 +5,30 @@ signalling_checks_dictionary = {
             'columns':['year_established'],
             'range_start' : 1800,
             'range_end': 2023
+        },
+        {
+            'check': 'values have format',
+            'columns':['year_established'],
+            'format' : '[0-9]{4}'
+        },
+        {
+            'check': 'values are consistent',
+            'columns':['company_name'],
+            'compare_table':'companies_raw',
+            'join_columns':['companies_id']
+        },
+        {
+            'check': 'values are unique',
+            'columns':['company_name']
         }
         ],
     'main_activity_raw' : [{
             'check':'values within list',
             'columns':['main_activity'],
             'value_list':['distributor', 'agent/ representative', 'manufacturer/ producer', 'missing', 'multi-category', 'retailer', 'service provider', 'subcontractor', 'wholesaler']
+    },{
+            'check':'values are unique',
+            'columns':['main_activity_id']
     }],
     'undefined_ao_raw' : [
         {
@@ -101,6 +119,11 @@ signalling_checks_dictionary = {
             'columns':['Unit Name'],
             'value_list':['l', 'metric ton*km', 'kWh', 'm', 'ha', 'guest night', 'm2*year', 'm3', 'MJ', 'km', 'km*year', 'hour', 'unit', 'kg', 'kg*day', 'person*km', 'm2', 'm*year']
         }
+    ],
+    'ecoinvent-v3.9.1_raw': [{
+            'check':'values are unique',
+            'columns':['activity_name']
+    }
     ]
 
 }

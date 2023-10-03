@@ -1704,8 +1704,7 @@ def get_table_definition(table_name: str) -> dict:
                 StructField('column_name', StringType(), True),
                 StructField('check_name', StringType(), True),
                 StructField('total_count', IntegerType(), True),
-                StructField('valid_count', IntegerType(), True),
-                StructField('tiltRecordID', StringType(), False)
+                StructField('valid_count', IntegerType(), True)
             ]  
             ),
             'container': 'monitoring',
