@@ -23,7 +23,7 @@ def TransposeDF(df: DataFrame, columns: list, pivotCol: str) -> DataFrame:
       aggregated values from the specified `columns`.
 
     """
-    columnsValue = list(map(lambda x: str("'") + str(x) + str("',")  + str(x), columns))
+    columnsValue = list(map(lambda x: str("'") + str(x) + str("',`")  + str(x) + str("`"), columns))
     stackCols = ','.join(x for x in columnsValue)
     df_1 = df.selectExpr(pivotCol, "stack(" + str(len(columns)) + "," + stackCols + ")")\
              .select(pivotCol, "col0", "col1")
@@ -72,7 +72,6 @@ def calculate_filled_values(table_name: str, dataframe: DataFrame) -> DataFrame:
         - 'check_name': A constant description ('Check if values are filled') for this check.
         - 'total_count': The total number of rows in the DataFrame.
         - 'invalid_count': The count of filled (non-null) values for each column.
-
     """
     total_count = dataframe.count()
     df = dataframe.select([(F.count(F.when(F.isnull(c), c).when(F.col(c) == 'NA', None))).alias(c) for c in dataframe.columns]) \
@@ -81,7 +80,8 @@ def calculate_filled_values(table_name: str, dataframe: DataFrame) -> DataFrame:
     df = df.withColumn('total_count', F.lit(total_count).cast(IntegerType())) \
             .withColumn('valid_count', F.lit(total_count).cast(IntegerType()) - F.col('invalid_count').cast(IntegerType())) \
             .withColumn('check_name', F.lit('Check if values are filled')) \
-            .withColumn('check_id', F.lit('tilt_1'))
+            .withColumn('check_id', F.lit('tilt_1')) \
+            .withColumnRenamed('invalid_count_column','column_name')
     col_order = ['check_id', 'table_name', 'column_name', 'check_name', 'total_count', 'valid_count']
     df = df.withColumn('table_name', F.lit(table_name)).select(col_order)
 
@@ -246,8 +246,8 @@ def check_signalling_issues(spark_session: SparkSession, table_name: str):
                 signalling_check_df = signalling_check_df.withColumn('check_id',F.lit(check_id))
                 
                 df = df.union(signalling_check_df)
-    
-    monitoring_values_df = read_table(spark_session,'monitoring_values') 
+
+    monitoring_values_df = read_table(spark_session,'monitoring_values')
     monitoring_values_df = monitoring_values_df.filter(F.col('to_date')=='2099-12-31').select([F.col(column) for column in df.columns if column not in ['from_date','to_date']])
     # filter the monitoring values table to exclude all records that already exists for that table
     monitoring_values_df_filtered = monitoring_values_df.filter(F.col('table_name')!= table_name)
