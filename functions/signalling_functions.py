@@ -68,7 +68,7 @@ def calculate_filled_values(table_name: str, dataframe: DataFrame) -> DataFrame:
     - DataFrame: A summary DataFrame containing the following columns:
         - 'check_id': A constant identifier ('tilt_1') for this specific check.
         - 'table_name': The name of the table associated with the DataFrame.
-        - 'invalid_count_column': The column that contains the invalid count.
+        - 'column_name': The column that contains the invalid count.
         - 'check_name': A constant description ('Check if values are filled') for this check.
         - 'total_count': The total number of rows in the DataFrame.
         - 'invalid_count': The count of filled (non-null) values for each column.
