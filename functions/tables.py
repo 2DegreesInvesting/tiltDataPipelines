@@ -1543,7 +1543,7 @@ def get_table_definition(table_name: str) -> dict:
             'columns' :  StructType([
                 StructField('tilt_sector', StringType(), False),
                 StructField('tilt_subsector', StringType(), True),
-                StructField('isic_4digit', ShortType(), True),
+                StructField('isic_4digit', StringType(), True),
                 StructField('isic_4digit_name_ecoinvent', StringType(), True),
                 StructField('isic_section', StringType(), True),
                 StructField('Comments', StringType(), True),
