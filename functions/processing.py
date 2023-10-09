@@ -394,13 +394,7 @@ def generate_table(table_name: str) -> None:
 
         df = read_table(spark_generate, 'tilt_isic_mapper_2023-07-20_landingzone')
 
-        tilt_isic_mapper = df
-
-        # to replace to integer values
-        column_name = "isic_4digit"
-        tilt_isic_mapper = tilt_isic_mapper.withColumn(column_name, col(column_name).cast(ShortType()))
-
-        write_table(spark_generate, tilt_isic_mapper, 'tilt_isic_mapper_2023-07-20_raw') 
+        write_table(spark_generate, df, 'tilt_isic_mapper_2023-07-20_raw') 
 
     elif table_name == 'ecoinvent-v3.9.1_raw':
 
