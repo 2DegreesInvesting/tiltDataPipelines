@@ -529,7 +529,7 @@ def get_table_definition(table_name: str) -> dict:
             ), 
             'container': 'landingzone',
             'location': 'tiltData/issues_companies.csv',
-            'type': 'csv',
+            'type': 'tiltData',
             'partition_by' : '',
             'quality_checks': []
         },
@@ -559,7 +559,7 @@ def get_table_definition(table_name: str) -> dict:
             ), 
             'container': 'landingzone',
             'location': 'tiltData/issues.csv',
-            'type': 'csv',
+            'type': 'tiltData',
             'partition_by' : '',
             'quality_checks': []
         },
@@ -589,7 +589,7 @@ def get_table_definition(table_name: str) -> dict:
             ), 
             'container': 'landingzone',
             'location': 'tiltData/sea_food_companies.csv',
-            'type': 'csv',
+            'type': 'tiltData',
             'partition_by' : '',
             'quality_checks': []
         },
@@ -663,7 +663,7 @@ def get_table_definition(table_name: str) -> dict:
             ), 
             'container': 'landingzone',
             'location': 'tiltData/sea_food.csv',
-            'type': 'csv',
+            'type': 'tiltData',
             'partition_by' : '',
             'quality_checks': []
         },
@@ -737,7 +737,7 @@ def get_table_definition(table_name: str) -> dict:
             ), 
             'container': 'landingzone',
             'location': 'tiltData/products_companies.csv',
-            'type': 'csv',
+            'type': 'tiltData',
             'partition_by' : '',
             'quality_checks': []
         },
@@ -778,7 +778,7 @@ def get_table_definition(table_name: str) -> dict:
             ), 
             'container': 'landingzone',
             'location': 'tiltData/companies.csv',
-            'type': 'csv',
+            'type': 'tiltData',
             'partition_by' : '',
             'quality_checks': []
         },
@@ -808,7 +808,12 @@ def get_table_definition(table_name: str) -> dict:
             'location': 'companies',
             'type': 'parquet',
             'partition_by' : '',
-            'quality_checks': [['unique',['companies_id']]]
+            'quality_checks': [['unique',['companies_id']],
+                                ['in list',['country_id'],['1fe80e506149e4b49ca3560003edd2b8d57e6d9e',
+                                                        '23e591e8c36dda987970603ad0fdd031b7dff9f9',
+                                                        '9aec35c79b4e91fefb2a310d33bd736a14c961d8',
+                                                        '6ace185eedb813fe84c2eca7641f9fa0aa3bfdc3',
+                                                        '51288d140528c2d5c0565891be70300a9b0e365f']]]
         },
          'main_activity_landingzone': {
             'columns' :  StructType([
@@ -819,7 +824,7 @@ def get_table_definition(table_name: str) -> dict:
             ), 
             'container': 'landingzone',
             'location': 'tiltData/main_activity.csv',
-            'type': 'csv',
+            'type': 'tiltData',
             'partition_by' : '',
             'quality_checks': []
         },
@@ -849,7 +854,7 @@ def get_table_definition(table_name: str) -> dict:
             ), 
             'container': 'landingzone',
             'location': 'tiltData/geography.csv',
-            'type': 'csv',
+            'type': 'tiltData',
             'partition_by' : '',
             'quality_checks': []
         },
@@ -878,7 +883,7 @@ def get_table_definition(table_name: str) -> dict:
             ), 
             'container': 'landingzone',
             'location': 'tiltData/country.csv',
-            'type': 'csv',
+            'type': 'tiltData',
             'partition_by' : '',
             'quality_checks': []
         },
@@ -906,7 +911,7 @@ def get_table_definition(table_name: str) -> dict:
             ), 
             'container': 'landingzone',
             'location': 'tiltData/delimited_products.csv',
-            'type': 'csv',
+            'type': 'tiltData',
             'partition_by' : '',
             'quality_checks': []
         },
@@ -934,7 +939,7 @@ def get_table_definition(table_name: str) -> dict:
             ), 
             'container': 'landingzone',
             'location': 'tiltData/products.csv',
-            'type': 'csv',
+            'type': 'tiltData',
             'partition_by' : '',
             'quality_checks': []
         },
@@ -962,7 +967,7 @@ def get_table_definition(table_name: str) -> dict:
             ), 
             'container': 'landingzone',
             'location': 'tiltData/categories_companies.csv',
-            'type': 'csv',
+            'type': 'tiltData',
             'partition_by' : '',
             'quality_checks': []
         },
@@ -990,7 +995,7 @@ def get_table_definition(table_name: str) -> dict:
             ), 
             'container': 'landingzone',
             'location': 'tiltData/delimited.csv',
-            'type': 'csv',
+            'type': 'tiltData',
             'partition_by' : '',
             'quality_checks': []
         },
@@ -1018,7 +1023,7 @@ def get_table_definition(table_name: str) -> dict:
             ), 
             'container': 'landingzone',
             'location': 'tiltData/clustered_delimited.csv',
-            'type': 'csv',
+            'type': 'tiltData',
             'partition_by' : '',
             'quality_checks': []
         },
@@ -1046,7 +1051,7 @@ def get_table_definition(table_name: str) -> dict:
             ), 
             'container': 'landingzone',
             'location': 'tiltData/clustered.csv',
-            'type': 'csv',
+            'type': 'tiltData',
             'partition_by' : '',
             'quality_checks': []
         },
@@ -1074,7 +1079,7 @@ def get_table_definition(table_name: str) -> dict:
             ), 
             'container': 'landingzone',
             'location': 'tiltData/categories_sector_ecoinvent_delimited.csv',
-            'type': 'csv',
+            'type': 'tiltData',
             'partition_by' : '',
             'quality_checks': []
         },
@@ -1104,7 +1109,7 @@ def get_table_definition(table_name: str) -> dict:
             ), 
             'container': 'landingzone',
             'location': 'tiltData/categories.csv',
-            'type': 'csv',
+            'type': 'tiltData',
             'partition_by' : '',
             'quality_checks': []
         },
@@ -1134,7 +1139,7 @@ def get_table_definition(table_name: str) -> dict:
             ), 
             'container': 'landingzone',
             'location': 'tiltData/sector_ecoinvent_delimited_sector_ecoinvent.csv',
-            'type': 'csv',
+            'type': 'tiltData',
             'partition_by' : '',
             'quality_checks': []
         },
@@ -1162,7 +1167,7 @@ def get_table_definition(table_name: str) -> dict:
             ), 
             'container': 'landingzone',
             'location': 'tiltData/sector_ecoinvent_delimited.csv',
-            'type': 'csv',
+            'type': 'tiltData',
             'partition_by' : '',
             'quality_checks': []
         },
@@ -1189,7 +1194,7 @@ def get_table_definition(table_name: str) -> dict:
             ), 
             'container': 'landingzone',
             'location': 'tiltData/sector_ecoinvent.csv',
-            'type': 'csv',
+            'type': 'tiltData',
             'partition_by' : '',
             'quality_checks': []
         },

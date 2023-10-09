@@ -93,7 +93,7 @@ def read_table(read_session: SparkSession, table_name: str, partition: str = '',
     try:
         if table_definition['type'] == 'csv':
             df = read_session.read.format('csv').schema(table_definition['columns']).option('header', True).option("quote", '"').option("multiline", 'True').load(table_location)
-        if table_definition['type'] == 'ecoInvent':
+        if table_definition['type'] in ['ecoInvent','tiltData']:
             df = read_session.read.format('csv').schema(table_definition['columns']).option('header', True).option("quote", '~').option('delimiter',';').option("multiline", 'True').load(table_location)
         else:
             df = read_session.read.format(table_definition['type']).schema(table_definition['columns']).option('header', True).load(table_location)
@@ -256,7 +256,7 @@ def validate_data_quality(spark_session: SparkSession, data_frame: DataFrame, ta
     writing_data_frame = data_frame.filter(F.col('to_date')=='2099-12-31')
 
     for condition_list in table_definition['quality_checks']:
-        if condition_list[0] not in ['unique', 'format']:
+        if condition_list[0] not in ['unique', 'format','in list']:
             raise ValueError(f'The quality check -{condition_list[0]}- is not implemented')
 
         # Check uniqueness by comparing the total values versus distinct values in a column
@@ -280,6 +280,11 @@ def validate_data_quality(spark_session: SparkSession, data_frame: DataFrame, ta
         elif condition_list[0] == 'format':
             if writing_data_frame.filter(~F.col(condition_list[1]).rlike(condition_list[2])).count() > 0:
                 raise ValueError(f'Column: {condition_list[1]} does not align with the specified format {condition_list[2]}')
+
+        elif condition_list[0] == 'in list':
+            list_column = condition_list[1][0]
+            if writing_data_frame.filter(~F.col(list_column).isin(condition_list[2])).count() > 0:
+                raise ValueError(f'Columns: {list_column} have values that are not contained in the following values {";".join(condition_list[2])}')
 
     return True
 
