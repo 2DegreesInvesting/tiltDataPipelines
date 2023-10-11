@@ -1256,7 +1256,7 @@ def get_table_definition(table_name: str) -> dict:
                 StructField('', StringType(), False),
                 StructField('index', StringType(), False),
                 StructField('ep_act_id', StringType(), False),
-                StructField('ep_country', StringType(), True),
+                StructField('ep_country', StringType(), False),
                 StructField('ep_main_act', StringType(), True),
                 StructField('ep_act', StringType(), True),
                 StructField('Product UUID', StringType(), True),
