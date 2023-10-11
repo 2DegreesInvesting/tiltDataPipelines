@@ -1,11 +1,12 @@
 from pyspark.sql import SparkSession, DataFrame
 import pyspark.sql.functions as F
-from pyspark.sql.types import StringType
+from pyspark.sql.types import StringType, IntegerType
 import os
-import pyspark
 
 from functions.tables import get_table_definition
-from functions.data_quality import dq_format
+from functions.signalling_functions import calculate_filled_values, check_values_consistent, check_values_in_range, check_values_format, check_value_within_list, check_values_unique
+from functions.signalling_rules import signalling_checks_dictionary
+
 
 env = 'develop'
 
@@ -162,6 +163,13 @@ def write_table(spark_session: SparkSession, data_frame: DataFrame, table_name: 
                 data_frame.coalesce(1).write.mode('overwrite').parquet(table_location)
     else:
         raise ValueError("Table format validation failed.")
+
+    if table_name != 'monitoring_values':
+        check_signalling_issues(spark_session,table_name)
+
+    create_hive_tables(spark_session, table_name)
+
+    
 
 
 def build_table_path(container: str, location: str, partition: str) -> str:
@@ -400,3 +408,131 @@ def compare_tables(spark_session: SparkSession, data_frame: DataFrame, table_nam
         all_records = all_records.union(new_records)
 
     return all_records
+
+
+def check_signalling_issues(spark_session: SparkSession, table_name: str) -> None:
+    """
+    Perform signalling checks on a specified table and update the monitoring values table.
+
+    This function performs signalling checks on a given table by executing various data quality checks as defined in
+    the 'signalling_checks_dictionary'. The results of these checks are recorded in the 'monitoring_values' table.
+    
+    Args:
+        spark_session (SparkSession): The SparkSession to use for reading and writing data.
+        table_name (str): The name of the table to perform signalling checks on.
+
+    Returns:
+        None
+
+    Note:
+        - Signalling checks are defined in the 'signalling_checks_dictionary'.
+        - The function reads the specified table and calculates filled values using the 'calculate_filled_values' function.
+        - It then iterates through the signalling checks, records the results, and updates the 'monitoring_values' table.
+        - The specific checks performed depend on the definitions in the 'signalling_checks_dictionary'.
+    """
+    
+    dataframe = read_table(spark_session, table_name)
+    df = calculate_filled_values(table_name, dataframe)
+
+    if table_name in signalling_checks_dictionary.keys():
+            for signalling_check in signalling_checks_dictionary[table_name]:
+                check_types = signalling_check.get('check')
+                column_name = signalling_check.get('columns')[0]
+
+                total_count = dataframe.count()
+
+                signalling_check_df = read_table(spark_session,'dummy_quality_check')
+                signalling_check_df = signalling_check_df.withColumn('table_name',F.lit(table_name))\
+                            .withColumn('column_name',F.lit(column_name))\
+                            .withColumn('check_name',F.lit(check_types))\
+                            .withColumn('total_count',F.lit(total_count).cast(IntegerType()))
+
+                if check_types == 'values within list':
+
+                    value_list = signalling_check.get('value_list')
+                    valid_count = check_value_within_list(dataframe, column_name, value_list)
+                    check_id = 'tilt_2'
+                    
+                elif check_types == 'values in range':
+
+                    range_start = signalling_check.get('range_start')
+                    range_end = signalling_check.get('range_end')
+                    valid_count = check_values_in_range(dataframe, column_name, range_start, range_end)
+                    check_id = 'tilt_3'
+
+                elif check_types == 'values are unique':
+
+                    valid_count = check_values_unique(dataframe, column_name)
+                    check_id = 'tilt_4'
+
+                elif check_types == 'values have format':
+                    
+                    check_format = signalling_check.get('format')
+                    valid_count = check_values_format(dataframe, column_name, check_format)
+                    check_id = 'tilt_5'
+                    
+                elif check_types == 'values are consistent':
+                    
+                    table_to_compare = signalling_check.get('compare_table')
+                    columns_to_join = signalling_check.get('join_columns')
+                    df_to_compare = read_table(spark_session, table_to_compare)
+                    valid_count = check_values_consistent(spark_session,dataframe, column_name, df_to_compare, columns_to_join)
+                    check_id = 'tilt_6'
+                    
+    
+                signalling_check_df = signalling_check_df.withColumn('valid_count', F.lit(valid_count).cast(IntegerType()))
+                signalling_check_df = signalling_check_df.withColumn('check_id',F.lit(check_id))
+                
+                df = df.union(signalling_check_df)
+
+    monitoring_values_df = read_table(spark_session,'monitoring_values')
+    monitoring_values_df = monitoring_values_df.filter(F.col('to_date')=='2099-12-31').select([F.col(column) for column in df.columns if column not in ['from_date','to_date']])
+    # filter the monitoring values table to exclude all records that already exists for that table
+    monitoring_values_df_filtered = monitoring_values_df.filter(F.col('table_name')!= table_name)
+    monitoring_values_df = monitoring_values_df_filtered.union(df)
+    write_table(spark_session, monitoring_values_df, 'monitoring_values')
+    return None
+
+
+def create_hive_tables(spark_session: SparkSession, table_name: str) -> bool:
+    """
+    Create or replace an external Hive table in the specified Hive container using the given SparkSession.
+
+    This function generates and executes SQL statements to create or replace an external Hive table. It first drops
+    the table if it already exists and then creates the table based on the provided table definition. The table
+    definition is obtained using the 'get_table_definition' function.
+
+    Args:
+        spark_session (SparkSession): The SparkSession to use for executing SQL statements.
+        table_name (str): The name of the table to create or replace.
+
+    Returns:
+        bool: True if the table creation was successful, False otherwise.
+
+    Note:
+        - The table is created as an external table.
+        - The table definition is obtained using the 'get_table_definition' function.
+        - The table is created with the specified columns, data types, and partitioning (if applicable).
+        - If the table already exists, it is dropped and recreated.
+    """
+    
+    table_definition = get_table_definition(table_name)
+    delete_string = f"DROP TABLE IF EXISTS `{table_definition['container']}`.`default`.`{table_definition['location'].replace('.','')}`"
+    create_string = ""
+    create_string += f"CREATE EXTERNAL TABLE IF NOT EXISTS `{table_definition['container']}`.`default`.`{table_definition['location'].replace('.','')}` ("
+
+    for i in table_definition['columns']:
+        col_info = i.jsonValue()
+        col_string = f"`{col_info['name']}` {col_info['type']} {'NOT NULL' if not col_info['nullable'] else ''},"
+        create_string += col_string
+
+    table_path = build_table_path(table_definition['container'], table_definition['location'],None)
+    create_string = create_string[:-1] + ")"
+    create_string += f" USING {table_definition['type']} LOCATION '{table_path}'"
+    if table_definition['partition_by']:
+        create_string += f" PARTITIONED BY (`{table_definition['partition_by']}` STRING)"
+
+    spark_session.sql(delete_string)
+    spark_session.sql(create_string)
+
+    return True
