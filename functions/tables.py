@@ -670,7 +670,7 @@ def get_table_definition(table_name: str) -> dict:
         'sea_food_raw': {
             'columns' :  StructType([
                 StructField('sea_food_id', StringType(), False),
-                StructField('company_name', StringType(), True),
+                StructField('company_name', StringType(), False),
                 StructField('supply_chain_main_segment', StringType(), True),
                 StructField('supply_chain_feed', BooleanType(), True),
                 StructField('supply_chain_fishing', BooleanType(), True),
@@ -689,7 +689,7 @@ def get_table_definition(table_name: str) -> dict:
                 StructField('reference', StringType(), True),
                 StructField('websites', StringType(), True),
                 StructField('information', StringType(), True),
-                StructField('country', StringType(), True),
+                StructField('country', StringType(), False),
                 StructField('sourcing_regions_identified', StringType(), True),
                 StructField('list_of_species', StringType(), True),
                 StructField('reporting_precision_pt_score', FloatType(), True),
@@ -785,7 +785,7 @@ def get_table_definition(table_name: str) -> dict:
         'companies_raw': {
             'columns' :  StructType([
                 StructField('companies_id', StringType(), False),
-                StructField('company_name', StringType(), True),
+                StructField('company_name', StringType(), False),
                 StructField('main_activity_id', StringType(), True),
                 StructField('address', StringType(), True),
                 StructField('company_city', StringType(), True),
@@ -798,7 +798,7 @@ def get_table_definition(table_name: str) -> dict:
                 StructField('year_established', ShortType(), True),
                 StructField('websites', StringType(), True),
                 StructField('download_datetime', TimestampType(), True),
-                StructField('country_id', StringType(), True),
+                StructField('country_id', StringType(), False),
                 StructField('from_date', DateType(), False),
                 StructField('to_date', DateType(), False),
                 StructField('tiltRecordID', StringType(), False),
@@ -818,7 +818,7 @@ def get_table_definition(table_name: str) -> dict:
          'main_activity_landingzone': {
             'columns' :  StructType([
                 StructField('main_activity_id', StringType(), False),
-                StructField('main_activity', StringType(), True),
+                StructField('main_activity', StringType(), False),
                 StructField('ecoinvent', StringType(), True)
             ]  
             ), 
@@ -831,7 +831,7 @@ def get_table_definition(table_name: str) -> dict:
         'main_activity_raw': {
             'columns' :  StructType([
                 StructField('main_activity_id', StringType(), False),
-                StructField('main_activity', StringType(), True),
+                StructField('main_activity', StringType(), False),
                 StructField('ecoinvent', StringType(), True),
                 StructField('from_date', DateType(), False),
                 StructField('to_date', DateType(), False),
@@ -861,7 +861,7 @@ def get_table_definition(table_name: str) -> dict:
         'geography_raw': {
             'columns' :  StructType([
                 StructField('geography_id', StringType(), False),
-                StructField('country_id', StringType(), True),
+                StructField('country_id', StringType(), False),
                 StructField('ecoinvent_geography', StringType(), True),
                 StructField('priority', StringType(), True),
                 StructField('from_date', DateType(), False),
@@ -890,7 +890,7 @@ def get_table_definition(table_name: str) -> dict:
         'country_raw': {
             'columns' :  StructType([
                 StructField('country_id', StringType(), False),
-                StructField('country', StringType(), True),
+                StructField('country', StringType(), False),
                 StructField('from_date', DateType(), False),
                 StructField('to_date', DateType(), False),
                 StructField('tiltRecordID', StringType(), False),
@@ -1316,7 +1316,7 @@ def get_table_definition(table_name: str) -> dict:
         'ep_companies_NL_postcode_raw': {
             'columns' :  StructType([
                 StructField('id', StringType(), False),
-                StructField('company_name', StringType(), True),
+                StructField('company_name', StringType(), False),
                 StructField('postcode', StringType(), True),
                 StructField('from_date', DateType(), False),
                 StructField('to_date', DateType(), False),
@@ -1355,7 +1355,7 @@ def get_table_definition(table_name: str) -> dict:
             'columns' :  StructType([
                 StructField('group_var', StringType(), False),
                 StructField('ep_id', StringType(), True),
-                StructField('ep_country', StringType(), True),
+                StructField('ep_country', StringType(), False),
                 StructField('ep_main_act', StringType(), True),
                 StructField('ep_clustered', StringType(), True),
                 StructField('activity_uuid_product_uuid', StringType(), True),
