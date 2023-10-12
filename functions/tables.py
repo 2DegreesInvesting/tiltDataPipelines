@@ -1705,7 +1705,6 @@ def get_table_definition(table_name: str) -> dict:
          'dummy_quality_check': {
             'columns' :  StructType([
                 StructField('check_id', StringType(), False),
-                StructField('table_name', StringType(), True),
                 StructField('column_name', StringType(), True),
                 StructField('check_name', StringType(), True),
                 StructField('total_count', IntegerType(), True),
@@ -1721,7 +1720,6 @@ def get_table_definition(table_name: str) -> dict:
         'monitoring_values': {
             'columns' :  StructType([
                 StructField('check_id', StringType(), False),
-                StructField('table_name', StringType(), True),
                 StructField('column_name', StringType(), True),
                 StructField('check_name', StringType(), True),
                 StructField('total_count', IntegerType(), True),
@@ -1734,7 +1732,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'monitoring',
             'location': 'monitoring_values',
             'type': 'parquet',
-            'partition_by' : '',
+            'partition_by' : 'table_name',
             'quality_checks': []
         }
         

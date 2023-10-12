@@ -2,6 +2,8 @@ from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql.functions import col
 from pyspark.sql.types import IntegerType
 import pyspark.sql.functions as F
+from functions.spark_session import read_table
+
 def TransposeDF(df: DataFrame, columns: list, pivotCol: str) -> DataFrame:
     """
     Transposes a DataFrame by pivoting specified columns and aggregating values.
@@ -50,7 +52,7 @@ def check_value_within_list(dataframe: DataFrame, column_name: str, value_list: 
     return valid_count
 
 
-def calculate_filled_values(table_name: str, dataframe: DataFrame) -> DataFrame:
+def calculate_filled_values(dataframe: DataFrame) -> DataFrame:
     """
     Calculates the count of filled and total values for each column in a DataFrame.
 
@@ -79,8 +81,8 @@ def calculate_filled_values(table_name: str, dataframe: DataFrame) -> DataFrame:
             .withColumn('check_name', F.lit('Check if values are filled')) \
             .withColumn('check_id', F.lit('tilt_1')) \
             .withColumnRenamed('invalid_count_column','column_name')
-    col_order = ['check_id', 'table_name', 'column_name', 'check_name', 'total_count', 'valid_count']
-    df = df.withColumn('table_name', F.lit(table_name)).select(col_order)
+    col_order = ['check_id', 'column_name', 'check_name', 'total_count', 'valid_count']
+    df = df.select(col_order)
 
     return df
 
@@ -175,6 +177,59 @@ def check_values_consistent(spark_session: SparkSession, dataframe: DataFrame, c
     valid_count = joined_df.filter(F.col(column_name) == F.col('compare_' + column_name)).count()
 
     return valid_count
+
+def calculate_signalling_issues(spark_session: SparkSession, dataframe: DataFrame, signalling_check_dict: dict, signalling_check_dummy: DataFrame) -> DataFrame:
+    
+    df = calculate_filled_values(dataframe)
+    total_count = dataframe.count()
+
+    for signalling_check in signalling_check_dict:
+        check_types = signalling_check.get('check')
+        column_name = signalling_check.get('columns')[0]
+
+        signalling_check_df = signalling_check_dummy.withColumn('column_name',F.lit(column_name))\
+                    .withColumn('check_name',F.lit(check_types))\
+                    .withColumn('total_count',F.lit(total_count).cast(IntegerType()))
+
+        if check_types == 'values within list':
+
+            value_list = signalling_check.get('value_list')
+            valid_count = check_value_within_list(dataframe, column_name, value_list)
+            check_id = 'tilt_2'
+            
+        elif check_types == 'values in range':
+
+            range_start = signalling_check.get('range_start')
+            range_end = signalling_check.get('range_end')
+            valid_count = check_values_in_range(dataframe, column_name, range_start, range_end)
+            check_id = 'tilt_3'
+
+        elif check_types == 'values are unique':
+
+            valid_count = check_values_unique(dataframe, column_name)
+            check_id = 'tilt_4'
+
+        elif check_types == 'values have format':
+            
+            check_format = signalling_check.get('format')
+            valid_count = check_values_format(dataframe, column_name, check_format)
+            check_id = 'tilt_5'
+            
+        elif check_types == 'values are consistent':
+            
+            table_to_compare = signalling_check.get('compare_table')
+            columns_to_join = signalling_check.get('join_columns')
+            df_to_compare = read_table(spark_session, table_to_compare)
+            valid_count = check_values_consistent(spark_session,dataframe, column_name, df_to_compare, columns_to_join)
+            check_id = 'tilt_6'
+            
+
+        signalling_check_df = signalling_check_df.withColumn('valid_count', F.lit(valid_count).cast(IntegerType()))
+        signalling_check_df = signalling_check_df.withColumn('check_id',F.lit(check_id))
+        
+        df = df.union(signalling_check_df)
+
+    return df
 
 
 
