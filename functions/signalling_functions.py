@@ -54,23 +54,21 @@ def check_value_within_list(dataframe: DataFrame, column_name: str, value_list: 
 
 def calculate_filled_values(dataframe: DataFrame) -> DataFrame:
     """
-    Calculates the count of filled and total values for each column in a DataFrame.
+    Calculate the count of filled and total values for each column in a DataFrame.
 
     This function takes a DataFrame and computes the count of filled (non-null) and total
     values for each column. It generates a summary DataFrame containing the results.
 
     Parameters:
-    - table_name (str): The name of the table associated with the DataFrame.
     - dataframe (DataFrame): The input DataFrame for which filled value counts are calculated.
 
     Returns:
     - DataFrame: A summary DataFrame containing the following columns:
         - 'check_id': A constant identifier ('tilt_1') for this specific check.
-        - 'table_name': The name of the table associated with the DataFrame.
-        - 'column_name': The column that contains the invalid count.
+        - 'column_name': The name of the column.
         - 'check_name': A constant description ('Check if values are filled') for this check.
         - 'total_count': The total number of rows in the DataFrame.
-        - 'invalid_count': The count of filled (non-null) values for each column.
+        - 'valid_count': The count of non-null (filled) values for each column.
     """
     total_count = dataframe.count()
     df = dataframe.select([(F.count(F.when(F.isnull(c), c).when(F.col(c) == 'NA', None))).alias(c) for c in dataframe.columns]) \
@@ -80,12 +78,11 @@ def calculate_filled_values(dataframe: DataFrame) -> DataFrame:
             .withColumn('valid_count', F.lit(total_count).cast(IntegerType()) - F.col('invalid_count').cast(IntegerType())) \
             .withColumn('check_name', F.lit('Check if values are filled')) \
             .withColumn('check_id', F.lit('tilt_1')) \
-            .withColumnRenamed('invalid_count_column','column_name')
+            .withColumnRenamed('invalid_count_column', 'column_name')
     col_order = ['check_id', 'column_name', 'check_name', 'total_count', 'valid_count']
     df = df.select(col_order)
 
     return df
-
 
 
 def check_values_in_range(dataframe: DataFrame, column_name: str, range_start: int, range_end: int) -> int:
@@ -179,7 +176,36 @@ def check_values_consistent(spark_session: SparkSession, dataframe: DataFrame, c
     return valid_count
 
 def calculate_signalling_issues(spark_session: SparkSession, dataframe: DataFrame, signalling_check_dict: dict, signalling_check_dummy: DataFrame) -> DataFrame:
-    
+    """
+    Calculate signalling issues based on a set of predefined checks for a given DataFrame.
+
+    This function computes signalling issues in a DataFrame by applying a set of predefined checks,
+    as specified in the `signalling_check_dict`. It generates a summary DataFrame containing the results.
+
+    Parameters:
+    - spark_session (SparkSession): The Spark session for working with Spark DataFrame.
+    - dataframe (DataFrame): The input DataFrame on which the signalling checks will be applied.
+    - signalling_check_dict (dict): A dictionary containing the specifications of signalling checks.
+    - signalling_check_dummy (DataFrame): A template DataFrame for constructing the result.
+
+    Returns:
+    - DataFrame: A summary DataFrame with signalling issues, including the following columns:
+        - 'column_name': The name of the column being checked.
+        - 'check_name': The type of check being performed.
+        - 'total_count': The total number of rows in the DataFrame.
+        - 'valid_count': The count of valid values after applying the check.
+        - 'check_id': A constant identifier for the specific check.
+
+    Signalling Check Types:
+    - 'values within list': Checks if values are within a specified list.
+    - 'values in range': Checks if values are within a specified numerical range.
+    - 'values are unique': Checks if values in the column are unique.
+    - 'values have format': Checks if values match a specified format.
+    - 'values are consistent': Checks if values in the column are consistent with values in another table.
+
+    Note: Additional columns will be added based on the specific check type.
+    """
+
     df = calculate_filled_values(dataframe)
     total_count = dataframe.count()
 

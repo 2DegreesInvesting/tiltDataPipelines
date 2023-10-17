@@ -42,7 +42,7 @@ def create_spark_session() -> SparkSession:
             f"{databricks_settings['workspace_name']}:443/;token={databricks_settings['access_token']};x-databricks-cluster-id={databricks_settings['cluster_id']};user_id=123123"
         ).getOrCreate()
 
-    # Dyanmic Overwrite mode makes sure that other parts of a partition that are not processed are not overwritten as well.
+    # Dynamic Overwrite mode makes sure that other parts of a partition that are not processed are not overwritten as well.
     spark_session.conf.set("spark.sql.sources.partitionOverwriteMode","dynamic")
 
     return spark_session
