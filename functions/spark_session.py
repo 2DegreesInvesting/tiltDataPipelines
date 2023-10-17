@@ -86,7 +86,7 @@ def read_table(read_session: SparkSession, table_name: str, partition_name: str 
     table_definition = get_table_definition(table_name)
 
     if partition_name != '':
-        partition_column = table_definition['partition_by']
+        partition_column = table_definition['partition_column']
         partition_path = f'{partition_column}={partition_name}'
     else:
         partition_path = partition_name
@@ -146,7 +146,7 @@ def write_table(spark_session: SparkSession, data_frame: DataFrame, table_name: 
     data_frame = compare_tables(spark_session, data_frame, table_name, partition_name)
 
     # Add the SHA value to create a unique ID within tilt
-    partition_column = table_definition['partition_by']
+    partition_column = table_definition['partition_column']
     data_frame = add_record_id(spark_session, data_frame, partition_column)
 
     table_check = validate_table_format(spark_session, data_frame, table_name)
@@ -220,8 +220,8 @@ def validate_table_format(spark_session: SparkSession, data_frame: DataFrame, ta
     table_definition = get_table_definition(table_name)
 
     # Create an empty DataFrame with the table definition columns
-    if table_definition['partition_by']:
-        check_df = spark_session.createDataFrame([], table_definition['columns'].add(table_definition['partition_by'], StringType(), False))
+    if table_definition['partition_column']:
+        check_df = spark_session.createDataFrame([], table_definition['columns'].add(table_definition['partition_column'], StringType(), False))
     else:
         check_df = spark_session.createDataFrame([], table_definition['columns'])
 
@@ -275,10 +275,10 @@ def validate_data_quality(spark_session: SparkSession, data_frame: DataFrame, ta
             # Get the list of columns that have to be unique
             unique_columns = condition_list[1]
             # Check if the table is partitioned
-            if table_definition['partition_by']:
+            if table_definition['partition_column']:
                 # If the table is partitioned, the unique columns have to be unique within one partition
                 # Compare the total count of values agains the distinct count of values per partition
-                if writing_data_frame.groupBy(table_definition['partition_by']).agg(F.count(*[F.col(column) for column in unique_columns]).alias('count')).collect() != writing_data_frame.groupBy(table_definition['partition_by']).agg(F.countDistinct(*[F.col(column) for column in unique_columns]).alias('count')).collect():
+                if writing_data_frame.groupBy(table_definition['partition_column']).agg(F.count(*[F.col(column) for column in unique_columns]).alias('count')).collect() != writing_data_frame.groupBy(table_definition['partition_column']).agg(F.countDistinct(*[F.col(column) for column in unique_columns]).alias('count')).collect():
                     # If the values of count and distinct count are not identical, the columns are not unique.
                     raise ValueError(f"Column: {unique_columns} is not unique along grouped columns.")
             else:
@@ -489,8 +489,8 @@ def create_catalog_tables(spark_session: SparkSession, table_name: str) -> bool:
     table_path = build_table_path(table_definition['container'], table_definition['location'],None)
     create_string = create_string[:-1] + ")"
     create_string += f" USING {table_definition['type']} LOCATION '{table_path}'"
-    if table_definition['partition_by']:
-        create_string += f" PARTITIONED BY (`{table_definition['partition_by']}` STRING)"
+    if table_definition['partition_column']:
+        create_string += f" PARTITIONED BY (`{table_definition['partition_column']}` STRING)"
 
     # Execute the built SQL string
     spark_session.sql(delete_string)

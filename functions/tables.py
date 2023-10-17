@@ -19,7 +19,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'landingzone',
             'location': 'ecoInvent/Geographies.csv',
             'type': 'ecoInvent',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': []
         },
         'geographies_raw': {
@@ -37,7 +37,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'raw',
             'location': 'geographies',
             'type': 'parquet',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': [['unique', ['ID']],
                                 ['format', 'Geographical Classification', r"[a-zA-Z\-]"]]
         },
@@ -55,7 +55,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'transform',
             'location': 'geographies',
             'type': 'parquet',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': [['unique', ['ID']]]
         },
         'geographies_related': {
@@ -70,7 +70,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'transform',
             'location': 'geographies_related',
             'type': 'parquet',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': []
         },
         'undefined_ao_landingzone': {
@@ -96,7 +96,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'landingzone',
             'location': 'ecoInvent/Undefined AO.csv',
             'type': 'ecoInvent',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': []
         },
         'undefined_ao_raw': {
@@ -125,7 +125,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'raw',
             'location': 'undefined_ao',
             'type': 'parquet',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': []
         },
         'cut_off_ao_landingzone': {
@@ -152,7 +152,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'landingzone',
             'location': 'ecoInvent/Cut-OFF AO.csv',
             'type': 'ecoInvent',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': []
         },
         'cut_off_ao_raw': {
@@ -182,7 +182,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'raw',
             'location': 'cutoff_ao',
             'type': 'parquet',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': [['unique', ['Activity UUID & Product UUID']]]
         },
         'en15804_ao_landingzone': {
@@ -209,7 +209,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'landingzone',
             'location': 'ecoInvent/EN15804 AO.csv',
             'type': 'ecoInvent',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': []
         },
         'en15804_ao_raw': {
@@ -239,7 +239,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'raw',
             'location': 'en15804_ao',
             'type': 'parquet',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': [['unique', ['Activity UUID & Product UUID']]]
         },
         'consequential_ao_landingzone': {
@@ -266,7 +266,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'landingzone',
             'location': 'ecoInvent/Consequential AO.csv',
             'type': 'ecoInvent',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': []
         },
         'consequential_ao_raw': {
@@ -296,7 +296,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'raw',
             'location': 'consequential_ao',
             'type': 'parquet',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': [['unique', ['Activity UUID & Product UUID']]]
         },
         'products_transformed': {
@@ -317,7 +317,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'transform',
             'location': 'products',
             'type': 'parquet',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': []
         },
         'activities_transformed': {
@@ -338,7 +338,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'transform',
             'location': 'activities',
             'type': 'parquet',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': [['unique', ['Activity UUID']]]
         },
         'products_activities_transformed': {
@@ -355,7 +355,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'transform',
             'location': 'products_activities',
             'type': 'parquet',
-            'partition_by' : 'AO Method',
+            'partition_column' : 'AO Method',
             'quality_checks': [['unique', ['Activity UUID & Product UUID']]]
         },
         'lcia_methods_landingzone': {
@@ -370,7 +370,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'landingzone',
             'location': 'ecoInvent/LCIA Methods.csv',
             'type': 'ecoInvent',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': []
         },
         'lcia_methods_raw': {
@@ -388,7 +388,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'raw',
             'location': 'lcia_methods',
             'type': 'parquet',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': []
         },
         'impact_categories_landingzone': {
@@ -410,7 +410,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'landingzone',
             'location': 'ecoInvent/Impact Categories.csv',
             'type': 'ecoInvent',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': []
         },
         'impact_categories_raw': {
@@ -435,7 +435,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'raw',
             'location': 'impact_categories',
             'type': 'parquet',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': []
         },
         'intermediate_exchanges_landingzone': {
@@ -454,7 +454,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'landingzone',
             'location': 'ecoInvent/Intermediate Exchanges.csv',
             'type': 'ecoInvent',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': []
         },
         'intermediate_exchanges_raw': {
@@ -476,7 +476,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'raw',
             'location': 'intermediate_exchanges',
             'type': 'parquet',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': [['unique',['ID']]]
         },
         'elementary_exchanges_landingzone': {
@@ -495,7 +495,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'landingzone',
             'location': 'ecoInvent/Elementary Exchanges.csv',
             'type': 'ecoInvent',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': []
         },
         'elementary_exchanges_raw': {
@@ -517,7 +517,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'raw',
             'location': 'elementary_exchanges',
             'type': 'parquet',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': [['unique',['ID']]]
         },
         'issues_companies_landingzone': {
@@ -530,7 +530,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'landingzone',
             'location': 'tiltData/issues_companies.csv',
             'type': 'tiltData',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': []
         },
         'issues_companies_raw': {
@@ -546,7 +546,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'raw',
             'location': 'issues_companies',
             'type': 'parquet',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': [['unique',['issues_companies_id']]]
         },
         'issues_landingzone': {
@@ -560,7 +560,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'landingzone',
             'location': 'tiltData/issues.csv',
             'type': 'tiltData',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': []
         },
         'issues_raw': {
@@ -577,7 +577,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'raw',
             'location': 'issues',
             'type': 'parquet',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': [['unique',['issues_id']]]
         },
         'sea_food_companies_landingzone': {
@@ -590,7 +590,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'landingzone',
             'location': 'tiltData/sea_food_companies.csv',
             'type': 'tiltData',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': []
         },
         'sea_food_companies_raw': {
@@ -606,7 +606,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'raw',
             'location': 'sea_food_companies',
             'type': 'parquet',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': [['unique',['sea_food_companies_id']]]
         },
         'sea_food_landingzone': {
@@ -664,7 +664,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'landingzone',
             'location': 'tiltData/sea_food.csv',
             'type': 'tiltData',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': []
         },
         'sea_food_raw': {
@@ -725,7 +725,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'raw',
             'location': 'sea_food',
             'type': 'parquet',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': [['unique',['sea_food_id']]]
         },
         'products_companies_landingzone': {
@@ -738,7 +738,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'landingzone',
             'location': 'tiltData/products_companies.csv',
             'type': 'tiltData',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': []
         },
         'products_companies_raw': {
@@ -754,7 +754,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'raw',
             'location': 'products_companies',
             'type': 'parquet',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': [['unique',['products_companies_id']]]
         },
         'companies_landingzone': {
@@ -779,7 +779,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'landingzone',
             'location': 'tiltData/companies.csv',
             'type': 'tiltData',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': []
         },
         'companies_raw': {
@@ -807,7 +807,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'raw',
             'location': 'companies',
             'type': 'parquet',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': [['unique',['companies_id']],
                                 ['in list',['country_id'],['1fe80e506149e4b49ca3560003edd2b8d57e6d9e',
                                                         '23e591e8c36dda987970603ad0fdd031b7dff9f9',
@@ -825,7 +825,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'landingzone',
             'location': 'tiltData/main_activity.csv',
             'type': 'tiltData',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': []
         },
         'main_activity_raw': {
@@ -841,7 +841,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'raw',
             'location': 'main_activity',
             'type': 'parquet',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': [['unique',['main_activity_id']]]
         },
          'geography_landingzone': {
@@ -855,7 +855,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'landingzone',
             'location': 'tiltData/geography.csv',
             'type': 'tiltData',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': []
         },
         'geography_raw': {
@@ -872,7 +872,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'raw',
             'location': 'geography',
             'type': 'parquet',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': [['unique',['geography_id']]]
         },
          'country_landingzone': {
@@ -884,7 +884,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'landingzone',
             'location': 'tiltData/country.csv',
             'type': 'tiltData',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': []
         },
         'country_raw': {
@@ -899,7 +899,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'raw',
             'location': 'country',
             'type': 'parquet',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': [['unique',['country_id']]]
         },
          'delimited_products_landingzone': {
@@ -912,7 +912,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'landingzone',
             'location': 'tiltData/delimited_products.csv',
             'type': 'tiltData',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': []
         },
         'delimited_products_raw': {
@@ -928,7 +928,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'raw',
             'location': 'delimited_products',
             'type': 'parquet',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': [['unique',['delimited_products_id']]]
         },
          'products_landingzone': {
@@ -940,7 +940,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'landingzone',
             'location': 'tiltData/products.csv',
             'type': 'tiltData',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': []
         },
         'products_raw': {
@@ -955,7 +955,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'raw',
             'location': 'products',
             'type': 'parquet',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': [['unique',['products_id']]]
         },
          'categories_companies_landingzone': {
@@ -968,7 +968,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'landingzone',
             'location': 'tiltData/categories_companies.csv',
             'type': 'tiltData',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': []
         },
         'categories_companies_raw': {
@@ -984,7 +984,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'raw',
             'location': 'categories_companies',
             'type': 'parquet',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': [['unique',['categories_companies_id']]]
         },
          'delimited_landingzone': {
@@ -996,7 +996,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'landingzone',
             'location': 'tiltData/delimited.csv',
             'type': 'tiltData',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': []
         },
         'delimited_raw': {
@@ -1011,7 +1011,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'raw',
             'location': 'delimited',
             'type': 'parquet',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': [['unique',['delimited_id']]]
         },
          'clustered_delimited_landingzone': {
@@ -1024,7 +1024,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'landingzone',
             'location': 'tiltData/clustered_delimited.csv',
             'type': 'tiltData',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': []
         },
         'clustered_delimited_raw': {
@@ -1040,7 +1040,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'raw',
             'location': 'clustered_delimited',
             'type': 'parquet',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': [['unique',['clustered_delimited_id']]]
         },
         'clustered_landingzone': {
@@ -1052,7 +1052,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'landingzone',
             'location': 'tiltData/clustered.csv',
             'type': 'tiltData',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': []
         },
         'clustered_raw': {
@@ -1067,7 +1067,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'raw',
             'location': 'clustered',
             'type': 'parquet',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': [['unique',['clustered_id']]]
         },
         'categories_sector_ecoinvent_delimited_landingzone': {
@@ -1080,7 +1080,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'landingzone',
             'location': 'tiltData/categories_sector_ecoinvent_delimited.csv',
             'type': 'tiltData',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': []
         },
         'categories_sector_ecoinvent_delimited_raw': {
@@ -1096,7 +1096,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'raw',
             'location': 'categories_sector_ecoinvent_delimited',
             'type': 'parquet',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': [['unique',['categories_sector_ecoinvent_delimited_id']]]
         },
         'categories_landingzone': {
@@ -1110,7 +1110,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'landingzone',
             'location': 'tiltData/categories.csv',
             'type': 'tiltData',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': []
         },
         'categories_raw': {
@@ -1127,7 +1127,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'raw',
             'location': 'categories',
             'type': 'parquet',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': [['unique',['categories_id']]]
         },
         'sector_ecoinvent_delimited_sector_ecoinvent_landingzone': {
@@ -1140,7 +1140,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'landingzone',
             'location': 'tiltData/sector_ecoinvent_delimited_sector_ecoinvent.csv',
             'type': 'tiltData',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': []
         },
         'sector_ecoinvent_delimited_sector_ecoinvent_raw': {
@@ -1156,7 +1156,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'raw',
             'location': 'sector_ecoinvent_delimited_sector_ecoinvent',
             'type': 'parquet',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': [['unique',['sector_ecoinvent_delimited_sector_ecoinvent_id']]]
         },
          'sector_ecoinvent_delimited_landingzone': {
@@ -1168,7 +1168,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'landingzone',
             'location': 'tiltData/sector_ecoinvent_delimited.csv',
             'type': 'tiltData',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': []
         },
         'sector_ecoinvent_delimited_raw': {
@@ -1183,7 +1183,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'raw',
             'location': 'sector_ecoinvent_delimited',
             'type': 'parquet',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': [['unique',['sector_ecoinvent_delimited_id']]]
         },
         'sector_ecoinvent_landingzone': {
@@ -1195,7 +1195,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'landingzone',
             'location': 'tiltData/sector_ecoinvent.csv',
             'type': 'tiltData',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': []
         },
         'sector_ecoinvent_raw': {
@@ -1210,7 +1210,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'raw',
             'location': 'sector_ecoinvent',
             'type': 'parquet',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': [['unique',['sector_ecoinvent_id']]]
         },
         'product_matching_complete_all_cases_landingzone': {
@@ -1237,7 +1237,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'landingzone',
             'location': 'Matching/product_matching_complete_all_cases.csv',
             'type': 'csv',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': []
         },
         'product_matching_complete_all_cases_raw': {
@@ -1253,7 +1253,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'raw',
             'location': 'product_matching_complete_all_cases',
             'type': 'parquet',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': [['unique',['group_var','ep_id','lca_id']]]
         },
         'labelled_activity_v1.0_landingzone': {
@@ -1280,7 +1280,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'landingzone',
             'location': 'Matching/labelled_activity_v1.0.csv',
             'type': 'csv',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': []
         },
         'labelled_activity_v1.0_raw': {
@@ -1297,7 +1297,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'raw',
             'location': 'labelled_activity_v1.0',
             'type': 'parquet',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': [['unique',['index','ep_act_id', 'ep_country', 'Activity UUID & Product UUID']]]
         },
         'ep_companies_NL_postcode_landingzone': {
@@ -1310,7 +1310,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'landingzone',
             'location': 'tiltIndicatorBefore/ep_companies_NL_postcode.csv',
             'type': 'csv',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': []
         },
         'ep_companies_NL_postcode_raw': {
@@ -1326,7 +1326,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'raw',
             'location': 'ep_companies_NL_postcode',
             'type': 'parquet',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': [['unique',['id']]]
         },
         'ep_ei_matcher_landingzone': {
@@ -1348,7 +1348,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'landingzone',
             'location': 'tiltIndicatorBefore/ep_ei_matcher.csv',
             'type': 'csv',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': []
         },
         'ep_ei_matcher_raw': {
@@ -1373,7 +1373,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'raw',
             'location': 'ep_ei_matcher',
             'type': 'parquet',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': []
         },
         'scenario_targets_IPR_NEW_landingzone': {
@@ -1393,7 +1393,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'landingzone',
             'location': 'tiltIndicatorBefore/scenario_targets_IPR_NEW.csv',
             'type': 'csv',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': []
         },
         'scenario_targets_IPR_NEW_raw': {
@@ -1416,7 +1416,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'raw',
             'location': 'scenario_targets_IPR_NEW',
             'type': 'parquet',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': []
         },
         'scenario_targets_WEO_NEW_landingzone': {
@@ -1436,7 +1436,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'landingzone',
             'location': 'tiltIndicatorBefore/scenario_targets_WEO_NEW.csv',
             'type': 'csv',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': []
         },
         'scenario_targets_WEO_NEW_raw': {
@@ -1459,7 +1459,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'raw',
             'location': 'scenario_targets_WEO_NEW',
             'type': 'parquet',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': []
         },
         'scenario_tilt_mapper_2023-07-20_landingzone': {
@@ -1475,7 +1475,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'landingzone',
             'location': 'tiltIndicatorBefore/scenario_tilt_mapper_2023-07-20.csv',
             'type': 'csv',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': []
         },
         'scenario_tilt_mapper_2023-07-20_raw': {
@@ -1494,7 +1494,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'raw',
             'location': 'scenario_tilt_mapper_2023-07-20',
             'type': 'parquet',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': []
         },
         'sector_resolve_landingzone': {
@@ -1508,7 +1508,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'landingzone',
             'location': 'tiltIndicatorBefore/sector_resolve.csv',
             'type': 'csv',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': []
         },
         'sector_resolve_raw': {
@@ -1525,7 +1525,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'raw',
             'location': 'sector_resolve',
             'type': 'parquet',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': []
         },
         'tilt_isic_mapper_2023-07-20_landingzone': {
@@ -1541,7 +1541,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'landingzone',
             'location': 'tiltIndicatorBefore/tilt_isic_mapper_2023-07-20.csv',
             'type': 'csv',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': []
         },
         'tilt_isic_mapper_2023-07-20_raw': {
@@ -1560,7 +1560,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'raw',
             'location': 'tilt_isic_mapper_2023-07-20',
             'type': 'parquet',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': []
          },
         'ecoinvent-v3.9.1_landingzone': {
@@ -1583,7 +1583,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'landingzone',
             'location': 'tiltIndicatorBefore/ecoinvent-v3.9.1.csv',
             'type': 'ecoInvent',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': []
         },
         'ecoinvent-v3.9.1_raw': {
@@ -1609,7 +1609,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'raw',
             'location': 'ecoinvent-v3.9.1',
             'type': 'parquet',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': []
          },
         'ecoinvent_inputs_overview_raw_landingzone': {
@@ -1628,7 +1628,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'landingzone',
             'location': 'tiltIndicatorBefore/ecoinvent_inputs_overview_raw.csv',
             'type': 'csv',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': []
         },
         'ecoinvent_inputs_overview_raw_raw': {
@@ -1650,7 +1650,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'raw',
             'location': 'ecoinvent_inputs_overview_raw',
             'type': 'parquet',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': []
          },
         'ecoinvent_input_data_relevant_columns_landingzone': {
@@ -1673,7 +1673,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'landingzone',
             'location': 'tiltIndicatorBefore/ecoinvent_input_data_relevant_columns.csv',
             'type': 'csv',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': []
         },
         'ecoinvent_input_data_relevant_columns_raw': {
@@ -1699,7 +1699,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'raw',
             'location': 'ecoinvent_input_data_relevant_columns_raw',
             'type': 'parquet',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': []
          },
          'dummy_quality_check': {
@@ -1714,7 +1714,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'monitoring',
             'location': 'dummy_quality_check/dummy_check.csv',
             'type': 'csv',
-            'partition_by' : '',
+            'partition_column' : '',
             'quality_checks': []
         },
         'monitoring_values': {
@@ -1732,7 +1732,7 @@ def get_table_definition(table_name: str) -> dict:
             'container': 'monitoring',
             'location': 'monitoring_values',
             'type': 'parquet',
-            'partition_by' : 'table_name',
+            'partition_column' : 'table_name',
             'quality_checks': []
         }
         
