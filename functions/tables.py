@@ -1627,7 +1627,7 @@ def get_table_definition(table_name: str) -> dict:
             ), 
             'container': 'landingzone',
             'location': 'tiltIndicatorBefore/ecoinvent_inputs_overview_raw.csv',
-            'type': 'csv',
+            'type': 'ecoInvent',
             'partition_column' : '',
             'quality_checks': []
         },
