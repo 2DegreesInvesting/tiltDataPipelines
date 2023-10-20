@@ -425,5 +425,81 @@ def generate_table(table_name: str) -> None:
         ecoinvent_input_data_relevant_columns_raw = ecoinvent_input_data_relevant_columns_raw.withColumn(column_name, col(column_name).cast(DoubleType()))
 
         write_table(spark_generate, ecoinvent_input_data_relevant_columns_raw, 'ecoinvent_input_data_relevant_columns_raw') 
+    
+    elif table_name == 'ictr_company_result_raw':
 
+        df = read_table(spark_generate, 'ictr_company_result_landingzone')
+
+        df = df.withColumn('ICTR_share', col('ICTR_share').cast(FloatType()))
+
+        write_table(spark_generate, df, 'ictr_company_result_raw')
+
+    elif table_name == 'ictr_product_result_raw':
+
+        df = read_table(spark_generate, 'ictr_product_result_landingzone')
+
+        write_table(spark_generate, df, 'ictr_product_result_raw')
+
+    elif table_name == 'istr_company_result_raw':
+
+        df = read_table(spark_generate, 'istr_company_result_landingzone')
+
+        df = df.withColumn('ISTR_share', col('ISTR_share').cast(FloatType()))
+
+        write_table(spark_generate, df, 'istr_company_result_raw')
+
+    elif table_name == 'istr_product_result_raw':
+
+        df = read_table(spark_generate, 'istr_product_result_landingzone')
+
+        df = df.withColumn('year', F.col('year').cast(IntegerType()))
+
+        df = df.withColumn('multi_match', 
+                            when(F.col('multi_match') == "TRUE", F.lit(True))
+                            .when(F.col('multi_match') == "FALSE", F.lit(False))
+                            .otherwise(F.lit(None)))   
+
+        write_table(spark_generate, df, 'istr_product_result_raw')
+
+    elif table_name == 'pctr_company_result_raw':
+
+        df = read_table(spark_generate, 'pctr_company_result_landingzone')
+
+        df = df.withColumn('PCTR_share', col('PCTR_share').cast(FloatType()))
+
+        write_table(spark_generate, df, 'pctr_company_result_raw')
+
+    elif table_name == 'pctr_product_result_raw':
+
+        df = read_table(spark_generate, 'pctr_product_result_landingzone')
+
+        df = df.withColumn('multi_match', 
+                            when(F.col('multi_match') == "TRUE", F.lit(True))
+                            .when(F.col('multi_match') == "FALSE", F.lit(False))
+                            .otherwise(F.lit(None)))   
+
+        write_table(spark_generate, df, 'pctr_product_result_raw')
+
+    elif table_name == 'pstr_company_result_raw':
+
+        df = read_table(spark_generate, 'pstr_company_result_landingzone')
+
+        df = df.withColumn('year', F.col('year').cast(IntegerType()))
+        df = df.withColumn('PSTR_share', col('PSTR_share').cast(FloatType()))
+
+        write_table(spark_generate, df, 'pstr_company_result_raw')
+
+    elif table_name == 'pstr_product_result_raw':
+
+        df = read_table(spark_generate, 'pstr_product_result_landingzone')
+
+        df = df.withColumn('year', F.col('year').cast(IntegerType()))
+        df = df.withColumn('multi_match', 
+                            when(F.col('multi_match') == "TRUE", F.lit(True))
+                            .when(F.col('multi_match') == "FALSE", F.lit(False))
+                            .otherwise(F.lit(None)))   
+
+        write_table(spark_generate, df, 'pstr_product_result_raw')
+
+    
     spark_generate.stop()
