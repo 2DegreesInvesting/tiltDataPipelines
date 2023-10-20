@@ -1,9 +1,8 @@
 from pyspark.sql import DataFrame, SparkSession
-from functions.spark_session import read_table, create_spark_session, write_table
 from pyspark.sql.functions import col
-import pyspark.sql.functions as F
-from functions.signalling_rules import signalling_checks_dictionary
 from pyspark.sql.types import IntegerType
+import pyspark.sql.functions as F
+from functions.spark_session import read_table
 
 def TransposeDF(df: DataFrame, columns: list, pivotCol: str) -> DataFrame:
     """
@@ -53,25 +52,23 @@ def check_value_within_list(dataframe: DataFrame, column_name: str, value_list: 
     return valid_count
 
 
-def calculate_filled_values(table_name: str, dataframe: DataFrame) -> DataFrame:
+def calculate_filled_values(dataframe: DataFrame) -> DataFrame:
     """
-    Calculates the count of filled and total values for each column in a DataFrame.
+    Calculate the count of filled and total values for each column in a DataFrame.
 
     This function takes a DataFrame and computes the count of filled (non-null) and total
     values for each column. It generates a summary DataFrame containing the results.
 
     Parameters:
-    - table_name (str): The name of the table associated with the DataFrame.
     - dataframe (DataFrame): The input DataFrame for which filled value counts are calculated.
 
     Returns:
     - DataFrame: A summary DataFrame containing the following columns:
         - 'check_id': A constant identifier ('tilt_1') for this specific check.
-        - 'table_name': The name of the table associated with the DataFrame.
-        - 'column_name': The column that contains the invalid count.
+        - 'column_name': The name of the column.
         - 'check_name': A constant description ('Check if values are filled') for this check.
         - 'total_count': The total number of rows in the DataFrame.
-        - 'invalid_count': The count of filled (non-null) values for each column.
+        - 'valid_count': The count of non-null (filled) values for each column.
     """
     total_count = dataframe.count()
     df = dataframe.select([(F.count(F.when(F.isnull(c), c).when(F.col(c) == 'NA', None))).alias(c) for c in dataframe.columns]) \
@@ -81,12 +78,11 @@ def calculate_filled_values(table_name: str, dataframe: DataFrame) -> DataFrame:
             .withColumn('valid_count', F.lit(total_count).cast(IntegerType()) - F.col('invalid_count').cast(IntegerType())) \
             .withColumn('check_name', F.lit('Check if values are filled')) \
             .withColumn('check_id', F.lit('tilt_1')) \
-            .withColumnRenamed('invalid_count_column','column_name')
-    col_order = ['check_id', 'table_name', 'column_name', 'check_name', 'total_count', 'valid_count']
-    df = df.withColumn('table_name', F.lit(table_name)).select(col_order)
+            .withColumnRenamed('invalid_count_column', 'column_name')
+    col_order = ['check_id', 'column_name', 'check_name', 'total_count', 'valid_count']
+    df = df.select(col_order)
 
     return df
-
 
 
 def check_values_in_range(dataframe: DataFrame, column_name: str, range_start: int, range_end: int) -> int:
@@ -152,7 +148,7 @@ def check_values_format(dataframe: DataFrame, column_name: str, format: str) -> 
     valid_count = dataframe.filter(F.col(column_name).rlike(format)).count()
     return valid_count
 
-def check_values_consistent(spark_session: SparkSession, dataframe: DataFrame, column_name: str, compare_table: str, join_columns: list) -> int:
+def check_values_consistent(spark_session: SparkSession, dataframe: DataFrame, column_name: str, compare_df: DataFrame, join_columns: list) -> int:
     """
     Checks the consistency of values in a specified column between the input DataFrame and a comparison table.
 
@@ -172,7 +168,6 @@ def check_values_consistent(spark_session: SparkSession, dataframe: DataFrame, c
         - Rows where the values match are counted, and the count is returned as an integer.
 
     """
-    compare_df = read_table(spark_session, compare_table)
     compare_df = compare_df.select(join_columns + [F.col(column_name).alias('compare_' + column_name)])
 
     joined_df = dataframe.select([column_name] + join_columns).join(compare_df, on=join_columns, how='left')
@@ -180,77 +175,87 @@ def check_values_consistent(spark_session: SparkSession, dataframe: DataFrame, c
 
     return valid_count
 
-
-
-def check_signalling_issues(spark_session: SparkSession, table_name: str):
+def calculate_signalling_issues(spark_session: SparkSession, dataframe: DataFrame, signalling_check_dict: dict, signalling_check_dummy: DataFrame) -> DataFrame:
     """
-    Checks the signalling data quality of a DataFrame against the specified quality rule.
+    Calculate signalling issues based on a set of predefined checks for a given DataFrame.
 
-    Args:
-        table_name (str): The name of the table for which the data quality is monitored.
+    This function computes signalling issues in a DataFrame by applying a set of predefined checks,
+    as specified in the `signalling_check_dict`. It generates a summary DataFrame containing the results.
+
+    Parameters:
+    - spark_session (SparkSession): The Spark session for working with Spark DataFrame.
+    - dataframe (DataFrame): The input DataFrame on which the signalling checks will be applied.
+    - signalling_check_dict (dict): A dictionary containing the specifications of signalling checks.
+    - signalling_check_dummy (DataFrame): A template DataFrame for constructing the result.
 
     Returns:
-        A dataframe, contraining check_id, table_name, column_name, check_name, total_count and valid_count for every signalling data quality check.
+    - DataFrame: A summary DataFrame with signalling issues, including the following columns:
+        - 'column_name': The name of the column being checked.
+        - 'check_name': The type of check being performed.
+        - 'total_count': The total number of rows in the DataFrame.
+        - 'valid_count': The count of valid values after applying the check.
+        - 'check_id': A constant identifier for the specific check.
 
+    Signalling Check Types:
+    - 'values within list': Checks if values are within a specified list.
+    - 'values in range': Checks if values are within a specified numerical range.
+    - 'values are unique': Checks if values in the column are unique.
+    - 'values have format': Checks if values match a specified format.
+    - 'values are consistent': Checks if values in the column are consistent with values in another table.
+
+    Note: Additional columns will be added based on the specific check type.
     """
 
-    dataframe = read_table(spark_session, table_name)
-    df = calculate_filled_values(table_name, dataframe)
+    df = calculate_filled_values(dataframe)
+    total_count = dataframe.count()
 
-    if table_name in signalling_checks_dictionary.keys():
-            for signalling_check in signalling_checks_dictionary[table_name]:
-                check_types = signalling_check.get('check')
-                column_name = signalling_check.get('columns')[0]
+    for signalling_check in signalling_check_dict:
+        check_types = signalling_check.get('check')
+        column_name = signalling_check.get('columns')[0]
 
-                total_count = dataframe.count()
+        signalling_check_df = signalling_check_dummy.withColumn('column_name',F.lit(column_name))\
+                    .withColumn('check_name',F.lit(check_types))\
+                    .withColumn('total_count',F.lit(total_count).cast(IntegerType()))
 
-                signalling_check_df = read_table(spark_session,'dummy_quality_check')
-                signalling_check_df = signalling_check_df.withColumn('table_name',F.lit(table_name))\
-                            .withColumn('column_name',F.lit(column_name))\
-                            .withColumn('check_name',F.lit(check_types))\
-                            .withColumn('total_count',F.lit(total_count).cast(IntegerType()))
+        if check_types == 'values within list':
 
-                if check_types == 'values within list':
+            value_list = signalling_check.get('value_list')
+            valid_count = check_value_within_list(dataframe, column_name, value_list)
+            check_id = 'tilt_2'
+            
+        elif check_types == 'values in range':
 
-                    value_list = signalling_check.get('value_list')
-                    valid_count = check_value_within_list(dataframe, column_name, value_list)
-                    check_id = 'tilt_2'
-                    
-                elif check_types == 'values in range':
+            range_start = signalling_check.get('range_start')
+            range_end = signalling_check.get('range_end')
+            valid_count = check_values_in_range(dataframe, column_name, range_start, range_end)
+            check_id = 'tilt_3'
 
-                    range_start = signalling_check.get('range_start')
-                    range_end = signalling_check.get('range_end')
-                    valid_count = check_values_in_range(dataframe, column_name, range_start, range_end)
-                    check_id = 'tilt_3'
+        elif check_types == 'values are unique':
 
-                elif check_types == 'values are unique':
+            valid_count = check_values_unique(dataframe, column_name)
+            check_id = 'tilt_4'
 
-                    valid_count = check_values_unique(dataframe, column_name)
-                    check_id = 'tilt_4'
+        elif check_types == 'values have format':
+            
+            check_format = signalling_check.get('format')
+            valid_count = check_values_format(dataframe, column_name, check_format)
+            check_id = 'tilt_5'
+            
+        elif check_types == 'values are consistent':
+            
+            table_to_compare = signalling_check.get('compare_table')
+            columns_to_join = signalling_check.get('join_columns')
+            df_to_compare = read_table(spark_session, table_to_compare)
+            valid_count = check_values_consistent(spark_session,dataframe, column_name, df_to_compare, columns_to_join)
+            check_id = 'tilt_6'
+            
 
-                elif check_types == 'values have format':
-                    
-                    check_format = signalling_check.get('format')
-                    valid_count = check_values_format(dataframe, column_name, check_format)
-                    check_id = 'tilt_5'
-                    
-                elif check_types == 'values are consistent':
-                    
-                    table_to_compare = signalling_check.get('compare_table')
-                    columns_to_join = signalling_check.get('join_columns')
-                    valid_count = check_values_consistent(spark_session,dataframe, column_name, table_to_compare, columns_to_join)
-                    check_id = 'tilt_6'
-                    
-    
-                signalling_check_df = signalling_check_df.withColumn('valid_count', F.lit(valid_count).cast(IntegerType()))
-                signalling_check_df = signalling_check_df.withColumn('check_id',F.lit(check_id))
-                
-                df = df.union(signalling_check_df)
+        signalling_check_df = signalling_check_df.withColumn('valid_count', F.lit(valid_count).cast(IntegerType()))
+        signalling_check_df = signalling_check_df.withColumn('check_id',F.lit(check_id))
+        
+        df = df.union(signalling_check_df)
 
-    monitoring_values_df = read_table(spark_session,'monitoring_values')
-    monitoring_values_df = monitoring_values_df.filter(F.col('to_date')=='2099-12-31').select([F.col(column) for column in df.columns if column not in ['from_date','to_date']])
-    # filter the monitoring values table to exclude all records that already exists for that table
-    monitoring_values_df_filtered = monitoring_values_df.filter(F.col('table_name')!= table_name)
-    monitoring_values_df = monitoring_values_df_filtered.union(df)
-    write_table(spark_session, monitoring_values_df, 'monitoring_values')
-    return monitoring_values_df
+    return df
+
+
+

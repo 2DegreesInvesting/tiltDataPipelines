@@ -1,11 +1,11 @@
 from pyspark.sql import SparkSession, DataFrame
 import pyspark.sql.functions as F
-from pyspark.sql.types import StringType
+from pyspark.sql.types import StringType, IntegerType
 import os
-import pyspark
 
 from functions.tables import get_table_definition
-from functions.data_quality import dq_format
+from functions.signalling_rules import signalling_checks_dictionary
+
 
 env = 'develop'
 
@@ -42,10 +42,13 @@ def create_spark_session() -> SparkSession:
             f"{databricks_settings['workspace_name']}:443/;token={databricks_settings['access_token']};x-databricks-cluster-id={databricks_settings['cluster_id']};user_id=123123"
         ).getOrCreate()
 
+    # Dynamic Overwrite mode makes sure that other parts of a partition that are not processed are not overwritten as well.
+    spark_session.conf.set("spark.sql.sources.partitionOverwriteMode","dynamic")
+
     return spark_session
 
 
-def read_table(read_session: SparkSession, table_name: str, partition: str = '', history: str = 'recent') -> DataFrame:
+def read_table(read_session: SparkSession, table_name: str, partition_name: str = '', history: str = 'recent') -> DataFrame:
     """
     Read data from a specified table.
 
@@ -55,7 +58,7 @@ def read_table(read_session: SparkSession, table_name: str, partition: str = '',
     Args:
         read_session (SparkSession): The SparkSession object for reading the table.
         table_name (str): The name of the table to be read.
-        partition (str, optional): The partition value (default: '').
+        partition_name (str, optional): The partition value (default: '').
         history (str, optional): Specify 'recent' to read the most recent data, or 'complete' to read all data history.
 
     Returns:
@@ -82,11 +85,11 @@ def read_table(read_session: SparkSession, table_name: str, partition: str = '',
 
     table_definition = get_table_definition(table_name)
 
-    if partition != '':
-        table_partition = table_definition['partition_by']
-        partition_path = f'{table_partition}={partition}'
+    if partition_name != '':
+        partition_column = table_definition['partition_column']
+        partition_path = f'{partition_column}={partition_name}'
     else:
-        partition_path = partition
+        partition_path = partition_name
 
     table_location = build_table_path(table_definition['container'], table_definition['location'], partition_path)
 
@@ -108,8 +111,8 @@ def read_table(read_session: SparkSession, table_name: str, partition: str = '',
         else:
             raise(e)
 
-    if partition != '':
-        df = df.withColumn(table_partition, F.lit(partition))
+    if partition_name != '':
+        df = df.withColumn(partition_column, F.lit(partition_name))
 
     if history == 'recent' and 'to_date' in df.columns:
         df = df.filter(F.col('to_date')=='2099-12-31')
@@ -119,7 +122,7 @@ def read_table(read_session: SparkSession, table_name: str, partition: str = '',
     return df
 
 
-def write_table(spark_session: SparkSession, data_frame: DataFrame, table_name: str, partition: str = ''):
+def write_table(spark_session: SparkSession, data_frame: DataFrame, table_name: str, partition_name: str = ''):
     """
     Writes the DataFrame to a table with the specified table name and optional partition.
 
@@ -127,7 +130,7 @@ def write_table(spark_session: SparkSession, data_frame: DataFrame, table_name: 
         spark_session (SparkSession): The SparkSession object for writing the table.
         data_frame (DataFrame): The DataFrame to be written to the table.
         table_name (str): The name of the table.
-        partition (str, optional): The partition value (default: '').
+        partition_name (str, optional): The partition_name value (default: '').
 
     Returns:
         None
@@ -140,20 +143,21 @@ def write_table(spark_session: SparkSession, data_frame: DataFrame, table_name: 
     table_definition = get_table_definition(table_name)
 
     # Compare the newly created records with the existing tables
-    data_frame = compare_tables(spark_session, data_frame, table_name)
+    data_frame = compare_tables(spark_session, data_frame, table_name, partition_name)
 
     # Add the SHA value to create a unique ID within tilt
-    data_frame = add_record_id(spark_session, data_frame, partition)
+    partition_column = table_definition['partition_column']
+    data_frame = add_record_id(spark_session, data_frame, partition_column)
 
     table_check = validate_table_format(spark_session, data_frame, table_name)
 
     if table_check:
         table_location = build_table_path(table_definition['container'], table_definition['location'], None)
-        if partition:
+        if partition_column:
             if table_definition['type'] == 'csv':
-                data_frame.write.partitionBy(partition).mode('overwrite').csv(table_location)
+                data_frame.write.partitionBy(partition_column).mode('overwrite').csv(table_location)
             else:
-                data_frame.write.partitionBy(partition).mode('overwrite').parquet(table_location)
+                data_frame.write.partitionBy(partition_column).mode('overwrite').parquet(table_location)
             
         else:
             if table_definition['type'] == 'csv':
@@ -163,15 +167,22 @@ def write_table(spark_session: SparkSession, data_frame: DataFrame, table_name: 
     else:
         raise ValueError("Table format validation failed.")
 
+    if table_name != 'monitoring_values':
+        check_signalling_issues(spark_session,table_name)
 
-def build_table_path(container: str, location: str, partition: str) -> str:
+    create_catalog_tables(spark_session, table_name)
+
+    
+
+
+def build_table_path(container: str, location: str, partition_column_and_name: str) -> str:
     """
     Builds the path for a table based on the container, location, and optional partition.
 
     Args:
         container (str): The name of the storage container.
         location (str): The location of the table within the container.
-        partition (str): The optional partition value.
+        partition_column_and_name (str): The optional string that points to the location of the specified partition.
 
     Returns:
         str: The built table path.
@@ -180,9 +191,9 @@ def build_table_path(container: str, location: str, partition: str) -> str:
         None
 
     """
-    if partition:
+    if partition_column_and_name:
         # Return the table path with the specified partition
-        return f'abfss://{container}@storagetilt{env}.dfs.core.windows.net/{location}/{partition}'
+        return f'abfss://{container}@storagetilt{env}.dfs.core.windows.net/{location}/{partition_column_and_name}'
     else:
         # Return the table path without a partition
         return f'abfss://{container}@storagetilt{env}.dfs.core.windows.net/{location}'
@@ -209,8 +220,8 @@ def validate_table_format(spark_session: SparkSession, data_frame: DataFrame, ta
     table_definition = get_table_definition(table_name)
 
     # Create an empty DataFrame with the table definition columns
-    if table_definition['partition_by']:
-        check_df = spark_session.createDataFrame([], table_definition['columns'].add(table_definition['partition_by'], StringType(), False))
+    if table_definition['partition_column']:
+        check_df = spark_session.createDataFrame([], table_definition['columns'].add(table_definition['partition_column'], StringType(), False))
     else:
         check_df = spark_session.createDataFrame([], table_definition['columns'])
 
@@ -264,10 +275,10 @@ def validate_data_quality(spark_session: SparkSession, data_frame: DataFrame, ta
             # Get the list of columns that have to be unique
             unique_columns = condition_list[1]
             # Check if the table is partitioned
-            if table_definition['partition_by']:
+            if table_definition['partition_column']:
                 # If the table is partitioned, the unique columns have to be unique within one partition
                 # Compare the total count of values agains the distinct count of values per partition
-                if writing_data_frame.groupBy(table_definition['partition_by']).agg(F.count(*[F.col(column) for column in unique_columns]).alias('count')).collect() != writing_data_frame.groupBy(table_definition['partition_by']).agg(F.countDistinct(*[F.col(column) for column in unique_columns]).alias('count')).collect():
+                if writing_data_frame.groupBy(table_definition['partition_column']).agg(F.count(*[F.col(column) for column in unique_columns]).alias('count')).collect() != writing_data_frame.groupBy(table_definition['partition_column']).agg(F.countDistinct(*[F.col(column) for column in unique_columns]).alias('count')).collect():
                     # If the values of count and distinct count are not identical, the columns are not unique.
                     raise ValueError(f"Column: {unique_columns} is not unique along grouped columns.")
             else:
@@ -288,7 +299,7 @@ def validate_data_quality(spark_session: SparkSession, data_frame: DataFrame, ta
 
     return True
 
-def add_record_id(spark_session: SparkSession, data_frame: DataFrame, partition: str = '') -> DataFrame:
+def add_record_id(spark_session: SparkSession, data_frame: DataFrame, partition_column: str = '') -> DataFrame:
     """
     Computes SHA-256 hash values for each row in the DataFrame and adds the hash as a new column 'tiltRecordID'.
 
@@ -313,8 +324,8 @@ def add_record_id(spark_session: SparkSession, data_frame: DataFrame, partition:
     data_frame = data_frame.withColumnRenamed('shaValue','tiltRecordID')
 
     # Reorder the columns, to make sure the partition column is the most right column in the data frame
-    if partition:
-        col_order = [x for x in data_frame.columns if x not in ['tiltRecordID', partition]] + ['tiltRecordID',partition]
+    if partition_column:
+        col_order = [x for x in data_frame.columns if x not in ['tiltRecordID', partition_column]] + ['tiltRecordID',partition_column]
     else:
         col_order = [x for x in data_frame.columns if x not in ['tiltRecordID']] + ['tiltRecordID']
     
@@ -328,7 +339,7 @@ def create_sha_values(spark_session: SparkSession, data_frame: DataFrame, col_li
 
     return data_frame
 
-def compare_tables(spark_session: SparkSession, data_frame: DataFrame, table_name: str) -> DataFrame:
+def compare_tables(spark_session: SparkSession, data_frame: DataFrame, table_name: str, partition_name: str) -> DataFrame:
     """
     Compare an incoming DataFrame with an existing table, identifying new, identical, and closed records.
 
@@ -358,7 +369,7 @@ def compare_tables(spark_session: SparkSession, data_frame: DataFrame, table_nam
     value_columns = [F.col(col_name) for col_name in data_frame.columns if col_name not in ['tiltRecordID','from_date','to_date']]
 
     # Read the already existing table
-    old_df = read_table(spark_session,table_name)
+    old_df = read_table(spark_session,table_name, partition_name, 'complete')
     old_closed_records = old_df.filter(F.col('to_date')!=future_date).select(value_columns + from_to_list)
     old_df = old_df.filter(F.col('to_date')==future_date).select(value_columns + from_to_list)
 
@@ -400,3 +411,89 @@ def compare_tables(spark_session: SparkSession, data_frame: DataFrame, table_nam
         all_records = all_records.union(new_records)
 
     return all_records
+
+
+from functions.signalling_functions import calculate_signalling_issues
+def check_signalling_issues(spark_session: SparkSession, table_name: str) -> None:
+    """
+    Perform signalling checks on a specified table and update the monitoring values table.
+
+    This function performs signalling checks on a given table by executing various data quality checks as defined in
+    the 'signalling_checks_dictionary'. The results of these checks are recorded in the 'monitoring_values' table.
+    
+    Args:
+        spark_session (SparkSession): The SparkSession to use for reading and writing data.
+        table_name (str): The name of the table to perform signalling checks on.
+
+    Returns:
+        None
+
+    Note:
+        - Signalling checks are defined in the 'signalling_checks_dictionary'.
+        - The function reads the specified table and calculates filled values using the 'calculate_filled_values' function.
+        - It then iterates through the signalling checks, records the results, and updates the 'monitoring_values' table.
+        - The specific checks performed depend on the definitions in the 'signalling_checks_dictionary'.
+    """
+    
+    dataframe = read_table(spark_session, table_name)
+    dummy_signalling_df = read_table(spark_session,'dummy_quality_check')
+
+    signalling_checks = {}
+    # Check if there are additional data quality monitoring checks to be executed
+    if table_name in signalling_checks_dictionary.keys():
+        signalling_checks = signalling_checks_dictionary[table_name]
+
+    # Generate the monitoring values table to be written
+    monitoring_values_df = calculate_signalling_issues(spark_session, dataframe, signalling_checks, dummy_signalling_df)
+    monitoring_values_df = monitoring_values_df.withColumn('table_name',F.lit(table_name))
+    # Write the table to the location
+    write_table(spark_session, monitoring_values_df, 'monitoring_values', table_name)
+    return None
+
+
+def create_catalog_tables(spark_session: SparkSession, table_name: str) -> bool:
+    """
+    Create or replace an external Hive table in the specified Hive container using the given SparkSession.
+
+    This function generates and executes SQL statements to create or replace an external Hive table. It first drops
+    the table if it already exists and then creates the table based on the provided table definition. The table
+    definition is obtained using the 'get_table_definition' function.
+
+    Args:
+        spark_session (SparkSession): The SparkSession to use for executing SQL statements.
+        table_name (str): The name of the table to create or replace.
+
+    Returns:
+        bool: True if the table creation was successful, False otherwise.
+
+    Note:
+        - The table is created as an external table.
+        - The table definition is obtained using the 'get_table_definition' function.
+        - The table is created with the specified columns, data types, and partitioning (if applicable).
+        - If the table already exists, it is dropped and recreated.
+    """
+    
+    table_definition = get_table_definition(table_name)
+
+    # Drop the table definition in the unity catalog
+    delete_string = f"DROP TABLE IF EXISTS `{table_definition['container']}`.`default`.`{table_definition['location'].replace('.','')}`"
+
+    # Build a SQL string to recreate the table in the most up to date format
+    create_string = f"CREATE EXTERNAL TABLE IF NOT EXISTS `{table_definition['container']}`.`default`.`{table_definition['location'].replace('.','')}` ("
+
+    for i in table_definition['columns']:
+        col_info = i.jsonValue()
+        col_string = f"`{col_info['name']}` {col_info['type']} {'NOT NULL' if not col_info['nullable'] else ''},"
+        create_string += col_string
+
+    table_path = build_table_path(table_definition['container'], table_definition['location'],None)
+    create_string = create_string[:-1] + ")"
+    create_string += f" USING {table_definition['type']} LOCATION '{table_path}'"
+    if table_definition['partition_column']:
+        create_string += f" PARTITIONED BY (`{table_definition['partition_column']}` STRING)"
+
+    # Execute the built SQL string
+    spark_session.sql(delete_string)
+    spark_session.sql(create_string)
+
+    return True
