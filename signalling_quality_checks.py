@@ -1,5 +1,4 @@
-from functions.signalling_functions import check_signalling_issues
-from functions.spark_session import create_spark_session
+from functions.spark_session import create_spark_session, check_signalling_issues
 
 signalling_spark_session = create_spark_session()
 
