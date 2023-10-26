@@ -815,6 +815,48 @@ def get_table_definition(table_name: str) -> dict:
                                                         '6ace185eedb813fe84c2eca7641f9fa0aa3bfdc3',
                                                         '51288d140528c2d5c0565891be70300a9b0e365f']]]
         },
+        'companies_datamodel': {
+            'columns' :  StructType([
+                StructField('companies_id', StringType(), False),
+                StructField('company_name', StringType(), True),
+                StructField('main_activity_id', StringType(), True),
+                StructField('address', StringType(), True),
+                StructField('company_city', StringType(), True),
+                StructField('postcode', StringType(), True),
+                StructField('information', StringType(), True),
+                StructField('type_of_building_for_registered_address', StringType(), True),
+                StructField('from_date', DateType(), False),
+                StructField('to_date', DateType(), False),
+                StructField('tiltRecordID', StringType(), False),
+            ]  
+            ), 
+            'container': 'datamodel',
+            'location': 'companies',
+            'type': 'parquet',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+        'companies_details_datamodel': {
+            'columns' :  StructType([
+                StructField('companies_id', StringType(), False),
+                StructField('min_headcount', IntegerType(), True),
+                StructField('max_headcount', IntegerType(), True),
+                StructField('verified_by_europages', BooleanType(), True),
+                StructField('year_established', ShortType(), True),
+                StructField('websites', StringType(), True),
+                StructField('download_datetime', TimestampType(), True),
+                StructField('country_id', StringType(), False),
+                StructField('from_date', DateType(), False),
+                StructField('to_date', DateType(), False),
+                StructField('tiltRecordID', StringType(), False),
+            ]  
+            ), 
+            'container': 'datamodel',
+            'location': 'companies_details',
+            'type': 'parquet',
+            'partition_by' : '',
+            'quality_checks': []
+        },
          'main_activity_landingzone': {
             'columns' :  StructType([
                 StructField('main_activity_id', StringType(), False),
@@ -843,6 +885,22 @@ def get_table_definition(table_name: str) -> dict:
             'type': 'parquet',
             'partition_by' : '',
             'quality_checks': [['unique',['main_activity_id']]]
+        },
+        'main_activity_mapping_ecoinvent_datamodel': {
+            'columns' :  StructType([
+                StructField('main_activity_id', StringType(), False),
+                StructField('main_activity', StringType(), False),
+                StructField('ecoinvent', StringType(), True),
+                StructField('from_date', DateType(), False),
+                StructField('to_date', DateType(), False),
+                StructField('tiltRecordID', StringType(), False),
+            ]  
+            ), 
+            'container': 'datamodel',
+            'location': 'main_activity_mapping',
+            'type': 'parquet',
+            'partition_by' : '',
+            'quality_checks': []
         },
          'geography_landingzone': {
             'columns' :  StructType([
@@ -874,6 +932,23 @@ def get_table_definition(table_name: str) -> dict:
             'type': 'parquet',
             'partition_by' : '',
             'quality_checks': [['unique',['geography_id']]]
+        },
+        'geography_mapping_ecoinvent_datamodel': {
+            'columns' :  StructType([
+                StructField('geography_id', StringType(), False),
+                StructField('country_id', StringType(), False),
+                StructField('ecoinvent_geography', StringType(), True),
+                StructField('priority', StringType(), True),
+                StructField('from_date', DateType(), False),
+                StructField('to_date', DateType(), False),
+                StructField('tiltRecordID', StringType(), False),
+            ]  
+            ), 
+            'container': 'datamodel',
+            'location': 'geography_mapping',
+            'type': 'parquet',
+            'partition_by' : '',
+            'quality_checks': []
         },
          'country_landingzone': {
             'columns' :  StructType([
@@ -986,6 +1061,21 @@ def get_table_definition(table_name: str) -> dict:
             'type': 'parquet',
             'partition_by' : '',
             'quality_checks': [['unique',['categories_companies_id']]]
+        },
+        'categories_companies_datamodel': {
+            'columns' :  StructType([
+                StructField('categories_id', StringType(), False),
+                StructField('companies_id', StringType(), False),
+                StructField('from_date', DateType(), False),
+                StructField('to_date', DateType(), False),
+                StructField('tiltRecordID', StringType(), False),
+            ]  
+            ), 
+            'container': 'datamodel',
+            'location': 'categories_companies',
+            'type': 'parquet',
+            'partition_by' : '',
+            'quality_checks': []
         },
          'delimited_landingzone': {
             'columns' :  StructType([
@@ -1130,6 +1220,23 @@ def get_table_definition(table_name: str) -> dict:
             'partition_by' : '',
             'quality_checks': [['unique',['categories_id']]]
         },
+        'categories_datamodel': {
+            'columns' :  StructType([
+                StructField('categories_id', StringType(), False),
+                StructField('group', StringType(), True),
+                StructField('sector', StringType(), True),
+                StructField('subsector', StringType(), True),
+                StructField('from_date', DateType(), False),
+                StructField('to_date', DateType(), False),
+                StructField('tiltRecordID', StringType(), False),
+            ]  
+            ), 
+            'container': 'datamodel',
+            'location': 'categories',
+            'type': 'parquet',
+            'partition_by' : '',
+            'quality_checks': []
+        },
         'sector_ecoinvent_delimited_sector_ecoinvent_landingzone': {
             'columns' :  StructType([
                 StructField('sector_ecoinvent_delimited_sector_ecoinvent_id', StringType(), False),
@@ -1212,6 +1319,51 @@ def get_table_definition(table_name: str) -> dict:
             'type': 'parquet',
             'partition_by' : '',
             'quality_checks': [['unique',['sector_ecoinvent_id']]]
+        },
+        'countries_un_landingzone': {
+            'columns' :  StructType([
+                StructField('country_un', StringType(), False),
+                StructField('country', StringType(), False),
+                StructField('country_id', StringType(), True)
+            ]  
+            ), 
+            'container': 'landingzone',
+            'location': 'extraTables/countries_un_code.csv',
+            'type': 'tiltData',
+            'partition_by' : '',
+            'quality_checks': [['unique',['country_un']]]
+        },
+        'countries_un_raw': {
+            'columns' :  StructType([
+                StructField('country_un', StringType(), False),
+                StructField('country', StringType(), False),
+                StructField('country_id', StringType(), True),
+                StructField('from_date', DateType(), False),
+                StructField('to_date', DateType(), False),
+                StructField('tiltRecordID', StringType(), False),
+            ]  
+            ), 
+            'container': 'raw',
+            'location': 'countries',
+            'type': 'parquet',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+        'countries_un_datamodel': {
+            'columns' :  StructType([
+                StructField('country_un', StringType(), False),
+                StructField('country', StringType(), False),
+                StructField('country_id', StringType(), True),
+                StructField('from_date', DateType(), False),
+                StructField('to_date', DateType(), False),
+                StructField('tiltRecordID', StringType(), False),
+            ]  
+            ), 
+            'container': 'datamodel',
+            'location': 'countries',
+            'type': 'parquet',
+            'partition_by' : '',
+            'quality_checks': []
         },
         'product_matching_complete_all_cases_landingzone': {
             'columns' :  StructType([
@@ -1458,6 +1610,75 @@ def get_table_definition(table_name: str) -> dict:
             ), 
             'container': 'raw',
             'location': 'scenario_targets_WEO_NEW',
+            'type': 'parquet',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+        'scenario_targets_mapped': {
+            'columns' :  StructType([
+                StructField('scenario_targets_id', StringType(), False),
+                StructField('scenario_targets_name', StringType(), False),
+                StructField('scenario', StringType(), True),
+                StructField('year', StringType(), True),
+                StructField('region', StringType(), True),
+                StructField('unit', StringType(), True),
+                StructField('tilt_sector', StringType(), True),
+                StructField('tilt_subsector', ShortType(), True),
+                StructField('value', DoubleType(), True),
+                StructField('reductions', DoubleType(), True),
+                StructField('from_date', DateType(), False),
+                StructField('to_date', DateType(), False),
+                StructField('tiltRecordID', StringType(), False),
+            ]  
+            ), 
+            'container': 'datamodel',
+            'location': 'scenario_targets_mapped',
+            'type': 'parquet',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+        'scenario_targets_category': {
+            'columns' :  StructType([
+                StructField('category', StringType(), False),
+                StructField('scenario_targets_name', StringType(), False),
+                StructField('from_date', DateType(), False),
+                StructField('to_date', DateType(), False),
+                StructField('tiltRecordID', StringType(), False),
+            ]  
+            ), 
+            'container': 'datamodel',
+            'location': 'scenario_targets_category',
+            'type': 'parquet',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+        'scenario_targets_variable_class': {
+            'columns' :  StructType([
+                StructField('variable_class', StringType(), False),
+                StructField('sub_variable_class', StringType(), False),
+                StructField('scenario_targets_name', StringType(), False),
+                StructField('from_date', DateType(), False),
+                StructField('to_date', DateType(), False),
+                StructField('tiltRecordID', StringType(), False),
+            ]  
+            ), 
+            'container': 'datamodel',
+            'location': 'scenario_targets_variable_class',
+            'type': 'parquet',
+            'partition_by' : '',
+            'quality_checks': []
+        },
+        'scenario_targets_publication': {
+            'columns' :  StructType([
+                StructField('publication', StringType(), False),
+                StructField('scenario_targets_name', StringType(), False),
+                StructField('from_date', DateType(), False),
+                StructField('to_date', DateType(), False),
+                StructField('tiltRecordID', StringType(), False),
+            ]  
+            ), 
+            'container': 'datamodel',
+            'location': 'scenario_targets_publication',
             'type': 'parquet',
             'partition_by' : '',
             'quality_checks': []

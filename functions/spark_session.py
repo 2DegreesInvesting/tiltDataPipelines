@@ -163,6 +163,7 @@ def write_table(spark_session: SparkSession, data_frame: DataFrame, table_name: 
     else:
         raise ValueError("Table format validation failed.")
 
+    create_catalog_tables(spark_session, table_name)
 
 def build_table_path(container: str, location: str, partition: str) -> str:
     """
@@ -400,3 +401,50 @@ def compare_tables(spark_session: SparkSession, data_frame: DataFrame, table_nam
         all_records = all_records.union(new_records)
 
     return all_records
+
+def create_catalog_tables(spark_session: SparkSession, table_name: str) -> bool:
+    """
+    Create or replace an external Hive table in the specified Hive container using the given SparkSession.
+
+    This function generates and executes SQL statements to create or replace an external Hive table. It first drops
+    the table if it already exists and then creates the table based on the provided table definition. The table
+    definition is obtained using the 'get_table_definition' function.
+
+    Args:
+        spark_session (SparkSession): The SparkSession to use for executing SQL statements.
+        table_name (str): The name of the table to create or replace.
+
+    Returns:
+        bool: True if the table creation was successful, False otherwise.
+
+    Note:
+        - The table is created as an external table.
+        - The table definition is obtained using the 'get_table_definition' function.
+        - The table is created with the specified columns, data types, and partitioning (if applicable).
+        - If the table already exists, it is dropped and recreated.
+    """
+    
+    table_definition = get_table_definition(table_name)
+
+    # Drop the table definition in the unity catalog
+    delete_string = f"DROP TABLE IF EXISTS `{table_definition['container']}`.`default`.`{table_definition['location'].replace('.','')}`"
+
+    # Build a SQL string to recreate the table in the most up to date format
+    create_string = f"CREATE EXTERNAL TABLE IF NOT EXISTS `{table_definition['container']}`.`default`.`{table_definition['location'].replace('.','')}` ("
+
+    for i in table_definition['columns']:
+        col_info = i.jsonValue()
+        col_string = f"`{col_info['name']}` {col_info['type']} {'NOT NULL' if not col_info['nullable'] else ''},"
+        create_string += col_string
+
+    table_path = build_table_path(table_definition['container'], table_definition['location'],None)
+    create_string = create_string[:-1] + ")"
+    create_string += f" USING {table_definition['type']} LOCATION '{table_path}'"
+    if table_definition['partition_by']:
+        create_string += f" PARTITIONED BY (`{table_definition['partition_by']}` STRING)"
+
+    # Execute the built SQL string
+    spark_session.sql(delete_string)
+    spark_session.sql(create_string)
+
+    return True

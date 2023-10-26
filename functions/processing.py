@@ -217,17 +217,45 @@ def generate_table(table_name: str) -> None:
 
         write_table(spark_generate, companies, 'companies_raw')     
 
+    elif table_name == 'companies_datamodel':
+
+        df = read_table(spark_generate, 'companies_raw')
+
+        companies_datamodel = df.select('companies_id', 'company_name', 'main_activity_id', 'address', 'company_city', 'postcode', 'information', 'type_of_building_for_registered_address')
+
+        write_table(spark_generate, companies_datamodel, 'companies_datamodel')
+
+    elif table_name == 'companies_details_datamodel':
+
+        df = read_table(spark_generate, 'companies_raw')
+
+        companies_details_datamodel = df.select('companies_id', 'min_headcount', 'max_headcount', 'verified_by_europages', 'year_established', 'websites', 'download_datetime', 'country_id')
+
+        write_table(spark_generate, companies_details_datamodel, 'companies_details_datamodel')
+
     elif table_name == 'main_activity_raw':
 
         df = read_table(spark_generate, 'main_activity_landingzone')
 
-        write_table(spark_generate, df,'main_activity_raw')    
+        write_table(spark_generate, df,'main_activity_raw')   
+
+    elif table_name == 'main_activity_mapping_ecoinvent_datamodel':
+
+        df = read_table(spark_generate, 'main_activity_raw')
+
+        write_table(spark_generate, df,'main_activity_mapping_ecoinvent_datamodel')   
 
     elif table_name == 'geography_raw':
 
         df = read_table(spark_generate, 'geography_landingzone')
 
         write_table(spark_generate, df,'geography_raw') 
+
+    elif table_name == 'geography_mapping_ecoinvent_datamodel':
+
+        df = read_table(spark_generate, 'geography_raw')
+
+        write_table(spark_generate, df,'geography_mapping_ecoinvent_datamodel') 
 
     elif table_name == 'country_raw':
 
@@ -252,6 +280,14 @@ def generate_table(table_name: str) -> None:
         df = read_table(spark_generate, 'categories_companies_landingzone')
 
         write_table(spark_generate, df,'categories_companies_raw') 
+
+    elif table_name == 'categories_companies_datamodel':
+
+        df = read_table(spark_generate, 'categories_companies_raw')
+
+        categories_companies = df.select("categories_id", "companies_id")
+
+        write_table(spark_generate, categories_companies,'categories_companies_datamodel') 
 
     elif table_name == 'delimited_raw':
 
@@ -283,6 +319,12 @@ def generate_table(table_name: str) -> None:
 
         write_table(spark_generate, df,'categories_raw')
 
+    elif table_name == 'categories_datamodel':
+
+        df = read_table(spark_generate, 'categories_raw')
+
+        write_table(spark_generate, df,'categories_datamodel')
+
     elif table_name == 'sector_ecoinvent_delimited_sector_ecoinvent_raw':
 
         df = read_table(spark_generate, 'sector_ecoinvent_delimited_sector_ecoinvent_landingzone')
@@ -300,6 +342,18 @@ def generate_table(table_name: str) -> None:
         df = read_table(spark_generate, 'sector_ecoinvent_landingzone')
 
         write_table(spark_generate, df,'sector_ecoinvent_raw')
+
+    elif table_name == 'countries_un_raw':
+
+        df = read_table(spark_generate, 'countries_un_landingzone')
+
+        write_table(spark_generate, df,'countries_un_raw')
+
+    elif table_name == 'countries_un_datamodel':
+
+        df = read_table(spark_generate, 'countries_un_raw')
+
+        write_table(spark_generate, df,'countries_un_datamodel')
 
     elif table_name == 'product_matching_complete_all_cases_raw':
 
