@@ -1767,7 +1767,7 @@ def get_table_definition(table_name: str) -> dict:
             ),
             'container': 'landingzone',
             'location': 'tiltProfiles/ictr_company_result.csv',
-            'type': 'csv',
+            'type': 'tiltData',
             'partition_column' : '',
             'quality_checks': []
         },
@@ -1820,7 +1820,7 @@ def get_table_definition(table_name: str) -> dict:
             ),
             'container': 'landingzone',
             'location': 'tiltProfiles/ictr_product_result.csv',
-            'type': 'csv',
+            'type': 'tiltData',
             'partition_column' : '',
             'quality_checks': []
         },
@@ -1874,7 +1874,7 @@ def get_table_definition(table_name: str) -> dict:
             ), 
         'container': 'landingzone',
         'location': 'tiltProfiles/istr_company_result.csv',
-        'type': 'csv',
+        'type': 'tiltData',
         'partition_column' : '',
         'quality_checks': []
         },
@@ -1932,7 +1932,7 @@ def get_table_definition(table_name: str) -> dict:
         )        , 
         'container': 'landingzone',
         'location': 'tiltProfiles/istr_product_result.csv',
-        'type': 'csv',
+        'type': 'tiltData',
         'partition_column' : '',
         'quality_checks': []
         },
@@ -1989,7 +1989,7 @@ def get_table_definition(table_name: str) -> dict:
             ), 
         'container': 'landingzone',
         'location': 'tiltProfiles/pctr_company_result.csv',
-        'type': 'csv',
+        'type': 'tiltData',
         'partition_column' : '',
         'quality_checks': []
         },
@@ -2038,7 +2038,7 @@ def get_table_definition(table_name: str) -> dict:
             ), 
         'container': 'landingzone',
         'location': 'tiltProfiles/pctr_product_result.csv',
-        'type': 'csv',
+        'type': 'tiltData',
         'partition_column' : '',
         'quality_checks': []
         },
@@ -2088,7 +2088,7 @@ def get_table_definition(table_name: str) -> dict:
             ), 
         'container': 'landingzone',
         'location': 'tiltProfiles/pstr_company_result.csv',
-        'type': 'csv',
+        'type': 'tiltData',
         'partition_column' : '',
         'quality_checks': []
         },
@@ -2143,7 +2143,7 @@ def get_table_definition(table_name: str) -> dict:
             ), 
         'container': 'landingzone',
         'location': 'tiltProfiles/pstr_product_result.csv',
-        'type': 'csv',
+        'type': 'tiltData',
         'partition_column' : '',
         'quality_checks': []
         },

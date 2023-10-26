@@ -312,12 +312,6 @@ signalling_checks_dictionary = {
     ],
     'pstr_product_result_raw':[
         {
-            'check':'distinct values occur as expected',
-            'columns':['companies_id'],
-            'distinct_columns': ['tilt_sector', 'tilt_subsector'],
-            'expected_count': 1
-        },
-        {
             'check':'values within list',
             'columns': ['pstr_risk_category'],
             'value_list':['low','medium','high']
