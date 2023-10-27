@@ -1,3 +1,4 @@
+import os
 from functions.spark_session import read_table, write_table, create_spark_session
 import pyspark.sql.functions as F
 from pyspark.sql.functions import col, when
@@ -501,5 +502,7 @@ def generate_table(table_name: str) -> None:
 
         write_table(spark_generate, df, 'pstr_product_result_raw')
 
-    
-    spark_generate.stop()
+    # If the code is run as a workflow on databricks, we do not want to shutdown the spark session. 
+    # This will cause the cluster to be unusable for other spark processes
+    if not 'DATABRICKS_RUNTIME_VERSION' in os.environ:
+        spark_generate.stop()

@@ -221,7 +221,7 @@ signalling_checks_dictionary = {
         },
         {
             'check':'values within list',
-            'columns': ['Scenario'],
+            'columns': ['year'],
             'value_list':['2030','2050']
         },
         {
