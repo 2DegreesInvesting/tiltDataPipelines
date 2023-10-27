@@ -176,7 +176,19 @@ def check_values_consistent(spark_session: SparkSession, dataframe: DataFrame, c
     return valid_count
 
 def check_expected_value_count(spark_session: SparkSession, dataframe: DataFrame, groupby_columns: list, expected_count: int) -> int:
+    """
+    Check the count of rows in a DataFrame grouped by specific columns and compare it to an expected count.
 
+    Parameters:
+    - spark_session (SparkSession): The Spark session.
+    - dataframe (DataFrame): The input DataFrame to be analyzed.
+    - groupby_columns (list): A list of column names to group the DataFrame by.
+    - expected_count (int): The expected count to compare with.
+
+    Returns:
+    - int: The count of rows in the DataFrame that match the expected count after grouping.
+
+    """
     groupby_columns_list = [F.col(column) for column in groupby_columns]
     valid_rows = dataframe.groupby(groupby_columns_list).agg(F.count('tiltRecordID').alias('count')).filter(F.col('count')==expected_count).select(groupby_columns_list)
     valid_count = dataframe.join(valid_rows,how='inner',on=groupby_columns).count()
@@ -184,7 +196,21 @@ def check_expected_value_count(spark_session: SparkSession, dataframe: DataFrame
     return valid_count
 
 def check_expected_distinct_value_count(spark_session: SparkSession, dataframe: DataFrame, groupby_columns: list, expected_count: int, distinct_columns: list) -> int:
+    """
+    Check the count of distinct values in specific columns of a DataFrame grouped by other columns
+    and compare it to an expected count.
 
+    Parameters:
+    - spark_session (SparkSession): The Spark session.
+    - dataframe (DataFrame): The input DataFrame to be analyzed.
+    - groupby_columns (list): A list of column names to group the DataFrame by.
+    - expected_count (int): The expected count of distinct values to compare with.
+    - distinct_columns (list): A list of column names for which distinct values will be counted.
+
+    Returns:
+    - int: The count of rows in the DataFrame that match the expected count of distinct values after grouping.
+
+    """
     groupby_columns_list = [F.col(column) for column in groupby_columns]
     distinct_columns_list = [F.col(column) for column in distinct_columns]
     valid_rows = dataframe.groupby(groupby_columns_list).agg(F.countDistinct(*distinct_columns_list).alias('count')).filter(F.col('count')==expected_count).select(groupby_columns_list)
@@ -194,7 +220,20 @@ def check_expected_distinct_value_count(spark_session: SparkSession, dataframe: 
 
     
 def column_sums_to_1(spark_session: SparkSession, dataframe: DataFrame, groupby_columns: list, sum_column: str) -> int:
+    """
+    Check if the sum of values in a specific column of a DataFrame, grouped by other columns,
+    equals 1 and return the count of rows that meet this condition.
 
+    Parameters:
+    - spark_session (SparkSession): The Spark session.
+    - dataframe (DataFrame): The input DataFrame to be analyzed.
+    - groupby_columns (list): A list of column names to group the DataFrame by.
+    - sum_column (str): The column whose values will be summed and compared to 1.
+
+    Returns:
+    - int: The count of rows in the DataFrame where the sum of values in the 'sum_column' equals 1 after grouping.
+
+    """
     
     groupby_columns_list = [F.col(column) for column in groupby_columns]
     valid_rows = dataframe.groupby(groupby_columns_list).agg(F.sum(sum_column).alias('sum')).filter(F.col('sum')==1).select(groupby_columns_list)
