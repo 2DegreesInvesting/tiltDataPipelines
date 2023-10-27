@@ -41,7 +41,7 @@ def check_value_within_list(dataframe: DataFrame, column_name: list, value_list:
 
     Parameters:
     - dataframe (DataFrame): The input DataFrame to filter.
-    - column_name (str): The name of the column in the DataFrame to filter by.
+    - column_name (list): A list containing the column in the DataFrame to filter by.
     - value_list (list): A list of values to compare with the values in the specified column.
 
     Returns:
@@ -96,7 +96,7 @@ def check_values_in_range(dataframe: DataFrame, column_name: list, range_start: 
 
     Parameters:
     - dataframe (DataFrame): The input Spark DataFrame to filter.
-    - column_name (str): The name of the column in the DataFrame to filter by.
+    - column_name (list): A list containing the column in the DataFrame to filter by.
     - range_start (int): The inclusive lower bound of the range for filtering.
     - range_end (int): The inclusive upper bound of the range for filtering.
 
@@ -109,7 +109,7 @@ def check_values_in_range(dataframe: DataFrame, column_name: list, range_start: 
 
     return valid_count
 
-def check_values_unique(dataframe: DataFrame, column_name: str) -> int:
+def check_values_unique(dataframe: DataFrame, column_name: list) -> int:
     """
     Check the uniqueness of values in a specified column of a Spark DataFrame and return the count of unique values.
 
@@ -118,7 +118,7 @@ def check_values_unique(dataframe: DataFrame, column_name: str) -> int:
 
     Parameters:
     - dataframe (DataFrame): The input Spark DataFrame to analyze.
-    - column_name (str): The name of the column in the DataFrame to check for uniqueness.
+    - column_name (list): A list containing the column in the DataFrame to check if it is unique.
 
     Returns:
     - valid_count (int): The count of unique values in the specified column.
@@ -138,7 +138,7 @@ def check_values_format(dataframe: DataFrame, column_name: list, format: str) ->
 
     Parameters:
     - dataframe (DataFrame): The input Spark DataFrame to filter.
-    - column_name (str): The name of the column in the DataFrame to check for format compliance.
+    - column_name (list): A list containing the column in the DataFrame to check for format compliance.
     - format (str): The regular expression pattern to match against the values in the specified column.
 
     Returns:
@@ -155,7 +155,7 @@ def check_values_consistent(spark_session: SparkSession, dataframe: DataFrame, c
     Args:
         spark_session (SparkSession): The SparkSession instance.
         dataframe (DataFrame): The DataFrame to be checked for consistency.
-        column_name (str): The name of the column whose values will be checked.
+        column_name (list): A list containing the column in the DataFrame whose values will be checked.
         compare_table (str): The name of the comparison table in the same SparkSession.
         join_columns (list): A list of column names used for joining the input DataFrame and the comparison table.
 
@@ -179,6 +179,9 @@ def check_expected_value_count(spark_session: SparkSession, dataframe: DataFrame
     """
     Check the count of rows in a DataFrame grouped by specific columns and compare it to an expected count.
 
+    With this function we want to check if a combination of certain columns exists a certain amount of times in a table.
+    For example where a certain combinations combination of benchmarks and risk categories are expected per company.
+
     Parameters:
     - spark_session (SparkSession): The Spark session.
     - dataframe (DataFrame): The input DataFrame to be analyzed.
@@ -199,6 +202,10 @@ def check_expected_distinct_value_count(spark_session: SparkSession, dataframe: 
     """
     Check the count of distinct values in specific columns of a DataFrame grouped by other columns
     and compare it to an expected count.
+
+    With this function we check the count of different values across one group. 
+    For example when checking if every company has a record for all of the benchmarks, it is possible that a benchmark exists multiple times by being subdivided into multiple sub scenarios.
+    At this point we then need to check the unique amount of benchmarks to get the actual amount of applied benchmarks and not rows.
 
     Parameters:
     - spark_session (SparkSession): The Spark session.
@@ -224,6 +231,9 @@ def column_sums_to_1(spark_session: SparkSession, dataframe: DataFrame, groupby_
     Check if the sum of values in a specific column of a DataFrame, grouped by other columns,
     equals 1 and return the count of rows that meet this condition.
 
+    In this check the aim is to make sure that columns like a share sum up to 100% or 1 in the case of our data. 
+    Due to rounding differences in fractional shares, the implementation is to check if a sum lies between 98% and 102%.
+
     Parameters:
     - spark_session (SparkSession): The Spark session.
     - dataframe (DataFrame): The input DataFrame to be analyzed.
@@ -236,7 +246,7 @@ def column_sums_to_1(spark_session: SparkSession, dataframe: DataFrame, groupby_
     """
     
     groupby_columns_list = [F.col(column) for column in groupby_columns]
-    valid_rows = dataframe.groupby(groupby_columns_list).agg(F.sum(sum_column).alias('sum')).filter(F.col('sum')==1).select(groupby_columns_list)
+    valid_rows = dataframe.groupby(groupby_columns_list).agg(F.sum(sum_column).alias('sum')).filter(F.col('sum').between(0.98,1.02)).select(groupby_columns_list)
     valid_count = dataframe.join(valid_rows,how='inner',on=groupby_columns).count()
 
     return valid_count
