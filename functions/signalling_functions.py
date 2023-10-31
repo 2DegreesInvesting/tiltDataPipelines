@@ -155,7 +155,7 @@ def check_values_consistent(spark_session: SparkSession, dataframe: DataFrame, c
     Args:
         spark_session (SparkSession): The SparkSession instance.
         dataframe (DataFrame): The DataFrame to be checked for consistency.
-        column_name (list): A list containing the column in the DataFrame whose values will be checked.
+        column_name (list): A list containing the column in the DataFrame which values will be checked.
         compare_table (str): The name of the comparison table in the same SparkSession.
         join_columns (list): A list of column names used for joining the input DataFrame and the comparison table.
 
@@ -180,7 +180,7 @@ def check_expected_value_count(spark_session: SparkSession, dataframe: DataFrame
     Check the count of rows in a DataFrame grouped by specific columns and compare it to an expected count.
 
     With this function we want to check if a combination of certain columns exists a certain amount of times in a table.
-    For example where a certain combinations combination of benchmarks and risk categories are expected per company.
+    For example when 6 benchmarks are expected per company and each benchmark has 3 risk levels, a total of 18 rows per company would be expected.
 
     Parameters:
     - spark_session (SparkSession): The Spark session.
