@@ -426,4 +426,102 @@ def generate_table(table_name: str) -> None:
 
         write_table(spark_generate, ecoinvent_input_data_relevant_columns_raw, 'ecoinvent_input_data_relevant_columns_raw') 
 
+    elif table_name == 'ictr_products_raw':
+    
+        df = read_table(spark_generate, 'ictr_products_landingzone')
+
+        # to decimal
+        column_name = "input_co2_footprint"
+        ictr_products = df.withColumn(column_name, col(column_name).cast(DoubleType()))
+
+        write_table(spark_generate, ictr_products, "ictr_products_raw")
+
+    elif table_name == 'istr_companies_raw':
+
+        df = read_table(spark_generate, 'istr_companies_landingzone')
+        # List of columns to replace string 'nan' with None values
+        columns_to_replace = df.columns
+
+        for column_name in columns_to_replace:
+            istr_companies = df.withColumn(column_name, 
+                                           when(col(column_name) == "nan", F.lit(None)))
+
+        write_table(spark_generate, istr_companies, 'istr_companies_raw')
+
+    elif table_name == 'istr_products_raw':
+
+        df = read_table(spark_generate, 'istr_products_landingzone')
+        # List of columns to replace string 'nan' with None values
+        columns_to_replace = df.columns
+
+        for column_name in columns_to_replace:
+            istr_products = df.withColumn(column_name, 
+                                           when(col(column_name) == "nan", F.lit(None)))
+
+        write_table(spark_generate, istr_products, 'istr_products_raw')
+
+    elif table_name == 'pctr_products_raw':
+
+        df = read_table(spark_generate, 'pctr_products_landingzone')
+        # List of columns to replace string 'not available' with None values
+        columns_to_replace = ["isic_4digit"]
+
+        for column_name in columns_to_replace:
+            pctr_products = df.withColumn(column_name, 
+                                           when(col(column_name) == "not available", F.lit(None)))
+
+        write_table(spark_generate, pctr_products, 'pctr_products_raw')
+
+    elif table_name == 'pstr_companies_raw':
+
+        df = read_table(spark_generate, 'pstr_companies_landingzone')
+        # List of columns to replace string 'nan' with None values
+        columns_to_replace = df.columns
+
+        for column_name in columns_to_replace:
+            pstr_companies = df.withColumn(column_name, 
+                                           when(col(column_name) == "nan", F.lit(None)))
+
+        write_table(spark_generate, pstr_companies, 'pstr_companies_raw')
+
+    elif table_name == 'str_ipr_targets_raw':
+
+        df = read_table(spark_generate, 'str_ipr_targets_landingzone')
+        # List of column names to replace to double
+        columns_to_replace_double = ["value", "co2_reductions"]
+
+        for column_name in columns_to_replace_double:
+            str_ipr_targets = df.withColumn(column_name, col(column_name).cast(DoubleType()))
+        # to short type
+        column_to_short_type = "year"
+        str_ipr_targets = str_ipr_targets.withColumn(column_to_short_type, col(column_to_short_type).cast(ShortType))
+
+        write_table(spark_generate, str_ipr_targets, 'str_ipr_targets_raw')
+
+    elif table_name == 'str_weo_targets_raw':
+
+        df = read_table(spark_generate, 'str_weo_targets_landingzone')
+        # List of column names to replace to double
+        columns_to_replace_double = ["value", "co2_reductions"]
+
+        for column_name in columns_to_replace_double:
+            str_weo_targets = df.withColumn(column_name, col(column_name).cast(DoubleType()))
+        # to short type
+        column_to_short_type = "year"
+        str_weo_targets = str_weo_targets.withColumn(column_to_short_type, col(column_to_short_type).cast(ShortType))
+
+        write_table(spark_generate, str_weo_targets, 'str_weo_targets_raw')
+
+    elif table_name == 'xctr_companies_raw':
+
+        df = read_table(spark_generate, 'xctr_companies_landingzone')
+        # List of columns to replace string 'nan' with None values
+        columns_to_replace = df.columns
+
+        for column_name in columns_to_replace:
+            xctr_companies = df.withColumn(column_name, 
+                                           when(col(column_name) == "nan", F.lit(None)))
+            
+        write_table(spark_generate, xctr_companies, 'xctr_companies_raw')
+
     spark_generate.stop()
