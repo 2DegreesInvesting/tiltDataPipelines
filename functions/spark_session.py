@@ -498,7 +498,7 @@ def create_catalog_tables(spark_session: SparkSession, table_name: str) -> bool:
     # Try to catch the specific exception where the users is not the owner of the table and can thus not delete the table
     except Exception as e:
         # If the user is not the owner, set the user to be the owner and then delete the table
-        if "Path does not exist:" in str(e):
+        if "User is not an owner of table" in str(e):
             import yaml
             with open(r'./settings.yaml') as file:
                 settings = yaml.load(file, Loader=yaml.FullLoader)
