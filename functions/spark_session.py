@@ -492,8 +492,23 @@ def create_catalog_tables(spark_session: SparkSession, table_name: str) -> bool:
     if table_definition['partition_column']:
         create_string += f" PARTITIONED BY (`{table_definition['partition_column']}` STRING)"
 
-    # Execute the built SQL string
-    spark_session.sql(delete_string)
+    # Try and delete the already existing definition of the table
+    try:
+        spark_session.sql(delete_string)
+    # Try to catch the specific exception where the users is not the owner of the table and can thus not delete the table
+    except Exception as e:
+        # If the user is not the owner, set the user to be the owner and then delete the table
+        if "Path does not exist:" in str(e):
+            import yaml
+            with open(r'./settings.yaml') as file:
+                settings = yaml.load(file, Loader=yaml.FullLoader)
+            username = settings['user_name']
+            set_owner_string = f"ALTER TABLE `{table_definition['container']}`.`default`.`{table_definition['location'].replace('.','')}` SET OWNER TO `{username}`"
+            spark_session.sql(set_owner_string)
+            spark_session.sql(delete_string)
+        # If we encounter any other error, raise as the error
+        else:
+            raise(e)
     spark_session.sql(create_string)
 
     return True
