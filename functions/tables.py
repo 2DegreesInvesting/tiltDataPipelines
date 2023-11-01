@@ -1,10 +1,25 @@
 from pyspark.sql.types import StringType,StructType, StructField, DataType, BooleanType, FloatType, ShortType, TimestampType, IntegerType, DoubleType, DateType
 
-def create_location_path():
-
-    return None
-
 def get_table_definition(table_name: str) -> dict:
+    """
+    Template for a table:
+
+    'table_name_container': {
+        'columns' :  StructType([
+            StructField('string_column', StringType(), False),
+            StructField('integer_column', IntegerType(), True),
+            StructField('decimal_column', FloatType(), True),
+            StructField('Date_column', DateType(), True),
+        ]  
+        ), 
+        'container': 'container_name',
+        'location': 'location_in_container',
+        'type': 'data_type',
+        'partition_column' : 'name_of_partition_column',
+        'quality_checks': [['unique', ['string_column']],
+                            ['format', 'string_column', r"[a-zA-Z\-]"]]
+    }
+    """
 
     table_dict = {
         'geographies_landingzone': {
@@ -1627,7 +1642,7 @@ def get_table_definition(table_name: str) -> dict:
             ), 
             'container': 'landingzone',
             'location': 'tiltIndicatorBefore/ecoinvent_inputs_overview_raw.csv',
-            'type': 'csv',
+            'type': 'ecoInvent',
             'partition_column' : '',
             'quality_checks': []
         },
@@ -2042,7 +2057,437 @@ def get_table_definition(table_name: str) -> dict:
             'type': 'parquet',
             'partition_column' : 'table_name',
             'quality_checks': []
-        }
+        },
+        'ictr_company_result_landingzone': {
+            'columns' :  StructType([
+                StructField('companies_id', StringType(), False),
+                StructField('company_name', StringType(), True),
+                StructField('company_city', StringType(), True),
+                StructField('country', StringType(), True),
+                StructField('ICTR_share', StringType(), True),
+                StructField('ICTR_risk_category', StringType(), True),
+                StructField('benchmark', StringType(), True),
+                StructField('matching_certainty_company_average', StringType(), True),
+                StructField('postcode', StringType(), True),
+                StructField('address', StringType(), True),
+                StructField('main_activity', StringType(), True)
+            ]  
+            ),
+            'container': 'landingzone',
+            'location': 'tiltProfiles/ictr_company_result.csv',
+            'type': 'tiltData',
+            'partition_column' : '',
+            'quality_checks': []
+        },
+        'ictr_company_result_raw': {
+            'columns' :  StructType([
+                StructField('companies_id', StringType(), False),
+                StructField('company_name', StringType(), True),
+                StructField('company_city', StringType(), True),
+                StructField('country', StringType(), True),
+                StructField('ICTR_share', FloatType(), True),
+                StructField('ICTR_risk_category', StringType(), True),
+                StructField('benchmark', StringType(), True),
+                StructField('matching_certainty_company_average', StringType(), True),
+                StructField('postcode', StringType(), True),
+                StructField('address', StringType(), True),
+                StructField('main_activity', StringType(), True),
+                StructField('from_date', DateType(), False),
+                StructField('to_date', DateType(), False),
+                StructField('tiltRecordID', StringType(), False)
+            ]  
+            ),
+            'container': 'raw',
+            'location': 'ictr_company_result',
+            'type': 'parquet',
+            'partition_column' : '',
+            'quality_checks': []
+        },
+        'ictr_product_result_landingzone': {
+            'columns' :  StructType([
+                StructField('companies_id', StringType(), True),
+                StructField('company_name', StringType(), True),
+                StructField('country', StringType(), True),
+                StructField('ICTR_risk_category', StringType(), True),
+                StructField('benchmark', StringType(), True),
+                StructField('ep_product', StringType(), True),
+                StructField('matched_activity_name', StringType(), True),
+                StructField('matched_reference_product', StringType(), True),
+                StructField('unit', StringType(), True),
+                StructField('multi_match', StringType(), True),
+                StructField('matching_certainty', StringType(), True),
+                StructField('matching_certainty_company_average', StringType(), True),
+                StructField('input_name', StringType(), True),
+                StructField('input_unit', StringType(), True),
+                StructField('company_city', StringType(), True),
+                StructField('postcode', StringType(), True),
+                StructField('address', StringType(), True),
+                StructField('main_activity', StringType(), True),
+                StructField('activity_uuid_product_uuid', StringType(), True)
+            ]
+            ),
+            'container': 'landingzone',
+            'location': 'tiltProfiles/ictr_product_result.csv',
+            'type': 'tiltData',
+            'partition_column' : '',
+            'quality_checks': []
+        },
+        'ictr_product_result_raw': {
+            'columns' :  StructType([
+                StructField('companies_id', StringType(), True),
+                StructField('company_name', StringType(), True),
+                StructField('country', StringType(), True),
+                StructField('ICTR_risk_category', StringType(), True),
+                StructField('benchmark', StringType(), True),
+                StructField('ep_product', StringType(), True),
+                StructField('matched_activity_name', StringType(), True),
+                StructField('matched_reference_product', StringType(), True),
+                StructField('unit', StringType(), True),
+                StructField('multi_match', StringType(), True),
+                StructField('matching_certainty', StringType(), True),
+                StructField('matching_certainty_company_average', StringType(), True),
+                StructField('input_name', StringType(), True),
+                StructField('input_unit', StringType(), True),
+                StructField('company_city', StringType(), True),
+                StructField('postcode', StringType(), True),
+                StructField('address', StringType(), True),
+                StructField('main_activity', StringType(), True),
+                StructField('activity_uuid_product_uuid', StringType(), True),
+                StructField('from_date', DateType(), False),
+                StructField('to_date', DateType(), False),
+                StructField('tiltRecordID', StringType(), False)
+            ]
+            ),
+            'container': 'raw',
+            'location': 'ictr_product_result',
+            'type': 'parquet',
+            'partition_column' : '',
+            'quality_checks': []
+        },
+        'istr_company_result_landingzone': {
+        'columns' :  StructType([
+                StructField('companies_id', StringType(), True),
+                StructField('company_name', StringType(), True),
+                StructField('country', StringType(), True),
+                StructField('ISTR_share', StringType(), True),
+                StructField('ISTR_risk_category', StringType(), True),
+                StructField('scenario', StringType(), True),
+                StructField('year', StringType(), True),
+                StructField('matching_certainty_company_average', StringType(), True),
+                StructField('company_city', StringType(), True),
+                StructField('postcode', StringType(), True),
+                StructField('address', StringType(), True),
+                StructField('main_activity', StringType(), True)
+            ]
+            ), 
+        'container': 'landingzone',
+        'location': 'tiltProfiles/istr_company_result.csv',
+        'type': 'tiltData',
+        'partition_column' : '',
+        'quality_checks': []
+        },
+        'istr_company_result_raw': {
+        'columns' :  StructType([
+                StructField('companies_id', StringType(), True),
+                StructField('company_name', StringType(), True),
+                StructField('country', StringType(), True),
+                StructField('ISTR_share', FloatType(), True),
+                StructField('ISTR_risk_category', StringType(), True),
+                StructField('scenario', StringType(), True),
+                StructField('year', StringType(), True),
+                StructField('matching_certainty_company_average', StringType(), True),
+                StructField('company_city', StringType(), True),
+                StructField('postcode', StringType(), True),
+                StructField('address', StringType(), True),
+                StructField('main_activity', StringType(), True),
+                StructField('from_date', DateType(), False),
+                StructField('to_date', DateType(), False),
+                StructField('tiltRecordID', StringType(), False)
+            ]
+            ), 
+        'container': 'raw',
+        'location': 'istr_company_result',
+        'type': 'parquet',
+        'partition_column' : '',
+        'quality_checks': []
+    },
+        'istr_product_result_landingzone': {
+        'columns' :  StructType([
+                StructField('companies_id', StringType(), True),
+                StructField('company_name', StringType(), True),
+                StructField('country', StringType(), True),
+                StructField('ISTR_risk_category', StringType(), True),
+                StructField('scenario', StringType(), True),
+                StructField('year', StringType(), True),
+                StructField('ep_product', StringType(), True),
+                StructField('matched_activity_name', StringType(), True),
+                StructField('matched_reference_product', StringType(), True),
+                StructField('unit', StringType(), True),
+                StructField('tilt_sector', StringType(), True),
+                StructField('multi_match', StringType(), True),
+                StructField('matching_certainty', StringType(), True),
+                StructField('matching_certainty_company_average', StringType(), True),
+                StructField('input_name', StringType(), True),
+                StructField('input_unit', StringType(), True),
+                StructField('input_tilt_sector', StringType(), True),
+                StructField('input_tilt_subsector', StringType(), True),
+                StructField('company_city', StringType(), True),
+                StructField('postcode', StringType(), True),
+                StructField('address', StringType(), True),
+                StructField('main_activity', StringType(), True),
+                StructField('activity_uuid_product_uuid', StringType(), True)
+        ]
+        )        , 
+        'container': 'landingzone',
+        'location': 'tiltProfiles/istr_product_result.csv',
+        'type': 'tiltData',
+        'partition_column' : '',
+        'quality_checks': []
+        },
+        'istr_product_result_raw': {
+        'columns' :  StructType([
+                StructField('companies_id', StringType(), True),
+                StructField('company_name', StringType(), True),
+                StructField('country', StringType(), True),
+                StructField('ISTR_risk_category', StringType(), True),
+                StructField('scenario', StringType(), True),
+                StructField('year', IntegerType(), True),
+                StructField('ep_product', StringType(), True),
+                StructField('matched_activity_name', StringType(), True),
+                StructField('matched_reference_product', StringType(), True),
+                StructField('unit', StringType(), True),
+                StructField('tilt_sector', StringType(), True),
+                StructField('multi_match', BooleanType(), True),
+                StructField('matching_certainty', StringType(), True),
+                StructField('matching_certainty_company_average', StringType(), True),
+                StructField('input_name', StringType(), True),
+                StructField('input_unit', StringType(), True),
+                StructField('input_tilt_sector', StringType(), True),
+                StructField('input_tilt_subsector', StringType(), True),
+                StructField('company_city', StringType(), True),
+                StructField('postcode', StringType(), True),
+                StructField('address', StringType(), True),
+                StructField('main_activity', StringType(), True),
+                StructField('activity_uuid_product_uuid', StringType(), True),
+                StructField('from_date', DateType(), False),
+                StructField('to_date', DateType(), False),
+                StructField('tiltRecordID', StringType(), False)
+            ]
+            ), 
+        'container': 'raw',
+        'location': 'istr_product_result',
+        'type': 'parquet',
+        'partition_column' : '',
+        'quality_checks': []
+    },
+        'pctr_company_result_landingzone': {
+        'columns' :  StructType([
+                StructField('companies_id', StringType(), True),
+                StructField('company_name', StringType(), True),
+                StructField('country', StringType(), True),
+                StructField('PCTR_share', StringType(), True),
+                StructField('PCTR_risk_category', StringType(), True),
+                StructField('benchmark', StringType(), True),
+                StructField('matching_certainty_company_average', StringType(), True),
+                StructField('company_city', StringType(), True),
+                StructField('postcode', StringType(), True),
+                StructField('address', StringType(), True),
+                StructField('main_activity', StringType(), True)
+            ]
+            ), 
+        'container': 'landingzone',
+        'location': 'tiltProfiles/pctr_company_result.csv',
+        'type': 'tiltData',
+        'partition_column' : '',
+        'quality_checks': []
+        },
+        'pctr_company_result_raw': {
+        'columns' :  StructType([
+                StructField('companies_id', StringType(), True),
+                StructField('company_name', StringType(), True),
+                StructField('country', StringType(), True),
+                StructField('PCTR_share', FloatType(), True),
+                StructField('PCTR_risk_category', StringType(), True),
+                StructField('benchmark', StringType(), True),
+                StructField('matching_certainty_company_average', StringType(), True),
+                StructField('company_city', StringType(), True),
+                StructField('postcode', StringType(), True),
+                StructField('address', StringType(), True),
+                StructField('main_activity', StringType(), True),
+                StructField('from_date', DateType(), False),
+                StructField('to_date', DateType(), False),
+                StructField('tiltRecordID', StringType(), False)
+            ]
+            ), 
+        'container': 'raw',
+        'location': 'pctr_company_result',
+        'type': 'parquet',
+        'partition_column' : '',
+        'quality_checks': []
+    },
+        'pctr_product_result_landingzone': {
+        'columns' :  StructType([
+                StructField('companies_id', StringType(), True),
+                StructField('company_name', StringType(), True),
+                StructField('country', StringType(), True),
+                StructField('PCTR_risk_category', StringType(), True),
+                StructField('benchmark', StringType(), True),
+                StructField('ep_product', StringType(), True),
+                StructField('matched_activity_name', StringType(), True),
+                StructField('matched_reference_product', StringType(), True),
+                StructField('unit', StringType(), True),
+                StructField('multi_match', StringType(), True),
+                StructField('matching_certainty', StringType(), True),
+                StructField('matching_certainty_company_average', StringType(), True),
+                StructField('company_city', StringType(), True), StructField('postcode', StringType(), True),
+                StructField('address', StringType(), True), StructField('main_activity', StringType(), True),
+                StructField('activity_uuid_product_uuid', StringType(), True)
+            ]
+            ), 
+        'container': 'landingzone',
+        'location': 'tiltProfiles/pctr_product_result.csv',
+        'type': 'tiltData',
+        'partition_column' : '',
+        'quality_checks': []
+        },
+        'pctr_product_result_raw': {
+        'columns' :  StructType([
+                StructField('companies_id', StringType(), True),
+                StructField('company_name', StringType(), True),
+                StructField('country', StringType(), True),
+                StructField('PCTR_risk_category', StringType(), True),
+                StructField('benchmark', StringType(), True),
+                StructField('ep_product', StringType(), True),
+                StructField('matched_activity_name', StringType(), True),
+                StructField('matched_reference_product', StringType(), True),
+                StructField('unit', StringType(), True),
+                StructField('multi_match', BooleanType(), True),
+                StructField('matching_certainty', StringType(), True),
+                StructField('matching_certainty_company_average', StringType(), True),
+                StructField('company_city', StringType(), True), StructField('postcode', StringType(), True),
+                StructField('address', StringType(), True), StructField('main_activity', StringType(), True),
+                StructField('activity_uuid_product_uuid', StringType(), True),
+                StructField('from_date', DateType(), False),
+                StructField('to_date', DateType(), False),
+                StructField('tiltRecordID', StringType(), False)
+            ]
+            ), 
+        'container': 'raw',
+        'location': 'pctr_product_result',
+        'type': 'parquet',
+        'partition_column' : '',
+        'quality_checks': []
+    },
+        'pstr_company_result_landingzone': {
+        'columns' :  StructType([
+                StructField('companies_id', StringType(), True),
+                StructField('company_name', StringType(), True),
+                StructField('country', StringType(), True),
+                StructField('PSTR_share', StringType(), True),
+                StructField('PSTR_risk_category', StringType(), True),
+                StructField('scenario', StringType(), True),
+                StructField('year', StringType(), True),
+                StructField('matching_certainty_company_average', StringType(), True),
+                StructField('company_city', StringType(), True),
+                StructField('postcode', StringType(), True),
+                StructField('address', StringType(), True),
+                StructField('main_activity', StringType(), True)
+            ]
+            ), 
+        'container': 'landingzone',
+        'location': 'tiltProfiles/pstr_company_result.csv',
+        'type': 'tiltData',
+        'partition_column' : '',
+        'quality_checks': []
+        },
+        'pstr_company_result_raw': {
+        'columns' :  StructType([
+                StructField('companies_id', StringType(), True),
+                StructField('company_name', StringType(), True),
+                StructField('country', StringType(), True),
+                StructField('PSTR_share', FloatType(), True),
+                StructField('PSTR_risk_category', StringType(), True),
+                StructField('scenario', StringType(), True),
+                StructField('year', IntegerType(), True),
+                StructField('matching_certainty_company_average', StringType(), True),
+                StructField('company_city', StringType(), True),
+                StructField('postcode', StringType(), True),
+                StructField('address', StringType(), True),
+                StructField('main_activity', StringType(), True),
+                StructField('from_date', DateType(), False),
+                StructField('to_date', DateType(), False),
+                StructField('tiltRecordID', StringType(), False)
+            ]
+            ), 
+        'container': 'raw',
+        'location': 'pstr_company_result',
+        'type': 'parquet',
+        'partition_column' : '',
+        'quality_checks': []
+    },
+        'pstr_product_result_landingzone': {
+        'columns' :  StructType([
+                StructField('companies_id', StringType(), True),
+                StructField('company_name', StringType(), True),
+                StructField('country', StringType(), True),
+                StructField('PSTR_risk_category', StringType(), True),
+                StructField('scenario', StringType(), True),
+                StructField('year', StringType(), True),
+                StructField('ep_product', StringType(), True),
+                StructField('matched_activity_name', StringType(), True),
+                StructField('matched_reference_product', StringType(), True),
+                StructField('unit', StringType(), True),
+                StructField('tilt_sector', StringType(), True),
+                StructField('tilt_subsector', StringType(), True),
+                StructField('multi_match', StringType(), True),
+                StructField('matching_certainty', StringType(), True),
+                StructField('matching_certainty_company_average', StringType(), True),
+                StructField('company_city', StringType(), True),
+                StructField('postcode', StringType(), True),
+                StructField('address', StringType(), True),
+                StructField('main_activity', StringType(), True),
+                StructField('activity_uuid_product_uuid', StringType(), True)
+            ]
+            ), 
+        'container': 'landingzone',
+        'location': 'tiltProfiles/pstr_product_result.csv',
+        'type': 'tiltData',
+        'partition_column' : '',
+        'quality_checks': []
+        },
+        'pstr_product_result_raw': {
+        'columns' :  StructType([
+                StructField('companies_id', StringType(), True),
+                StructField('company_name', StringType(), True),
+                StructField('country', StringType(), True),
+                StructField('PSTR_risk_category', StringType(), True),
+                StructField('scenario', StringType(), True),
+                StructField('year', IntegerType(), True),
+                StructField('ep_product', StringType(), True),
+                StructField('matched_activity_name', StringType(), True),
+                StructField('matched_reference_product', StringType(), True),
+                StructField('unit', StringType(), True),
+                StructField('tilt_sector', StringType(), True),
+                StructField('tilt_subsector', StringType(), True),
+                StructField('multi_match', BooleanType(), True),
+                StructField('matching_certainty', StringType(), True),
+                StructField('matching_certainty_company_average', StringType(), True),
+                StructField('company_city', StringType(), True),
+                StructField('postcode', StringType(), True),
+                StructField('address', StringType(), True),
+                StructField('main_activity', StringType(), True),
+                StructField('activity_uuid_product_uuid', StringType(), True),
+                StructField('from_date', DateType(), False),
+                StructField('to_date', DateType(), False),
+                StructField('tiltRecordID', StringType(), False)
+            ]
+            ), 
+        'container': 'raw',
+        'location': 'pstr_product_result',
+        'type': 'parquet',
+        'partition_column' : '',
+        'quality_checks': []
+    }
         
 
     }
