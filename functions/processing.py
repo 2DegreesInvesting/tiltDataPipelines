@@ -502,6 +502,84 @@ def generate_table(table_name: str) -> None:
 
         write_table(spark_generate, df, 'pstr_product_result_raw')
 
+    elif table_name == 'emission_profile_company_raw':
+
+        df = read_table(spark_generate, 'emission_profile_company_landingzone')
+
+        cast_to_float = ['emission_share_ew','emission_share_bc','emission_share_wc','Co2e_upper','Co2e_lower']
+        for col in cast_to_float:
+            df = df.withColumn(col, F.col(col).cast(FloatType()))
+
+        write_table(spark_generate, df, 'emission_profile_company_raw')
+
+    elif table_name == 'emission_profile_product_raw':
+
+        df = read_table(spark_generate, 'emission_profile_product_landingzone')
+
+        cast_to_float = ['Co2e_upper','Co2e_lower']
+        for col in cast_to_float:
+            df = df.withColumn(col, F.col(col).cast(FloatType()))
+        df = df.withColumn('multi_match', 
+                            when(F.col('multi_match') == "TRUE", F.lit(True))
+                            .when(F.col('multi_match') == "FALSE", F.lit(False))
+                            .otherwise(F.lit(None)))  
+
+        write_table(spark_generate, df, 'emission_profile_product_raw')
+
+    elif table_name == 'emission_upstream_profile_company_raw':
+
+        df = read_table(spark_generate, 'emission_upstream_profile_company_landingzone')
+
+        cast_to_float = ['emission_upstream_share_ew','emission_upstream_share_bc','emission_upstream_share_wc','Co2e_input_lower','Co2e_input_upper']
+        for col in cast_to_float:
+            df = df.withColumn(col, F.col(col).cast(FloatType()))
+
+        write_table(spark_generate, df, 'emission_upstream_profile_company_raw')
+
+    elif table_name == 'emission_upstream_profile_product_raw':
+
+        df = read_table(spark_generate, 'emission_upstream_profile_product_landingzone')
+        
+        cast_to_float = ['Co2e_input_lower','Co2e_input_upper']
+        for col in cast_to_float:
+            df = df.withColumn(col, F.col(col).cast(FloatType()))
+        df = df.withColumn('multi_match', 
+                            when(F.col('multi_match') == "TRUE", F.lit(True))
+                            .when(F.col('multi_match') == "FALSE", F.lit(False))
+                            .otherwise(F.lit(None))) 
+
+        write_table(spark_generate, df, 'emission_upstream_profile_product_raw')
+
+    elif table_name == 'sector_profile_company_raw':
+
+        df = read_table(spark_generate, 'sector_profile_company_landingzone')
+        
+        cast_to_float = ['sector_share_ew','sector_share_bc','sector_share_wc']
+        for col in cast_to_float:
+            df = df.withColumn(col, F.col(col).cast(FloatType()))
+
+        df = df.withColum('year', F.col('year').cast(IntegerType()))
+
+        write_table(spark_generate, df, 'sector_profile_company_raw')
+
+    elif table_name == 'sector_profile_product_raw':
+
+        df = read_table(spark_generate, 'sector_profile_product_landingzone')
+
+        write_table(spark_generate, df, 'sector_profile_product_raw')
+
+    elif table_name == 'sector_upstream_profile_company_raw':
+
+        df = read_table(spark_generate, 'sector_upstream_profile_company_landingzone')
+
+        write_table(spark_generate, df, 'sector_upstream_profile_company_raw')
+
+    elif table_name == 'sector_upstream_profile_product_raw':
+
+        df = read_table(spark_generate, 'sector_upstream_profile_product_landingzone')
+
+        write_table(spark_generate, df, 'sector_upstream_profile_product_raw')
+
     # If the code is run as a workflow on databricks, we do not want to shutdown the spark session. 
     # This will cause the cluster to be unusable for other spark processes
     if not 'DATABRICKS_RUNTIME_VERSION' in os.environ:
