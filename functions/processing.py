@@ -2,7 +2,7 @@ import os
 from functions.spark_session import read_table, write_table, create_spark_session
 import pyspark.sql.functions as F
 from pyspark.sql.functions import col, when
-from pyspark.sql.types import FloatType, IntegerType, TimestampType, BooleanType, DoubleType, ShortType, FloatType
+from pyspark.sql.types import DoubleType, IntegerType, TimestampType, BooleanType, DoubleType, ShortType, DoubleType
 
 
 def generate_table(table_name: str) -> None:
@@ -182,7 +182,7 @@ def generate_table(table_name: str) -> None:
                       "global_fishing_index_compliance_monitoring_and_surveillance_programs_assessment_score", "global_fishing_index_severity_of_fishery_sanctions_assessment_score", "global_fishing_index_access_of_foreign_fishing_fleets_assessment_score"]
 
         for column_name_2 in columns_to_replace_float:
-            sea_food = sea_food.withColumn(column_name_2, col(column_name_2).cast(FloatType()))
+            sea_food = sea_food.withColumn(column_name_2, col(column_name_2).cast(DoubleType()))
 
         # writing the dataframe is a temporary fix to avoid getting an error within the grpc package
         temp_seafood_location = 'abfss://raw@storagetiltdevelop.dfs.core.windows.net/sea_food_temp/'
@@ -336,7 +336,7 @@ def generate_table(table_name: str) -> None:
 
         # to decimal values
         column_name = "logprob"
-        ep_ei_matcher = ep_ei_matcher.withColumn(column_name, col(column_name).cast(FloatType()))  
+        ep_ei_matcher = ep_ei_matcher.withColumn(column_name, col(column_name).cast(DoubleType()))  
 
         write_table(spark_generate, ep_ei_matcher, 'ep_ei_matcher_raw')  
 
@@ -431,7 +431,7 @@ def generate_table(table_name: str) -> None:
 
         df = read_table(spark_generate, 'ictr_company_result_landingzone')
 
-        df = df.withColumn('ICTR_share', col('ICTR_share').cast(FloatType()))
+        df = df.withColumn('ICTR_share', col('ICTR_share').cast(DoubleType()))
 
         write_table(spark_generate, df, 'ictr_company_result_raw')
 
@@ -445,7 +445,7 @@ def generate_table(table_name: str) -> None:
 
         df = read_table(spark_generate, 'istr_company_result_landingzone')
 
-        df = df.withColumn('ISTR_share', col('ISTR_share').cast(FloatType()))
+        df = df.withColumn('ISTR_share', col('ISTR_share').cast(DoubleType()))
 
         write_table(spark_generate, df, 'istr_company_result_raw')
 
@@ -466,7 +466,7 @@ def generate_table(table_name: str) -> None:
 
         df = read_table(spark_generate, 'pctr_company_result_landingzone')
 
-        df = df.withColumn('PCTR_share', col('PCTR_share').cast(FloatType()))
+        df = df.withColumn('PCTR_share', col('PCTR_share').cast(DoubleType()))
 
         write_table(spark_generate, df, 'pctr_company_result_raw')
 
@@ -486,7 +486,7 @@ def generate_table(table_name: str) -> None:
         df = read_table(spark_generate, 'pstr_company_result_landingzone')
 
         df = df.withColumn('year', F.col('year').cast(IntegerType()))
-        df = df.withColumn('PSTR_share', col('PSTR_share').cast(FloatType()))
+        df = df.withColumn('PSTR_share', col('PSTR_share').cast(DoubleType()))
 
         write_table(spark_generate, df, 'pstr_company_result_raw')
 
@@ -508,7 +508,7 @@ def generate_table(table_name: str) -> None:
 
         cast_to_float = ['emission_share_ew','emission_share_bc','emission_share_wc','Co2e_upper','Co2e_lower']
         for col in cast_to_float:
-            df = df.withColumn(col, F.col(col).cast(FloatType()))
+            df = df.withColumn(col, F.col(col).cast(DoubleType()))
 
         write_table(spark_generate, df, 'emission_profile_company_raw')
 
@@ -518,7 +518,7 @@ def generate_table(table_name: str) -> None:
 
         cast_to_float = ['Co2e_upper','Co2e_lower']
         for col in cast_to_float:
-            df = df.withColumn(col, F.col(col).cast(FloatType()))
+            df = df.withColumn(col, F.col(col).cast(DoubleType()))
         df = df.withColumn('multi_match', 
                             when(F.col('multi_match') == "TRUE", F.lit(True))
                             .when(F.col('multi_match') == "FALSE", F.lit(False))
@@ -532,7 +532,7 @@ def generate_table(table_name: str) -> None:
 
         cast_to_float = ['emission_upstream_share_ew','emission_upstream_share_bc','emission_upstream_share_wc','Co2e_input_lower','Co2e_input_upper']
         for col in cast_to_float:
-            df = df.withColumn(col, F.col(col).cast(FloatType()))
+            df = df.withColumn(col, F.col(col).cast(DoubleType()))
 
         write_table(spark_generate, df, 'emission_upstream_profile_company_raw')
 
@@ -542,7 +542,7 @@ def generate_table(table_name: str) -> None:
         
         cast_to_float = ['Co2e_input_lower','Co2e_input_upper']
         for col in cast_to_float:
-            df = df.withColumn(col, F.col(col).cast(FloatType()))
+            df = df.withColumn(col, F.col(col).cast(DoubleType()))
         df = df.withColumn('multi_match', 
                             when(F.col('multi_match') == "TRUE", F.lit(True))
                             .when(F.col('multi_match') == "FALSE", F.lit(False))
@@ -556,7 +556,7 @@ def generate_table(table_name: str) -> None:
         
         cast_to_float = ['sector_share_ew','sector_share_bc','sector_share_wc']
         for col in cast_to_float:
-            df = df.withColumn(col, F.col(col).cast(FloatType()))
+            df = df.withColumn(col, F.col(col).cast(DoubleType()))
 
         df = df.withColum('year', F.col('year').cast(IntegerType()))
 
