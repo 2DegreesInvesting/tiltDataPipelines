@@ -167,13 +167,10 @@ def write_table(spark_session: SparkSession, data_frame: DataFrame, table_name: 
     else:
         raise ValueError("Table format validation failed.")
 
-    if table_name != 'monitoring_values':
-        check_signalling_issues(spark_session,table_name)
-
     create_catalog_tables(spark_session, table_name)
 
-    
-
+    if table_name != 'monitoring_values':
+     check_signalling_issues(spark_session,table_name)
 
 def build_table_path(container: str, location: str, partition_column_and_name: str) -> str:
     """
@@ -502,7 +499,8 @@ def create_catalog_tables(spark_session: SparkSession, table_name: str) -> bool:
             import yaml
             with open(r'./settings.yaml') as file:
                 settings = yaml.load(file, Loader=yaml.FullLoader)
-            username = settings['user_name']
+            databricks_settings = settings['databricks']
+            username = databricks_settings['user_name']
             set_owner_string = f"ALTER TABLE `{table_definition['container']}`.`default`.`{table_definition['location'].replace('.','')}` SET OWNER TO `{username}`"
             spark_session.sql(set_owner_string)
             spark_session.sql(delete_string)
