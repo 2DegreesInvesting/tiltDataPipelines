@@ -117,7 +117,9 @@ def read_table(read_session: SparkSession, table_name: str, partition_name: str 
     if history == 'recent' and 'to_date' in df.columns:
         df = df.filter(F.col('to_date')=='2099-12-31')
 
-    df = df.replace('NA', None)
+    # Replace empty values with None/null
+    replacement_dict = {'NA': None, 'nan': None}
+    df = df.replace(replacement_dict, subset=df.columns)
     
     return df
 
