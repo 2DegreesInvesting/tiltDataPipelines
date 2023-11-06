@@ -117,7 +117,9 @@ def read_table(read_session: SparkSession, table_name: str, partition_name: str 
     if history == 'recent' and 'to_date' in df.columns:
         df = df.filter(F.col('to_date')=='2099-12-31')
 
-    df = df.replace('NA', None)
+    # Replace empty values with None/null
+    replacement_dict = {'NA': None, 'nan': None}
+    df = df.replace(replacement_dict, subset=df.columns)
     
     return df
 
@@ -167,13 +169,10 @@ def write_table(spark_session: SparkSession, data_frame: DataFrame, table_name: 
     else:
         raise ValueError("Table format validation failed.")
 
-    if table_name != 'monitoring_values':
-        check_signalling_issues(spark_session,table_name)
-
     create_catalog_tables(spark_session, table_name)
 
-    
-
+    if table_name != 'monitoring_values':
+     check_signalling_issues(spark_session,table_name)
 
 def build_table_path(container: str, location: str, partition_column_and_name: str) -> str:
     """
@@ -492,8 +491,24 @@ def create_catalog_tables(spark_session: SparkSession, table_name: str) -> bool:
     if table_definition['partition_column']:
         create_string += f" PARTITIONED BY (`{table_definition['partition_column']}` STRING)"
 
-    # Execute the built SQL string
-    spark_session.sql(delete_string)
+    # Try and delete the already existing definition of the table
+    try:
+        spark_session.sql(delete_string)
+    # Try to catch the specific exception where the users is not the owner of the table and can thus not delete the table
+    except Exception as e:
+        # If the user is not the owner, set the user to be the owner and then delete the table
+        if "User is not an owner of Table" in str(e):
+            import yaml
+            with open(r'./settings.yaml') as file:
+                settings = yaml.load(file, Loader=yaml.FullLoader)
+            databricks_settings = settings['databricks']
+            username = databricks_settings['user_name']
+            set_owner_string = f"ALTER TABLE `{table_definition['container']}`.`default`.`{table_definition['location'].replace('.','')}` SET OWNER TO `{username}`"
+            spark_session.sql(set_owner_string)
+            spark_session.sql(delete_string)
+        # If we encounter any other error, raise as the error
+        else:
+            raise(e)
     spark_session.sql(create_string)
 
     return True
