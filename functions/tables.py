@@ -2439,7 +2439,7 @@ def get_table_definition(table_name: str) -> dict:
             ]
             ), 
         'container': 'raw',
-        'location': 'emission_upstream_profile_company',
+        'location': 'emission_upstream_profile_product',
         'type': 'parquet',
         'partition_column' : '',
         'quality_checks': []

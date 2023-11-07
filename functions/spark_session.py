@@ -230,13 +230,19 @@ def validate_table_format(spark_session: SparkSession, data_frame: DataFrame, ta
         check_df = check_df.union(data_frame)
         check_df.head()
     except:
-        # An exception occurred, indicating a format mismatch
+        # An exception occurred, indicating a format mismatchs
         raise ValueError("The initial structure can not be joined.")
 
     # Compare the first row of the original DataFrame with the check DataFrame
     if not data_frame.orderBy(F.col('tiltRecordID')).head().asDict() == check_df.orderBy(F.col('tiltRecordID')).head().asDict():
         # The format of the DataFrame does not match the table definition
         raise ValueError("The head of the table does not match.")
+    
+    # Check if all of the rows are unique in the table
+    if data_frame.count() != data_frame.distinct().count():
+        # The format of the DataFrame does not match the table definition
+        raise ValueError("Not all rows in the table are unqiue")
+
 
     # Perform additional quality checks on specific columns
     validated = validate_data_quality(spark_session, data_frame, table_name)

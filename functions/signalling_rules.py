@@ -433,6 +433,408 @@ signalling_checks_dictionary = {
             'value_list':['l', 'metric ton*km', 'kWh', 'm', 'ha', 'guest night', 'm2*year', 'm3', 'MJ', 'km', 'km*year', 'hour', 'unit', 'kg', 'kg*day', 'person*km', 'm2', 'm*year']
         },
     ],
+    'emission_profile_company_raw' : [
+        {
+            'check':'values occur as expected',
+            'columns':['companies_id'],
+            'expected_count': 18
+        },
+        {
+            'check':'values within list',
+            'columns': ['country'],
+            'value_list':['netherlands','germany','spain','france','austria']
+        },  
+        {
+            'check':'values sum to 1',
+            'columns':['companies_id','benchmark'],
+            'sum_column': 'emission_share_ew'
+        },
+        {
+            'check':'values sum to 1',
+            'columns':['companies_id','benchmark'],
+            'sum_column': 'emission_share_wc'
+        },
+        {
+            'check':'values sum to 1',
+            'columns':['companies_id','benchmark'],
+            'sum_column': 'emission_share_bc'
+        },
+        {
+            'check':'values within list',
+            'columns': ['benchmark'],
+            'value_list':['all','isic_sec','tilt_sec','unit','unit_isic_sec','unit_tilt_sec']
+        },
+        {
+            'check':'values within list',
+            'columns': ['matching_certainty_company_average'],
+            'value_list':['low','medium','high',None]
+        },
+        {
+            'check':'values within list',
+            'columns': ['main_activity'],
+            'value_list':['agent/ representative','distributor','manufacturer/ producer','multi-category','retailer','service provider','subcontractor','wholesaler']
+        },
+        {
+            'check':'values within list',
+            'columns':['main_tilt_sector'],
+            'value_list': ['Industry','Land Use','Metals','no_match','Construction','Non-metallic Minerals','Transport']
+        },   
+        {
+            'check':'values within list',
+            'columns':['main_tilt_sub_sector'],
+            'value_list': ['Other Non-metallic Minerals','Agriculture & Livestock','Construction Buildings','Food Related Products','Fishing & Forestry','Bioenergy & Waste Power','Other Industry','Cement','Bioenergy & Waste Energy','Automotive LDV','Renewable Energy','Iron & Steel','Aviation','no_match','Oil Energy','Other Metals','Machinery & Equipment','Other Transport','Coal Energy','Construction Residential','Total Power','Chemicals','Shipping','Gas Energy','Total Energy','Automotive HDV']
+        },
+    ],
+    'emission_profile_product_raw' :[ 
+        {
+            'check':'values within list',
+            'columns': ['emission_category'],
+            'value_list':['low','medium','high']
+        },
+        {
+            'check':'values occur as expected',
+            'columns':['companies_id','ep_product'],
+            'expected_count': 6
+        },  
+        {
+            'check':'distinct values occur as expected',
+            'columns':['companies_id', 'ep_product'],
+            'distinct_columns': ['benchmark'],
+            'expected_count': 6
+        },   
+        {
+            'check':'distinct values occur as expected',
+            'columns':['ep_product'],
+            'distinct_columns': ['matched_reference_product'],
+            'expected_count': 1
+        },  
+        {
+            'check':'values within list',
+            'columns':['unit'],
+            'value_list':['l', 'metric ton*km', 'kWh', 'm', 'ha', 'guest night', 'm2*year', 'm3', 'MJ', 'km', 'km*year', 'hour', 'unit', 'kg', 'kg*day', 'person*km', 'm2', 'm*year']
+        },
+        {
+            'check':'values within list',
+            'columns': ['matching_certainty'],
+            'value_list':['low','medium','high']
+        },
+        {
+            'check':'values within list',
+            'columns': ['matching_certainty_company_average'],
+            'value_list':['low','medium','high']
+        },
+        {
+            'check':'values within list',
+            'columns':['tilt_sector'],
+            'value_list': ['Industry','Land Use','Metals','no_match','Construction','Non-metallic Minerals','Transport']
+        },   
+        {
+            'check':'values within list',
+            'columns':['tilt_subsector'],
+            'value_list': ['Other Non-metallic Minerals','Agriculture & Livestock','Construction Buildings','Food Related Products','Fishing & Forestry','Bioenergy & Waste Power','Other Industry','Cement','Bioenergy & Waste Energy','Automotive LDV','Renewable Energy','Iron & Steel','Aviation','no_match','Oil Energy','Other Metals','Machinery & Equipment','Other Transport','Coal Energy','Construction Residential','Total Power','Chemicals','Shipping','Gas Energy','Total Energy','Automotive HDV']
+        },
+
+    ],
+    'emission_upstream_profile_company_raw': [
+        {
+            'check':'values occur as expected',
+            'columns':['companies_id'],
+            'expected_count': 18
+        },
+        {
+            'check':'values within list',
+            'columns': ['country'],
+            'value_list':['netherlands','germany','spain','france','austria']
+        },  
+        {
+            'check':'values within list',
+            'columns': ['emission_upstream_category'],
+            'value_list':['low','medium','high']
+        },
+        {
+            'check':'values within list',
+            'columns': ['benchmark'],
+            'value_list':['all','isic_sec','tilt_sec','unit','unit_isic_sec','unit_tilt_sec']
+        },
+        {
+            'check':'values within list',
+            'columns': ['matching_certainty_company_average'],
+            'value_list':['low','medium','high']
+        },
+        {
+            'check':'values within list',
+            'columns':['main_tilt_sector'],
+            'value_list': ['Industry','Land Use','Metals','no_match','Construction','Non-metallic Minerals','Transport']
+        },   
+        {
+            'check':'values within list',
+            'columns':['main_tilt_sub_sector'],
+            'value_list': ['Other Non-metallic Minerals','Agriculture & Livestock','Construction Buildings','Food Related Products','Fishing & Forestry','Bioenergy & Waste Power','Other Industry','Cement','Bioenergy & Waste Energy','Automotive LDV','Renewable Energy','Iron & Steel','Aviation','no_match','Oil Energy','Other Metals','Machinery & Equipment','Other Transport','Coal Energy','Construction Residential','Total Power','Chemicals','Shipping','Gas Energy','Total Energy','Automotive HDV']
+        },
+        {
+            'check':'values within list',
+            'columns': ['main_activity'],
+            'value_list':['agent/ representative','distributor','manufacturer/ producer','multi-category','retailer','service provider','subcontractor','wholesaler']
+        },
+    ],
+    'emission_upstream_profile_product_raw':[
+        {
+            'check':'values within list',
+            'columns': ['country'],
+            'value_list':['netherlands','germany','spain','france','austria']
+        }, 
+        {
+            'check':'distinct values occur as expected',
+            'columns':['ep_product'],
+            'distinct_columns': ['matched_reference_product'],
+            'expected_count': 1
+        },  
+        {
+            'check':'values within list',
+            'columns': ['benchmark'],
+            'value_list':['all','isic_sec','tilt_sec','unit','unit_isic_sec','unit_tilt_sec']
+        },
+        {
+            'check':'values within list',
+            'columns': ['matching_certainty_company_average'],
+            'value_list':['low','medium','high']
+        },
+        {
+            'check':'values within list',
+            'columns': ['matching_certainty'],
+            'value_list':['low','medium','high']
+        },
+        {
+            'check':'values within list',
+            'columns':['input_unit'],
+            'value_list':['l', 'metric ton*km', 'kWh', 'm', 'ha', 'guest night', 'm2*year', 'm3', 'MJ', 'km', 'km*year', 'hour', 'unit', 'kg', 'kg*day', 'person*km', 'm2', 'm*year']
+        },
+        {
+            'check':'values within list',
+            'columns': ['main_activity'],
+            'value_list':['agent/ representative','distributor','manufacturer/ producer','multi-category','retailer','service provider','subcontractor','wholesaler']
+        },
+
+    ],
+    'sector_profile_company_raw' : [
+        {
+            'check':'values occur as expected',
+            'columns':['companies_id','scenario'],
+            'expected_count': 6
+        },
+        {
+            'check':'values within list',
+            'columns': ['country'],
+            'value_list':['netherlands','germany','spain','france','austria']
+        }, 
+        {
+            'check':'values sum to 1',
+            'columns':['companies_id','scenario','year'],
+            'sum_column': 'sector_share_ew'
+        },
+        {
+            'check':'values sum to 1',
+            'columns':['companies_id','scenario','year'],
+            'sum_column': 'sector_share_bc'
+        },
+        {
+            'check':'values sum to 1',
+            'columns':['companies_id','scenario','year'],
+            'sum_column': 'sector_share_wc'
+        },
+        {
+            'check':'values within list',
+            'columns': ['sector_category'],
+            'value_list':['low','medium','high']
+        },
+        {
+            'check':'values within list',
+            'columns': ['Scenario'],
+            'value_list':['WEO NZ 2050','IPR 1.5c RPS']
+        },
+        {
+            'check':'values within list',
+            'columns': ['year'],
+            'value_list':['2030','2050']
+        },
+        {
+            'check':'values within list',
+            'columns': ['matching_certainty_company_average'],
+            'value_list':['low','medium','high',None]
+        },
+        {
+            'check':'values within list',
+            'columns': ['main_activity'],
+            'value_list':['agent/ representative','distributor','manufacturer/ producer','multi-category','retailer','service provider','subcontractor','wholesaler']
+        },
+        {
+            'check':'values within list',
+            'columns':['main_tilt_sector'],
+            'value_list': ['Industry','Land Use','Metals','no_match','Construction','Non-metallic Minerals','Transport']
+        },   
+        {
+            'check':'values within list',
+            'columns':['main_tilt_sub_sector'],
+            'value_list': ['Other Non-metallic Minerals','Agriculture & Livestock','Construction Buildings','Food Related Products','Fishing & Forestry','Bioenergy & Waste Power','Other Industry','Cement','Bioenergy & Waste Energy','Automotive LDV','Renewable Energy','Iron & Steel','Aviation','no_match','Oil Energy','Other Metals','Machinery & Equipment','Other Transport','Coal Energy','Construction Residential','Total Power','Chemicals','Shipping','Gas Energy','Total Energy','Automotive HDV']
+        },
+    ],
+    'sector_profile_product_raw' :[
+        {
+            'check':'values within list',
+            'columns': ['country'],
+            'value_list':['netherlands','germany','spain','france','austria']
+        }, 
+        {
+            'check':'values within list',
+            'columns': ['sector_category'],
+            'value_list':['low','medium','high']
+        },
+        {
+            'check':'values occur as expected',
+            'columns':['companies_id','ep_product','scenario'],
+            'expected_count': 2
+        },
+        {
+            'check':'values within list',
+            'columns': ['Scenario'],
+            'value_list':['WEO NZ 2050','IPR 1.5c RPS']
+        },
+        {
+            'check':'values within list',
+            'columns': ['year'],
+            'value_list':['2030','2050']
+        },
+        {
+            'check':'values within list',
+            'columns':['tilt_sector'],
+            'value_list': ['Industry','Land Use','Metals','no_match','Construction','Non-metallic Minerals','Transport']
+        },   
+        {
+            'check':'values within list',
+            'columns':['tilt_subsector'],
+            'value_list': ['Other Non-metallic Minerals','Agriculture & Livestock','Construction Buildings','Food Related Products','Fishing & Forestry','Bioenergy & Waste Power','Other Industry','Cement','Bioenergy & Waste Energy','Automotive LDV','Renewable Energy','Iron & Steel','Aviation','no_match','Oil Energy','Other Metals','Machinery & Equipment','Other Transport','Coal Energy','Construction Residential','Total Power','Chemicals','Shipping','Gas Energy','Total Energy','Automotive HDV']
+        },
+        {
+            'check':'values within list',
+            'columns': ['matching_certainty'],
+            'value_list':['low','medium','high']
+        },
+        {
+            'check':'values within list',
+            'columns': ['matching_certainty_company_average'],
+            'value_list':['low','medium','high',None]
+        },
+    ],
+    'sector_upstream_profile_company_raw':[
+        {
+            'check':'values sum to 1',
+            'columns':['companies_id','scenario','year'],
+            'sum_column': 'sector_upstream_share_ew'
+        },
+        {
+            'check':'values sum to 1',
+            'columns':['companies_id','scenario','year'],
+            'sum_column': 'sector_upstream_share_bc'
+        },
+        {
+            'check':'values sum to 1',
+            'columns':['companies_id','scenario','year'],
+            'sum_column': 'sector_upstream_share_wc'
+        },
+        {
+            'check':'values within list',
+            'columns': ['sector_upstream_category'],
+            'value_list':['low','medium','high']
+        },
+        {
+            'check':'values within list',
+            'columns': ['Scenario'],
+            'value_list':['WEO NZ 2050','IPR 1.5c RPS']
+        },
+        {
+            'check':'values within list',
+            'columns': ['year'],
+            'value_list':['2030','2050']
+        },
+        {
+            'check':'values within list',
+            'columns': ['matching_certainty_company_average'],
+            'value_list':['low','medium','high']
+        },
+        {
+            'check':'values within list',
+            'columns':['main_tilt_sector'],
+            'value_list': ['Industry','Land Use','Metals','no_match','Construction','Non-metallic Minerals','Transport']
+        },   
+        {
+            'check':'values within list',
+            'columns':['main_tilt_sub_sector'],
+            'value_list': ['Other Non-metallic Minerals','Agriculture & Livestock','Construction Buildings','Food Related Products','Fishing & Forestry','Bioenergy & Waste Power','Other Industry','Cement','Bioenergy & Waste Energy','Automotive LDV','Renewable Energy','Iron & Steel','Aviation','no_match','Oil Energy','Other Metals','Machinery & Equipment','Other Transport','Coal Energy','Construction Residential','Total Power','Chemicals','Shipping','Gas Energy','Total Energy','Automotive HDV']
+        },
+        {
+            'check':'values within list',
+            'columns': ['main_activity'],
+            'value_list':['agent/ representative','distributor','manufacturer/ producer','multi-category','retailer','service provider','subcontractor','wholesaler']
+        },
+
+    ],
+    'sector_upstream_profile_product_raw':[
+        {
+            'check':'values within list',
+            'columns': ['country'],
+            'value_list':['netherlands','germany','spain','france','austria']
+        }, 
+        {
+            'check':'values within list',
+            'columns': ['sector_upstream_category'],
+            'value_list':['low','medium','high']
+        },
+        {
+            'check':'values within list',
+            'columns': ['Scenario'],
+            'value_list':['WEO NZ 2050','IPR 1.5c RPS']
+        },
+        {
+            'check':'values within list',
+            'columns': ['year'],
+            'value_list':['2030','2050']
+        },
+        {
+            'check':'values within list',
+            'columns':['tilt_sector'],
+            'value_list': ['Industry','Land Use','Metals','no_match','Construction','Non-metallic Minerals','Transport']
+        },   
+        {
+            'check':'values within list',
+            'columns':['tilt_subsector'],
+            'value_list': ['Other Non-metallic Minerals','Agriculture & Livestock','Construction Buildings','Food Related Products','Fishing & Forestry','Bioenergy & Waste Power','Other Industry','Cement','Bioenergy & Waste Energy','Automotive LDV','Renewable Energy','Iron & Steel','Aviation','no_match','Oil Energy','Other Metals','Machinery & Equipment','Other Transport','Coal Energy','Construction Residential','Total Power','Chemicals','Shipping','Gas Energy','Total Energy','Automotive HDV']
+        },
+        {
+            'check':'values within list',
+            'columns': ['main_activity'],
+            'value_list':['agent/ representative','distributor','manufacturer/ producer','multi-category','retailer','service provider','subcontractor','wholesaler']
+        },
+        {
+            'check':'values within list',
+            'columns':['unit'],
+            'value_list':['l', 'metric ton*km', 'kWh', 'm', 'ha', 'guest night', 'm2*year', 'm3', 'MJ', 'km', 'km*year', 'hour', 'unit', 'kg', 'kg*day', 'person*km', 'm2', 'm*year']
+        },
+        {
+            'check':'values within list',
+            'columns':['input_unit'],
+            'value_list':['l', 'metric ton*km', 'kWh', 'm', 'ha', 'guest night', 'm2*year', 'm3', 'MJ', 'km', 'km*year', 'hour', 'unit', 'kg', 'kg*day', 'person*km', 'm2', 'm*year']
+        },
+        {
+            'check':'values within list',
+            'columns':['input_tilt_sector'],
+            'value_list': ['Industry','Land Use','Metals','no_match','Construction','Non-metallic Minerals','Transport']
+        },   
+        {
+            'check':'values within list',
+            'columns':['input_tilt_subsector'],
+            'value_list': ['Other Non-metallic Minerals','Agriculture & Livestock','Construction Buildings','Food Related Products','Fishing & Forestry','Bioenergy & Waste Power','Other Industry','Cement','Bioenergy & Waste Energy','Automotive LDV','Renewable Energy','Iron & Steel','Aviation','no_match','Oil Energy','Other Metals','Machinery & Equipment','Other Transport','Coal Energy','Construction Residential','Total Power','Chemicals','Shipping','Gas Energy','Total Energy','Automotive HDV']
+        },
+    ],
 
 }
 
