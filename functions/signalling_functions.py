@@ -123,7 +123,7 @@ def check_values_unique(dataframe: DataFrame, column_name: list) -> int:
     Returns:
     - valid_count (int): The count of unique values in the specified column.
     """
-    valid_count = dataframe.select(F.col(column_name)).distinct().count()
+    valid_count = dataframe.select(*[F.col(col) for col in column_name]).distinct().count()
     return valid_count
 
 
@@ -357,8 +357,6 @@ def calculate_signalling_issues(spark_session: SparkSession, dataframe: DataFram
         signalling_check_df = signalling_check_df.withColumn('valid_count', F.lit(valid_count).cast(IntegerType()))\
                                 .withColumn('check_id',F.lit(check_id))\
                                 .withColumn('check_name',F.lit(description_string))
-        print(check_types)
-        print(signalling_check_df.head())
         
         df = df.union(signalling_check_df)
 

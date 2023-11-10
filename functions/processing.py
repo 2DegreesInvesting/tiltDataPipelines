@@ -170,8 +170,8 @@ def generate_table(table_name: str) -> None:
         for column_name_1 in columns_to_replace:
             
             sea_food = sea_food.withColumn(column_name_1, 
-                               when(col(column_name_1) == "yes", F.lit(True))
-                               .when(col(column_name_1) == "no", F.lit(False))
+                               when(F.col(column_name_1) == "yes", F.lit(True))
+                               .when(F.col(column_name_1) == "no", F.lit(False))
                                .otherwise(F.lit(None)))    
             
         # List of column names to replace to float values
@@ -182,7 +182,7 @@ def generate_table(table_name: str) -> None:
                       "global_fishing_index_compliance_monitoring_and_surveillance_programs_assessment_score", "global_fishing_index_severity_of_fishery_sanctions_assessment_score", "global_fishing_index_access_of_foreign_fishing_fleets_assessment_score"]
 
         for column_name_2 in columns_to_replace_float:
-            sea_food = sea_food.withColumn(column_name_2, col(column_name_2).cast(DoubleType()))
+            sea_food = sea_food.withColumn(column_name_2, F.col(column_name_2).cast(DoubleType()))
 
         # writing the dataframe is a temporary fix to avoid getting an error within the grpc package
         temp_seafood_location = 'abfss://raw@storagetiltdevelop.dfs.core.windows.net/sea_food_temp/'
@@ -206,15 +206,15 @@ def generate_table(table_name: str) -> None:
         columns_to_replace_byte = ["min_headcount", "max_headcount", "year_established"]
 
         for column_name in columns_to_replace_byte:
-            companies = companies.withColumn(column_name, col(column_name).cast(IntegerType()))
+            companies = companies.withColumn(column_name, F.col(column_name).cast(IntegerType()))
 
         # to boolean values
         column_name = "verified_by_europages"
-        companies = companies.withColumn(column_name, col(column_name).cast(BooleanType()))
+        companies = companies.withColumn(column_name, F.col(column_name).cast(BooleanType()))
 
         # to timestamp values
         column_name = "download_datetime"
-        companies = companies.withColumn(column_name, col(column_name).cast(TimestampType()))  
+        companies = companies.withColumn(column_name, F.col(column_name).cast(TimestampType()))  
 
         write_table(spark_generate, companies, 'companies_raw')     
 
@@ -332,11 +332,11 @@ def generate_table(table_name: str) -> None:
 
         # to replace to boolean values
         column_name = "multi_match"
-        ep_ei_matcher = ep_ei_matcher.withColumn(column_name, col(column_name).cast(BooleanType()))
+        ep_ei_matcher = ep_ei_matcher.withColumn(column_name, F.col(column_name).cast(BooleanType()))
 
         # to decimal values
         column_name = "logprob"
-        ep_ei_matcher = ep_ei_matcher.withColumn(column_name, col(column_name).cast(DoubleType()))  
+        ep_ei_matcher = ep_ei_matcher.withColumn(column_name, F.col(column_name).cast(DoubleType()))  
 
         write_table(spark_generate, ep_ei_matcher, 'ep_ei_matcher_raw')  
 
@@ -348,12 +348,12 @@ def generate_table(table_name: str) -> None:
 
         # to replace to integer values
         column_name = "Year"
-        scenario_targets_IPR_NEW = scenario_targets_IPR_NEW.withColumn(column_name, col(column_name).cast(ShortType()))
+        scenario_targets_IPR_NEW = scenario_targets_IPR_NEW.withColumn(column_name, F.col(column_name).cast(ShortType()))
 
         column_names = ["Value", "Reductions"]
         # to decimal values
         for column in column_names:
-            scenario_targets_IPR_NEW = scenario_targets_IPR_NEW.withColumn(column, col(column).cast(DoubleType())) 
+            scenario_targets_IPR_NEW = scenario_targets_IPR_NEW.withColumn(column, F.col(column).cast(DoubleType())) 
 
         write_table(spark_generate, scenario_targets_IPR_NEW, 'scenario_targets_IPR_NEW_raw') 
 
@@ -365,12 +365,12 @@ def generate_table(table_name: str) -> None:
 
         # to replace to integer values
         column_name = "YEAR"
-        scenario_targets_WEO_NEW = scenario_targets_WEO_NEW.withColumn(column_name, col(column_name).cast(ShortType()))
+        scenario_targets_WEO_NEW = scenario_targets_WEO_NEW.withColumn(column_name, F.col(column_name).cast(ShortType()))
 
         column_names = ["VALUE", "REDUCTIONS"]
         # to decimal values
         for column in column_names:
-            scenario_targets_WEO_NEW = scenario_targets_WEO_NEW.withColumn(column, col(column).cast(DoubleType()))  
+            scenario_targets_WEO_NEW = scenario_targets_WEO_NEW.withColumn(column, F.col(column).cast(DoubleType()))  
 
         write_table(spark_generate, scenario_targets_WEO_NEW, 'scenario_targets_WEO_NEW_raw') 
 
@@ -387,7 +387,7 @@ def generate_table(table_name: str) -> None:
         sector_resolve = df
 
         column_name = "index"
-        sector_resolve = sector_resolve.withColumn(column_name, col(column_name).cast(IntegerType()))
+        sector_resolve = sector_resolve.withColumn(column_name, F.col(column_name).cast(IntegerType()))
 
         write_table(spark_generate, sector_resolve, 'sector_resolve_raw') 
 
@@ -405,7 +405,7 @@ def generate_table(table_name: str) -> None:
 
         # to replace to decimal values
         column_name = "ipcc_2021_climate_change_global_warming_potential_gwp100_kg_co2_eq"
-        ecoinvent_licenced = ecoinvent_licenced.withColumn(column_name, col(column_name).cast(DoubleType()))
+        ecoinvent_licenced = ecoinvent_licenced.withColumn(column_name, F.col(column_name).cast(DoubleType()))
 
         write_table(spark_generate, ecoinvent_licenced, 'ecoinvent-v3.9.1_raw') 
 
@@ -423,7 +423,7 @@ def generate_table(table_name: str) -> None:
 
         # to replace to decimal values
         column_name = "exchange amount"
-        ecoinvent_input_data_relevant_columns_raw = ecoinvent_input_data_relevant_columns_raw.withColumn(column_name, col(column_name).cast(DoubleType()))
+        ecoinvent_input_data_relevant_columns_raw = ecoinvent_input_data_relevant_columns_raw.withColumn(column_name, F.col(column_name).cast(DoubleType()))
 
         write_table(spark_generate, ecoinvent_input_data_relevant_columns_raw, 'ecoinvent_input_data_relevant_columns_raw') 
     
@@ -431,7 +431,7 @@ def generate_table(table_name: str) -> None:
 
         df = read_table(spark_generate, 'ictr_company_result_landingzone')
 
-        df = df.withColumn('ICTR_share', col('ICTR_share').cast(DoubleType()))
+        df = df.withColumn('ICTR_share', F.col('ICTR_share').cast(DoubleType()))
 
         write_table(spark_generate, df, 'ictr_company_result_raw')
 
@@ -445,7 +445,7 @@ def generate_table(table_name: str) -> None:
 
         df = read_table(spark_generate, 'istr_company_result_landingzone')
 
-        df = df.withColumn('ISTR_share', col('ISTR_share').cast(DoubleType()))
+        df = df.withColumn('ISTR_share', F.col('ISTR_share').cast(DoubleType()))
 
         write_table(spark_generate, df, 'istr_company_result_raw')
 
@@ -466,7 +466,7 @@ def generate_table(table_name: str) -> None:
 
         df = read_table(spark_generate, 'pctr_company_result_landingzone')
 
-        df = df.withColumn('PCTR_share', col('PCTR_share').cast(DoubleType()))
+        df = df.withColumn('PCTR_share', F.col('PCTR_share').cast(DoubleType()))
 
         write_table(spark_generate, df, 'pctr_company_result_raw')
 
@@ -486,7 +486,7 @@ def generate_table(table_name: str) -> None:
         df = read_table(spark_generate, 'pstr_company_result_landingzone')
 
         df = df.withColumn('year', F.col('year').cast(IntegerType()))
-        df = df.withColumn('PSTR_share', col('PSTR_share').cast(DoubleType()))
+        df = df.withColumn('PSTR_share', F.col('PSTR_share').cast(DoubleType()))
 
         write_table(spark_generate, df, 'pstr_company_result_raw')
 

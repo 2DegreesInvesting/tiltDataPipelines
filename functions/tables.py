@@ -1,6 +1,6 @@
 from pyspark.sql.types import StringType,StructType, StructField, DataType, BooleanType, DoubleType, ShortType, TimestampType, IntegerType, DoubleType, DateType
 
-def get_table_definition(table_name: str) -> dict:
+def get_table_definition(table_name: str = '') -> dict:
     """
     Template for a table:
 
@@ -1734,6 +1734,7 @@ def get_table_definition(table_name: str) -> dict:
         },
         'monitoring_values': {
             'columns' :  StructType([
+                StructField('signalling_id', IntegerType(), False),
                 StructField('check_id', StringType(), False),
                 StructField('column_name', StringType(), True),
                 StructField('check_name', StringType(), True),
@@ -2700,4 +2701,7 @@ def get_table_definition(table_name: str) -> dict:
 
     }
 
-    return table_dict[table_name]
+    if not table_name:
+        return table_dict
+    else:
+        return table_dict[table_name]
