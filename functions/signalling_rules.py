@@ -467,7 +467,7 @@ signalling_checks_dictionary = {
         {
             'check':'values within list',
             'columns': ['matching_certainty_company_average'],
-            'value_list':['low','medium','high',None]
+            'value_list':['low','medium','high']
         },
         {
             'check':'values within list',
@@ -477,12 +477,12 @@ signalling_checks_dictionary = {
         {
             'check':'values within list',
             'columns':['main_tilt_sector'],
-            'value_list': ['Industry','Land Use','Metals','no_match','Construction','Non-metallic Minerals','Transport']
+            'value_list': ['Industry','Land Use','Metals','Construction','Non-metallic Minerals','Transport']
         },   
         {
             'check':'values within list',
             'columns':['main_tilt_sub_sector'],
-            'value_list': ['Other Non-metallic Minerals','Agriculture & Livestock','Construction Buildings','Food Related Products','Fishing & Forestry','Bioenergy & Waste Power','Other Industry','Cement','Bioenergy & Waste Energy','Automotive LDV','Renewable Energy','Iron & Steel','Aviation','no_match','Oil Energy','Other Metals','Machinery & Equipment','Other Transport','Coal Energy','Construction Residential','Total Power','Chemicals','Shipping','Gas Energy','Total Energy','Automotive HDV']
+            'value_list': ['Other Non-metallic Minerals','Agriculture & Livestock','Construction Buildings','Food Related Products','Fishing & Forestry','Bioenergy & Waste Power','Other Industry','Cement','Bioenergy & Waste Energy','Automotive LDV','Renewable Energy','Iron & Steel','Aviation','Oil Energy','Other Metals','Machinery & Equipment','Other Transport','Coal Energy','Construction Residential','Total Power','Chemicals','Shipping','Gas Energy','Total Energy','Automotive HDV']
         },
     ],
     'emission_profile_product_raw' :[ 
@@ -493,21 +493,15 @@ signalling_checks_dictionary = {
         },
         {
             'check':'values occur as expected',
-            'columns':['companies_id','ep_product'],
+            'columns':['companies_id','activity_uuid_product_uuid'],
             'expected_count': 6
         },  
         {
             'check':'distinct values occur as expected',
-            'columns':['companies_id', 'ep_product'],
+            'columns':['companies_id', 'activity_uuid_product_uuid'],
             'distinct_columns': ['benchmark'],
             'expected_count': 6
-        },   
-        {
-            'check':'distinct values occur as expected',
-            'columns':['ep_product'],
-            'distinct_columns': ['matched_reference_product'],
-            'expected_count': 1
-        },  
+        },    
         {
             'check':'values within list',
             'columns':['unit'],
@@ -526,14 +520,31 @@ signalling_checks_dictionary = {
         {
             'check':'values within list',
             'columns':['tilt_sector'],
-            'value_list': ['Industry','Land Use','Metals','no_match','Construction','Non-metallic Minerals','Transport']
+            'value_list': ['Industry','Land Use','Metals','Construction','Non-metallic Minerals','Transport']
         },   
         {
             'check':'values within list',
             'columns':['tilt_subsector'],
-            'value_list': ['Other Non-metallic Minerals','Agriculture & Livestock','Construction Buildings','Food Related Products','Fishing & Forestry','Bioenergy & Waste Power','Other Industry','Cement','Bioenergy & Waste Energy','Automotive LDV','Renewable Energy','Iron & Steel','Aviation','no_match','Oil Energy','Other Metals','Machinery & Equipment','Other Transport','Coal Energy','Construction Residential','Total Power','Chemicals','Shipping','Gas Energy','Total Energy','Automotive HDV']
+            'value_list': ['Other Non-metallic Minerals','Agriculture & Livestock','Construction Buildings','Food Related Products','Fishing & Forestry','Bioenergy & Waste Power','Other Industry','Cement','Bioenergy & Waste Energy','Automotive LDV','Renewable Energy','Iron & Steel','Aviation','Oil Energy','Other Metals','Machinery & Equipment','Other Transport','Coal Energy','Construction Residential','Total Power','Chemicals','Shipping','Gas Energy','Total Energy','Automotive HDV']
         },
-
+        {
+            'check':'distinct values occur as expected',
+            'columns':['activity_uuid_product_uuid'],
+            'distinct_columns': ['tilt_sector'],
+            'expected_count': 1
+        },   
+        {
+            'check':'distinct values occur as expected',
+            'columns':['activity_uuid_product_uuid'],
+            'distinct_columns': ['tilt_subsector'],
+            'expected_count': 1
+        },    
+        {
+            'check':'distinct values occur as expected',
+            'columns':['activity_uuid_product_uuid'],
+            'distinct_columns': ['isic_4digit'],
+            'expected_count': 1
+        },
     ],
     'emission_upstream_profile_company_raw': [
         {
@@ -717,12 +728,17 @@ signalling_checks_dictionary = {
         {
             'check':'values within list',
             'columns': ['matching_certainty'],
-            'value_list':['low','medium','high']
+            'value_list':['low','medium','high', None]
         },
         {
             'check':'values within list',
             'columns': ['matching_certainty_company_average'],
             'value_list':['low','medium','high',None]
+        },
+        {
+            'check':'values within list',
+            'columns': ['main_activity'],
+            'value_list':['agent/ representative','distributor','manufacturer/ producer','multi-category','retailer','service provider','subcontractor','wholesaler','missing']
         },
     ],
     'sector_upstream_profile_company_raw':[
