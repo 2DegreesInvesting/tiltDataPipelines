@@ -460,11 +460,12 @@ def check_signalling_issues(spark_session: SparkSession, table_name: str) -> Non
     if not max_issue:
         max_issue = 0
     existing_monitoring_df = existing_monitoring_df.select([F.col(c).alias(c+'_old') if c != 'signalling_id' else F.col(c).alias(c) for c in existing_monitoring_df.columns  ])\
-                                .select(['signalling_id','column_name_old','check_name_old','table_name_old'])
+                                .select(['signalling_id','column_name_old','check_name_old','table_name_old','check_id_old'])
     w = Window().partitionBy('table_name').orderBy(F.col('check_id'))
     join_conditions = [monitoring_values_df.table_name == existing_monitoring_df.table_name_old, 
                         monitoring_values_df.column_name == existing_monitoring_df.column_name_old, 
-                        monitoring_values_df.check_name == existing_monitoring_df.check_name_old ]
+                        monitoring_values_df.check_name == existing_monitoring_df.check_name_old, 
+                        monitoring_values_df.check_id == existing_monitoring_df.check_id_old ]
     monitoring_values_intermediate = monitoring_values_df.join(existing_monitoring_df, on=join_conditions, how='left')
 
     existing_signalling_id = monitoring_values_intermediate.where(F.col('signalling_id').isNotNull())

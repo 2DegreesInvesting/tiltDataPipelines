@@ -311,6 +311,7 @@ def calculate_signalling_issues(spark_session: SparkSession, dataframe: DataFram
         elif check_types == 'values are unique':
 
             valid_count = check_values_unique(dataframe, column_name)
+            description_string = f"unique values in column `{column_name}`"
             check_id = 'tilt_4'
 
         elif check_types == 'values have format':
