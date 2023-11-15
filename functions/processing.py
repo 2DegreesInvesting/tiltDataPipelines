@@ -435,7 +435,7 @@ def generate_table(table_name: str) -> None:
 
         # to decimal
         column_name = "input_co2_footprint"
-        ictr_products = ictr_products.withColumn(column_name, col(column_name).cast(DoubleType()))
+        ictr_products = ictr_products.withColumn(column_name,F.col(column_name).cast(DoubleType()))
 
         write_table(spark_generate, ictr_products, "ictr_products_raw")
 
@@ -450,7 +450,7 @@ def generate_table(table_name: str) -> None:
 
         for column_name in columns_to_replace:
             istr_companies = istr_companies.withColumn(column_name, 
-                                           when(col(column_name) == "nan", F.lit(None)))
+                                           when(F.col(column_name) == "nan", F.lit(None)))
 
         write_table(spark_generate, istr_companies, 'istr_companies_raw')
 
@@ -465,7 +465,7 @@ def generate_table(table_name: str) -> None:
 
         for column_name in columns_to_replace:
             istr_products = istr_products.withColumn(column_name, 
-                                           when(col(column_name) == "nan", F.lit(None)))
+                                           when(F.col(column_name) == "nan", F.lit(None)))
 
         write_table(spark_generate, istr_products, 'istr_products_raw')
 
@@ -477,14 +477,14 @@ def generate_table(table_name: str) -> None:
 
          # to decimal
         column_name = "co2_footprint"
-        pctr_products = pctr_products.withColumn(column_name, col(column_name).cast(DoubleType()))
+        pctr_products = pctr_products.withColumn(column_name,F.col(column_name).cast(DoubleType()))
 
         # List of columns to replace string 'not available' with None values
         columns_to_replace = ["isic_4digit"]
 
         for column_name_2 in columns_to_replace:
             pctr_products = pctr_products.withColumn(column_name_2, 
-                                           when(col(column_name_2) == "not available", F.lit(None)))
+                                           when(F.col(column_name_2) == "not available", F.lit(None)))
 
         write_table(spark_generate, pctr_products, 'pctr_products_raw')
 
@@ -499,7 +499,7 @@ def generate_table(table_name: str) -> None:
 
         for column_name in columns_to_replace:
             pstr_companies = pstr_companies.withColumn(column_name, 
-                                           when(col(column_name) == "nan", F.lit(None)))
+                                           when(F.col(column_name) == "nan", F.lit(None)))
 
         write_table(spark_generate, pstr_companies, 'pstr_companies_raw')
 
@@ -513,10 +513,10 @@ def generate_table(table_name: str) -> None:
         str_ipr_targets = df
         
         for column_name in columns_to_replace_double:
-            str_ipr_targets = str_ipr_targets.withColumn(column_name, col(column_name).cast(DoubleType()))
+            str_ipr_targets = str_ipr_targets.withColumn(column_name,F.col(column_name).cast(DoubleType()))
         # to short type
         column_to_short_type = "year"
-        str_ipr_targets = str_ipr_targets.withColumn(column_to_short_type, col(column_to_short_type).cast(ShortType()))
+        str_ipr_targets = str_ipr_targets.withColumn(column_to_short_type,F.col(column_to_short_type).cast(ShortType()))
 
         write_table(spark_generate, str_ipr_targets, 'str_ipr_targets_raw')
 
@@ -530,10 +530,10 @@ def generate_table(table_name: str) -> None:
         columns_to_replace_double = ["value", "co2_reductions"]
 
         for column_name in columns_to_replace_double:
-            str_weo_targets = str_weo_targets.withColumn(column_name, col(column_name).cast(DoubleType()))
+            str_weo_targets = str_weo_targets.withColumn(column_name,F.col(column_name).cast(DoubleType()))
         # to short type
         column_to_short_type = "year"
-        str_weo_targets = str_weo_targets.withColumn(column_to_short_type, col(column_to_short_type).cast(ShortType()))
+        str_weo_targets = str_weo_targets.withColumn(column_to_short_type,F.col(column_to_short_type).cast(ShortType()))
 
         write_table(spark_generate, str_weo_targets, 'str_weo_targets_raw')
 
@@ -548,7 +548,7 @@ def generate_table(table_name: str) -> None:
 
         for column_name in columns_to_replace:
             xctr_companies = xctr_companies.withColumn(column_name, 
-                                           when(col(column_name) == "nan", F.lit(None)))
+                                           when(F.col(column_name) == "nan", F.lit(None)))
             
         write_table(spark_generate, xctr_companies, 'xctr_companies_raw'),
     
@@ -560,7 +560,7 @@ def generate_table(table_name: str) -> None:
 
         # to boolean
         column_name = "multi_match"
-        mapper_ep_ei = mapper_ep_ei.withColumn(column_name, col(column_name).cast(BooleanType()))
+        mapper_ep_ei = mapper_ep_ei.withColumn(column_name,F.col(column_name).cast(BooleanType()))
 
         write_table(spark_generate, mapper_ep_ei, 'mapper_ep_ei_raw')
 
@@ -578,7 +578,7 @@ def generate_table(table_name: str) -> None:
 
         # to double
         column_name = "exchange_amount"
-        ei_input_data = ei_input_data.withColumn(column_name, col(column_name).cast(DoubleType()))
+        ei_input_data = ei_input_data.withColumn(column_name,F.col(column_name).cast(DoubleType()))
 
         write_table(spark_generate, ei_input_data, 'ei_input_data_raw')
 
