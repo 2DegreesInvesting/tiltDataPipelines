@@ -595,12 +595,6 @@ signalling_checks_dictionary = {
             'value_list':['netherlands','germany','spain','france','austria']
         }, 
         {
-            'check':'distinct values occur as expected',
-            'columns':['ep_product'],
-            'distinct_columns': ['matched_reference_product'],
-            'expected_count': 1
-        },  
-        {
             'check':'values within list',
             'columns': ['benchmark'],
             'value_list':['all','isic_sec','tilt_sec','unit','unit_isic_sec','unit_tilt_sec']
