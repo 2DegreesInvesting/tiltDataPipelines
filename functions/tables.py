@@ -1719,6 +1719,7 @@ def get_table_definition(table_name: str = '') -> dict:
          },
          'dummy_quality_check': {
             'columns' :  StructType([
+                StructField('signalling_id', StringType(), False),
                 StructField('check_id', StringType(), False),
                 StructField('column_name', StringType(), True),
                 StructField('check_name', StringType(), True),
