@@ -1717,6 +1717,470 @@ def get_table_definition(table_name: str = '') -> dict:
             'partition_column' : '',
             'quality_checks': []
          },
+        'ictr_products_landingzone': {
+            'columns' :  StructType([
+                StructField('activity_uuid_product_uuid', StringType(), False),
+                StructField('input_activity_uuid_product_uuid', StringType(), True),
+                StructField('input_reference_product_name', StringType(), True),
+                StructField('input_unit', StringType(), True),
+                StructField('input_co2_footprint', StringType(), True),
+                StructField('input_tilt_sector', StringType(), True),
+                StructField('input_tilt_subsector', StringType(), True),
+                StructField('input_isic_4digit', StringType(), True)
+            ]  
+            ), 
+            'container': 'landingzone',
+            'location': 'tiltIndicator/ictr_products.csv',
+            'type': 'csv',
+            'partition_column' : '',
+            'quality_checks': []
+        },
+        'ictr_products_raw': {
+            'columns' :  StructType([
+                StructField('activity_uuid_product_uuid', StringType(), False),
+                StructField('input_activity_uuid_product_uuid', StringType(), True),
+                StructField('input_reference_product_name', StringType(), True),
+                StructField('input_unit', StringType(), True),
+                StructField('input_co2_footprint', DoubleType(), True),
+                StructField('input_tilt_sector', StringType(), True),
+                StructField('input_tilt_subsector', StringType(), True),
+                StructField('input_isic_4digit', StringType(), True),               
+                StructField('from_date', DateType(), False),
+                StructField('to_date', DateType(), False),
+                StructField('tiltRecordID', StringType(), False),
+            ]  
+            ), 
+            'container': 'raw',
+            'location': 'ictr_products',
+            'type': 'parquet',
+            'partition_column' : '',
+            'quality_checks': []
+        },
+        'istr_companies_landingzone': {
+            'columns' :  StructType([
+                StructField('companies_id', StringType(), False),
+                StructField('clustered_id', StringType(), True),
+                StructField('activity_uuid_product_uuid', StringType(), True),
+                StructField('ei_activity_name', StringType(), True),
+                StructField('unit', StringType(), True),
+                StructField('tilt_sector', StringType(), True)
+            ]  
+            ), 
+            'container': 'landingzone',
+            'location': 'tiltIndicator/istr_companies.csv',
+            'type': 'csv',
+            'partition_column' : '',
+            'quality_checks': []
+        },
+        'istr_companies_raw': {
+            'columns' :  StructType([
+                StructField('companies_id', StringType(), False),
+                StructField('clustered_id', StringType(), True),
+                StructField('activity_uuid_product_uuid', StringType(), True),
+                StructField('ei_activity_name', StringType(), True),
+                StructField('unit', StringType(), True),
+                StructField('tilt_sector', StringType(), True),
+                StructField('from_date', DateType(), False),
+                StructField('to_date', DateType(), False),
+                StructField('tiltRecordID', StringType(), False),
+            ]  
+            ), 
+            'container': 'raw',
+            'location': 'istr_companies',
+            'type': 'parquet',
+            'partition_column' : '',
+            'quality_checks': []
+        },
+        'istr_products_landingzone': {
+            'columns' :  StructType([
+                StructField('activity_uuid_product_uuid', StringType(), False),
+                StructField('input_activity_uuid_product_uuid', StringType(), True),
+                StructField('input_reference_product_name', StringType(), True),
+                StructField('input_unit', StringType(), True),
+                StructField('input_isic_4digit', StringType(), True),
+                StructField('input_weo_product', StringType(), True),
+                StructField('input_weo_flow', StringType(), True),
+                StructField('input_ipr_sector', StringType(), True),
+                StructField('input_ipr_subsector', StringType(), True),
+                StructField('input_tilt_sector', StringType(), True),
+                StructField('input_tilt_subsector', StringType(), True)
+            ]  
+            ), 
+            'container': 'landingzone',
+            'location': 'tiltIndicator/istr_products.csv',
+            'type': 'csv',
+            'partition_column' : '',
+            'quality_checks': []
+        },
+        'istr_products_raw': {
+            'columns' :  StructType([
+                StructField('activity_uuid_product_uuid', StringType(), False),
+                StructField('input_activity_uuid_product_uuid', StringType(), True),
+                StructField('input_reference_product_name', StringType(), True),
+                StructField('input_unit', StringType(), True),
+                StructField('input_isic_4digit', StringType(), True),
+                StructField('input_weo_product', StringType(), True),
+                StructField('input_weo_flow', StringType(), True),
+                StructField('input_ipr_sector', StringType(), True),
+                StructField('input_ipr_subsector', StringType(), True),
+                StructField('input_tilt_sector', StringType(), True),
+                StructField('input_tilt_subsector', StringType(), True),
+                StructField('from_date', DateType(), False),
+                StructField('to_date', DateType(), False),
+                StructField('tiltRecordID', StringType(), False)
+            ]  
+            ), 
+            'container': 'raw',
+            'location': 'istr_products',
+            'type': 'parquet',
+            'partition_column' : '',
+            'quality_checks': []
+        },
+        'pctr_products_landingzone': {
+            'columns' :  StructType([
+                StructField('co2_footprint', StringType(), True),
+                StructField('tilt_sector', StringType(), True),
+                StructField('tilt_subsector', StringType(), True),
+                StructField('isic_4digit', StringType(), True),
+                StructField('unit', StringType(), True),
+                StructField('activity_uuid_product_uuid', StringType(), False),
+                StructField('ei_activity_name', StringType(), True)
+            ]  
+            ), 
+            'container': 'landingzone',
+            'location': 'tiltIndicator/pctr_products.csv',
+            'type': 'csv',
+            'partition_column' : '',
+            'quality_checks': []
+        },
+        'pctr_products_raw': {
+            'columns' :  StructType([
+                StructField('co2_footprint', DoubleType(), True),
+                StructField('tilt_sector', StringType(), True),
+                StructField('tilt_subsector', StringType(), True),
+                StructField('isic_4digit', StringType(), True),
+                StructField('unit', StringType(), True),
+                StructField('activity_uuid_product_uuid', StringType(), False),
+                StructField('ei_activity_name', StringType(), True),
+                StructField('from_date', DateType(), False),
+                StructField('to_date', DateType(), False),
+                StructField('tiltRecordID', StringType(), False)
+            ]  
+            ), 
+            'container': 'raw',
+            'location': 'pctr_products',
+            'type': 'parquet',
+            'partition_column' : '',
+            'quality_checks': []
+        },
+        'pstr_companies_landingzone': {
+            'columns' :  StructType([
+                StructField('companies_id', StringType(), False),
+                StructField('company_name', StringType(), True),
+                StructField('clustered', StringType(), True),
+                StructField('activity_uuid_product_uuid', StringType(), True),
+                StructField('isic_4digit', StringType(), True),
+                StructField('tilt_sector', StringType(), True),
+                StructField('tilt_subsector', StringType(), True),
+                StructField('ipr_sector', StringType(), True),
+                StructField('ipr_subsector', StringType(), True),
+                StructField('weo_sector', StringType(), True),
+                StructField('weo_subsector', StringType(), True)
+            ]  
+            ), 
+            'container': 'landingzone',
+            'location': 'tiltIndicator/pstr_companies.csv',
+            'type': 'csv',
+            'partition_column' : '',
+            'quality_checks': []
+        },
+        'pstr_companies_raw': {
+            'columns' :  StructType([
+                StructField('companies_id', StringType(), False),
+                StructField('company_name', StringType(), True),
+                StructField('clustered', StringType(), True),
+                StructField('activity_uuid_product_uuid', StringType(), True),
+                StructField('isic_4digit', StringType(), True),
+                StructField('tilt_sector', StringType(), True),
+                StructField('tilt_subsector', StringType(), True),
+                StructField('ipr_sector', StringType(), True),
+                StructField('ipr_subsector', StringType(), True),
+                StructField('weo_sector', StringType(), True),
+                StructField('weo_subsector', StringType(), True),
+                StructField('from_date', DateType(), False),
+                StructField('to_date', DateType(), False),
+                StructField('tiltRecordID', StringType(), False)
+            ]  
+            ), 
+            'container': 'raw',
+            'location': 'pstr_companies',
+            'type': 'parquet',
+            'partition_column' : '',
+            'quality_checks': []
+        },
+        'str_ipr_targets_landingzone': {
+            'columns' :  StructType([
+                StructField('scenario', StringType(), True),
+                StructField('region', StringType(), True),
+                StructField('ipr_sector', StringType(), False),
+                StructField('ipr_subsector', StringType(), True),
+                StructField('year', StringType(), False),
+                StructField('value', StringType(), False),
+                StructField('co2_reductions', StringType(), False)
+            ]  
+            ), 
+            'container': 'landingzone',
+            'location': 'tiltIndicator/str_ipr_targets.csv',
+            'type': 'csv',
+            'partition_column' : '',
+            'quality_checks': []
+        },
+        'str_ipr_targets_raw': {
+            'columns' :  StructType([
+                StructField('scenario', StringType(), True),
+                StructField('region', StringType(), True),
+                StructField('ipr_sector', StringType(), False),
+                StructField('ipr_subsector', StringType(), True),
+                StructField('year', ShortType(), False),
+                StructField('value', DoubleType(), False),
+                StructField('co2_reductions', DoubleType(), False),
+                StructField('from_date', DateType(), False),
+                StructField('to_date', DateType(), False),
+                StructField('tiltRecordID', StringType(), False)
+            ]  
+            ), 
+            'container': 'raw',
+            'location': 'str_ipr_targets',
+            'type': 'parquet',
+            'partition_column' : '',
+            'quality_checks': []
+        },
+        'str_weo_targets_landingzone': {
+            'columns' :  StructType([
+                StructField('scenario', StringType(), True),
+                StructField('region', StringType(), True),
+                StructField('weo_sector', StringType(), False),
+                StructField('weo_subsector', StringType(), True),
+                StructField('year', StringType(), False),
+                StructField('value', StringType(), False),
+                StructField('co2_reductions', StringType(), False)
+            ]  
+            ), 
+            'container': 'landingzone',
+            'location': 'tiltIndicator/str_weo_targets.csv',
+            'type': 'csv',
+            'partition_column' : '',
+            'quality_checks': []
+        },
+        'str_weo_targets_raw': {
+            'columns' :  StructType([
+                StructField('scenario', StringType(), True),
+                StructField('region', StringType(), True),
+                StructField('weo_sector', StringType(), False),
+                StructField('weo_subsector', StringType(), True),
+                StructField('year', ShortType(), False),
+                StructField('value', DoubleType(), False),
+                StructField('co2_reductions', DoubleType(), False),
+                StructField('from_date', DateType(), False),
+                StructField('to_date', DateType(), False),
+                StructField('tiltRecordID', StringType(), False)
+            ]  
+            ), 
+            'container': 'raw',
+            'location': 'str_weo_targets',
+            'type': 'parquet',
+            'partition_column' : '',
+            'quality_checks': []
+        },
+        'xctr_companies_landingzone': {
+            'columns' :  StructType([
+                StructField('companies_id', StringType(), False),
+                StructField('clustered', StringType(), False),
+                StructField('activity_uuid_product_uuid', StringType(), True),
+                StructField('ei_activity_name', StringType(), True),
+                StructField('unit', StringType(), True)
+            ]  
+            ), 
+            'container': 'landingzone',
+            'location': 'tiltIndicator/xctr_companies.csv',
+            'type': 'csv',
+            'partition_column' : '',
+            'quality_checks': []
+        },
+        'xctr_companies_raw': {
+            'columns' :  StructType([
+                StructField('companies_id', StringType(), False),
+                StructField('clustered', StringType(), False),
+                StructField('activity_uuid_product_uuid', StringType(), True),
+                StructField('ei_activity_name', StringType(), True),
+                StructField('unit', StringType(), True),
+                StructField('from_date', DateType(), False),
+                StructField('to_date', DateType(), False),
+                StructField('tiltRecordID', StringType(), False)
+            ]  
+            ), 
+            'container': 'raw',
+            'location': 'xctr_companies',
+            'type': 'parquet',
+            'partition_column' : '',
+            'quality_checks': []
+        },
+        'mapper_ep_ei_landingzone': {
+            'columns' :  StructType([
+                StructField('ep_id', StringType(), False), 
+                StructField('country', StringType(), True), 
+                StructField('main_activity', StringType(), True), 
+                StructField('clustered', StringType(), True), 
+                StructField('activity_uuid_product_uuid', StringType(), False), 
+                StructField('multi_match', StringType(), True), 
+                StructField('completion', StringType(), True), 
+                StructField('category', StringType(), True)
+            ]
+            ), 
+            'container': 'landingzone',
+            'location': 'tiltIndicatorAfter/mapper_ep_ei.csv',
+            'type': 'csv',
+            'partition_column' : '',
+            'quality_checks': []
+        },
+        'mapper_ep_ei_raw': {
+            'columns' :  StructType([
+                StructField('ep_id', StringType(), False), 
+                StructField('country', StringType(), True), 
+                StructField('main_activity', StringType(), True), 
+                StructField('clustered', StringType(), True), 
+                StructField('activity_uuid_product_uuid', StringType(), False), 
+                StructField('multi_match', BooleanType(), True), 
+                StructField('completion', StringType(), True), 
+                StructField('category', StringType(), True),
+                StructField('from_date', DateType(), False),
+                StructField('to_date', DateType(), False),
+                StructField('tiltRecordID', StringType(), False)
+            ]
+            ), 
+            'container': 'raw',
+            'location': 'mapper_ep_ei',
+            'type': 'parquet',
+            'partition_column' : '',
+            'quality_checks': []
+        },
+        'ep_companies_landingzone': {
+            'columns' :  StructType([
+                StructField('companies_id', StringType(), False), 
+                StructField('company_name', StringType(), True), 
+                StructField('country', StringType(), True), 
+                StructField('company_city', StringType(), True), 
+                StructField('postcode', StringType(), True), 
+                StructField('address', StringType(), True), 
+                StructField('main_activity', StringType(), True), 
+                StructField('group', StringType(), True),
+                StructField('sector', StringType(), True),
+                StructField('subsector', StringType(), True),
+                StructField('clustered', StringType(), True)
+            ]
+            ), 
+            'container': 'landingzone',
+            'location': 'tiltIndicatorAfter/ep_companies.csv',
+            'type': 'csv',
+            'partition_column' : '',
+            'quality_checks': []
+        },
+        'ep_companies_raw': {
+            'columns' :  StructType([
+                StructField('companies_id', StringType(), False), 
+                StructField('company_name', StringType(), True), 
+                StructField('country', StringType(), True), 
+                StructField('company_city', StringType(), True), 
+                StructField('postcode', StringType(), True), 
+                StructField('address', StringType(), True), 
+                StructField('main_activity', StringType(), True), 
+                StructField('group', StringType(), True),
+                StructField('sector', StringType(), True),
+                StructField('subsector', StringType(), True),
+                StructField('clustered', StringType(), True),
+                StructField('from_date', DateType(), False),
+                StructField('to_date', DateType(), False),
+                StructField('tiltRecordID', StringType(), False)
+            ]
+            ), 
+            'container': 'raw',
+            'location': 'ep_companies',
+            'type': 'parquet',
+            'partition_column' : '',
+            'quality_checks': []
+        },
+        'ei_input_data_landingzone': {
+            'columns' :  StructType([
+                StructField('activity_uuid_product_uuid', StringType(), False), 
+                StructField('activity_name', StringType(), True), 
+                StructField('product_geography', StringType(), True), 
+                StructField('input_activity_uuid_product_uuid', StringType(), True), 
+                StructField('exchange_name', StringType(), True), 
+                StructField('input_geography', StringType(), True), 
+                StructField('exchange_unit_name', StringType(), True), 
+                StructField('exchange_amount', StringType(), True)
+            ]
+            ), 
+            'container': 'landingzone',
+            'location': 'tiltIndicatorAfter/ei_input_data.csv',
+            'type': 'csv',
+            'partition_column' : '',
+            'quality_checks': []
+        },
+        'ei_input_data_raw': {
+            'columns' :  StructType([
+                StructField('activity_uuid_product_uuid', StringType(), False), 
+                StructField('activity_name', StringType(), True), 
+                StructField('product_geography', StringType(), True), 
+                StructField('input_activity_uuid_product_uuid', StringType(), True), 
+                StructField('exchange_name', StringType(), True), 
+                StructField('input_geography', StringType(), True), 
+                StructField('exchange_unit_name', StringType(), True), 
+                StructField('exchange_amount', DoubleType(), True),
+                StructField('from_date', DateType(), False),
+                StructField('to_date', DateType(), False),
+                StructField('tiltRecordID', StringType(), False)
+            ]
+            ), 
+            'container': 'raw',
+            'location': 'ei_input_data',
+            'type': 'parquet',
+            'partition_column' : '',
+            'quality_checks': []
+        },
+        'ei_activities_overview_landingzone': {
+            'columns' :  StructType([
+                StructField('activity_uuid_product_uuid', StringType(), False), 
+                StructField('activity_name', StringType(), True), 
+                StructField('geography', StringType(), True), 
+                StructField('reference_product_name', StringType(), True), 
+                StructField('unit', StringType(), True)
+            ]
+            ), 
+            'container': 'landingzone',
+            'location': 'tiltIndicatorAfter/ei_activities_overview.csv',
+            'type': 'csv',
+            'partition_column' : '',
+            'quality_checks': []
+        },
+        'ei_activities_overview_raw': {
+            'columns' :  StructType([
+                StructField('activity_uuid_product_uuid', StringType(), False), 
+                StructField('activity_name', StringType(), True), 
+                StructField('geography', StringType(), True), 
+                StructField('reference_product_name', StringType(), True), 
+                StructField('unit', StringType(), True),
+                StructField('from_date', DateType(), False),
+                StructField('to_date', DateType(), False),
+                StructField('tiltRecordID', StringType(), False)
+            ]
+            ), 
+            'container': 'raw',
+            'location': 'ei_activities_overview',
+            'type': 'parquet',
+            'partition_column' : '',
+            'quality_checks': []
+        },
          'dummy_quality_check': {
             'columns' :  StructType([
                 StructField('signalling_id', StringType(), False),
@@ -1904,7 +2368,7 @@ def get_table_definition(table_name: str = '') -> dict:
         'type': 'parquet',
         'partition_column' : '',
         'quality_checks': []
-    },
+        },
         'istr_product_result_landingzone': {
         'columns' :  StructType([
                 StructField('companies_id', StringType(), True),
@@ -1973,7 +2437,7 @@ def get_table_definition(table_name: str = '') -> dict:
         'type': 'parquet',
         'partition_column' : '',
         'quality_checks': []
-    },
+        },
         'pctr_company_result_landingzone': {
         'columns' :  StructType([
                 StructField('companies_id', StringType(), True),
@@ -2018,7 +2482,7 @@ def get_table_definition(table_name: str = '') -> dict:
         'type': 'parquet',
         'partition_column' : '',
         'quality_checks': []
-    },
+        },
         'pctr_product_result_landingzone': {
         'columns' :  StructType([
                 StructField('companies_id', StringType(), True),
@@ -2071,7 +2535,7 @@ def get_table_definition(table_name: str = '') -> dict:
         'type': 'parquet',
         'partition_column' : '',
         'quality_checks': []
-    },
+        },
         'pstr_company_result_landingzone': {
         'columns' :  StructType([
                 StructField('companies_id', StringType(), True),
@@ -2118,7 +2582,7 @@ def get_table_definition(table_name: str = '') -> dict:
         'type': 'parquet',
         'partition_column' : '',
         'quality_checks': []
-    },
+        },
         'pstr_product_result_landingzone': {
         'columns' :  StructType([
                 StructField('companies_id', StringType(), True),

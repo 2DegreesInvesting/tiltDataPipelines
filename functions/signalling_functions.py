@@ -71,7 +71,9 @@ def calculate_filled_values(dataframe: DataFrame) -> DataFrame:
         - 'valid_count': The count of non-null (filled) values for each column.
     """
     total_count = dataframe.count()
-    df = dataframe.select([(F.count(F.when(F.isnull(c), c).when(F.col(c) == 'NA', None))).alias(c) for c in dataframe.columns]) \
+    df = dataframe.select([(F.count(F.when(F.isnull(c), c)\
+                                    .when(F.col(c) == 'NA', None)\
+                                    .when(F.col(c) == 'nan', None))).alias(c) for c in dataframe.columns]) \
             .withColumn('invalid_count_column', F.lit('invalid_count'))
     df = TransposeDF(df, dataframe.columns, 'invalid_count_column')
     df = df.withColumn('total_count', F.lit(total_count).cast(IntegerType())) \
