@@ -1,4 +1,5 @@
 from pyspark.sql import SparkSession, DataFrame
+from pyspark.sql.window import Window
 import pyspark.sql.functions as F
 from pyspark.sql.types import StringType, IntegerType
 import os
@@ -229,13 +230,19 @@ def validate_table_format(spark_session: SparkSession, data_frame: DataFrame, ta
         check_df = check_df.union(data_frame)
         check_df.head()
     except:
-        # An exception occurred, indicating a format mismatch
+        # An exception occurred, indicating a format mismatchs
         raise ValueError("The initial structure can not be joined.")
 
     # Compare the first row of the original DataFrame with the check DataFrame
     if not data_frame.orderBy(F.col('tiltRecordID')).head().asDict() == check_df.orderBy(F.col('tiltRecordID')).head().asDict():
         # The format of the DataFrame does not match the table definition
         raise ValueError("The head of the table does not match.")
+    
+    # Check if all of the rows are unique in the table
+    if data_frame.count() != data_frame.distinct().count():
+        # The format of the DataFrame does not match the table definition
+        raise ValueError("Not all rows in the table are unqiue")
+
 
     # Perform additional quality checks on specific columns
     validated = validate_data_quality(spark_session, data_frame, table_name)
@@ -445,6 +452,29 @@ def check_signalling_issues(spark_session: SparkSession, table_name: str) -> Non
     # Generate the monitoring values table to be written
     monitoring_values_df = calculate_signalling_issues(spark_session, dataframe, signalling_checks, dummy_signalling_df)
     monitoring_values_df = monitoring_values_df.withColumn('table_name',F.lit(table_name))
+
+    existing_monitoring_df = read_table(spark_session, 'monitoring_values', table_name)
+    max_issue = existing_monitoring_df.fillna(0,subset='signalling_id') \
+                    .select(F.max(F.col('signalling_id')).alias('max_signalling_id')).collect()[0]['max_signalling_id']
+    if not max_issue:
+        max_issue = 0
+    existing_monitoring_df = existing_monitoring_df.select([F.col(c).alias(c+'_old') if c != 'signalling_id' else F.col(c).alias(c) for c in existing_monitoring_df.columns  ])\
+                                .select(['signalling_id','column_name_old','check_name_old','table_name_old','check_id_old'])
+    w = Window().partitionBy('table_name').orderBy(F.col('check_id'))
+    join_conditions = [monitoring_values_df.table_name == existing_monitoring_df.table_name_old, 
+                        monitoring_values_df.column_name == existing_monitoring_df.column_name_old, 
+                        monitoring_values_df.check_name == existing_monitoring_df.check_name_old, 
+                        monitoring_values_df.check_id == existing_monitoring_df.check_id_old ]
+    monitoring_values_intermediate = monitoring_values_df.join(existing_monitoring_df, on=join_conditions, how='left')
+
+    existing_signalling_id = monitoring_values_intermediate.where(F.col('signalling_id').isNotNull())
+    non_existing_signalling_id = monitoring_values_intermediate.where(F.col('signalling_id').isNull())
+    non_existing_signalling_id = non_existing_signalling_id.withColumn('signalling_id',F.row_number().over(w)+F.lit(max_issue))
+
+    monitoring_values_intermediate = existing_signalling_id.union(non_existing_signalling_id)
+
+    monitoring_values_df = monitoring_values_intermediate.select(['signalling_id','check_id', 'column_name', 'check_name', 'total_count', 'valid_count', 'table_name'])
+
     # Write the table to the location
     write_table(spark_session, monitoring_values_df, 'monitoring_values', table_name)
     return None

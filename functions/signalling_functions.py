@@ -80,8 +80,9 @@ def calculate_filled_values(dataframe: DataFrame) -> DataFrame:
             .withColumn('valid_count', F.lit(total_count).cast(IntegerType()) - F.col('invalid_count').cast(IntegerType())) \
             .withColumn('check_name', F.lit('Check if values are filled')) \
             .withColumn('check_id', F.lit('tilt_1')) \
+            .withColumn('signalling_id', F.lit(None)) \
             .withColumnRenamed('invalid_count_column', 'column_name')
-    col_order = ['check_id', 'column_name', 'check_name', 'total_count', 'valid_count']
+    col_order = ['signalling_id','check_id', 'column_name', 'check_name', 'total_count', 'valid_count']
     df = df.select(col_order)
 
     return df
@@ -125,7 +126,7 @@ def check_values_unique(dataframe: DataFrame, column_name: list) -> int:
     Returns:
     - valid_count (int): The count of unique values in the specified column.
     """
-    valid_count = dataframe.select(F.col(column_name)).distinct().count()
+    valid_count = dataframe.select(*[F.col(col) for col in column_name]).distinct().count()
     return valid_count
 
 
@@ -292,13 +293,14 @@ def calculate_signalling_issues(spark_session: SparkSession, dataframe: DataFram
         column_name = signalling_check.get('columns')
 
         signalling_check_df = signalling_check_dummy.withColumn('column_name',F.lit(','.join(column_name)))\
-                    .withColumn('check_name',F.lit(check_types))\
                     .withColumn('total_count',F.lit(total_count).cast(IntegerType()))
 
         if check_types == 'values within list':
 
             value_list = signalling_check.get('value_list')
             valid_count = check_value_within_list(dataframe, column_name, value_list)
+            input_list = '","'.join([str(val) for val in value_list])[:100]
+            description_string = f'values within list of: "{input_list}"'
             check_id = 'tilt_2'
             
         elif check_types == 'values in range':
@@ -306,17 +308,20 @@ def calculate_signalling_issues(spark_session: SparkSession, dataframe: DataFram
             range_start = signalling_check.get('range_start')
             range_end = signalling_check.get('range_end')
             valid_count = check_values_in_range(dataframe, column_name, range_start, range_end)
+            description_string = f'values between {str(range_start)} and {str(range_end)}'
             check_id = 'tilt_3'
 
         elif check_types == 'values are unique':
 
             valid_count = check_values_unique(dataframe, column_name)
+            description_string = f"unique values in column `{column_name}`"
             check_id = 'tilt_4'
 
         elif check_types == 'values have format':
             
             check_format = signalling_check.get('format')
             valid_count = check_values_format(dataframe, column_name, check_format)
+            description_string = f'values have format {check_format}'
             check_id = 'tilt_5'
             
         elif check_types == 'values are consistent':
@@ -325,18 +330,22 @@ def calculate_signalling_issues(spark_session: SparkSession, dataframe: DataFram
             columns_to_join = signalling_check.get('join_columns')
             df_to_compare = read_table(spark_session, table_to_compare)
             valid_count = check_values_consistent(spark_session,dataframe, column_name, df_to_compare, columns_to_join)
+            input_list = '","'.join([str(val) for val in columns_to_join])[:100]
+            description_string = f'values are consistent with column(s) "{input_list}" from table {table_to_compare}'
             check_id = 'tilt_6'
             
         elif check_types == 'values occur as expected':
             
             count_expected = signalling_check.get('expected_count')
             valid_count = check_expected_value_count(spark_session, dataframe, column_name, count_expected)
+            description_string = f'values occur {count_expected} times'
             check_id = 'tilt_7'
 
         elif check_types == 'values sum to 1':
             
             sum_col = signalling_check.get('sum_column')
             valid_count = column_sums_to_1(spark_session, dataframe, column_name, sum_col)
+            description_string = f'values in column "{sum_col}" sum to 1'
             check_id = 'tilt_8'
                 
         elif check_types == 'distinct values occur as expected':
@@ -344,13 +353,16 @@ def calculate_signalling_issues(spark_session: SparkSession, dataframe: DataFram
             count_expected = signalling_check.get('expected_count')
             distinct_columns = signalling_check.get('distinct_columns')
             valid_count = check_expected_distinct_value_count(spark_session, dataframe, column_name, count_expected, distinct_columns)
+            input_list = '","'.join([str(val) for val in distinct_columns])[:100]
+            description_string = f'{count_expected} distinct values occur in column {input_list}'
             check_id = 'tilt_9'
 
 
-        signalling_check_df = signalling_check_df.withColumn('valid_count', F.lit(valid_count).cast(IntegerType()))
-        signalling_check_df = signalling_check_df.withColumn('check_id',F.lit(check_id))
+        signalling_check_df = signalling_check_df.withColumn('valid_count', F.lit(valid_count).cast(IntegerType()))\
+                                .withColumn('check_id',F.lit(check_id))\
+                                .withColumn('check_name',F.lit(description_string))
         
-        df = df.union(signalling_check_df)
+        df = df.union(signalling_check_df).select(['check_id', 'column_name', 'check_name', 'total_count', 'valid_count'])
 
     return df
 
