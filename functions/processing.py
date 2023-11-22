@@ -426,6 +426,18 @@ def generate_table(table_name: str) -> None:
         ecoinvent_input_data_relevant_columns_raw = ecoinvent_input_data_relevant_columns_raw.withColumn(column_name, F.col(column_name).cast(DoubleType()))
 
         write_table(spark_generate, ecoinvent_input_data_relevant_columns_raw, 'ecoinvent_input_data_relevant_columns_raw') 
+
+    elif table_name == 'geography_mapper_raw':
+
+        df = read_table(spark_generate, 'geography_mapper_landingzone')
+
+        write_table(spark_generate, df, 'geography_mapper_raw')
+
+    elif table_name == 'ecoinvent_complete_new_raw':
+
+        df = read_table(spark_generate, 'ecoinvent_complete_new_landingzone')
+
+        write_table(spark_generate, df, 'ecoinvent_complete_new_raw')
     
     elif table_name == 'ictr_products_raw':
     

@@ -1717,6 +1717,94 @@ def get_table_definition(table_name: str = '') -> dict:
             'partition_column' : '',
             'quality_checks': []
          },
+        'geography_mapper_landingzone': {
+            'columns' :  StructType([
+                StructField('geography_id', StringType(), False),
+                StructField('country_id', StringType(), True),
+                StructField('lca_geo', StringType(), True),
+                StructField('priority', StringType(), True),
+                StructField('input_priority', StringType(), True)
+            ]  
+            ), 
+            'container': 'landingzone',
+            'location': 'tiltIndicatorBefore/geography_mapper.csv',
+            'type': 'csv',
+            'partition_column' : '',
+            'quality_checks': []
+        },
+        'geography_mapper_raw': {
+            'columns' :  StructType([
+                StructField('geography_id', StringType(), False),
+                StructField('country_id', StringType(), True),
+                StructField('lca_geo', StringType(), True),
+                StructField('priority', StringType(), True),
+                StructField('input_priority', StringType(), True),               
+                StructField('from_date', DateType(), False),
+                StructField('to_date', DateType(), False),
+                StructField('tiltRecordID', StringType(), False),
+            ]  
+            ), 
+            'container': 'raw',
+            'location': 'geography_mapper',
+            'type': 'parquet',
+            'partition_column' : '',
+            'quality_checks': []
+        },
+        'ecoinvent_complete_new_landingzone': {
+            'columns' :  StructType([
+                StructField('Activity UUID & Product UUID', StringType(), True),
+                StructField('Activity UUID', StringType(), True),
+                StructField('Activity Name', StringType(), True),
+                StructField('Geography', StringType(), True),
+                StructField('Time Period', StringType(), True),
+                StructField('Special Activity Type', StringType(), True),
+                StructField('Sector', StringType(), True),
+                StructField('ISIC Classification', StringType(), True),
+                StructField('ISIC Section', StringType(), True),
+                StructField('Product UUID', StringType(), True),
+                StructField('Reference Product Name', StringType(), True),
+                StructField('CPC Classification', StringType(), True),
+                StructField('Unit', StringType(), True),
+                # StructField('Product Information', StringType(), True),
+                StructField('CAS Number', StringType(), True),
+                StructField('Cut-Off Classification', StringType(), True)
+            ]  
+            ), 
+            'container': 'landingzone',
+            'location': 'tiltIndicatorBefore/ecoinvent_complete_new.csv',
+            'type': 'ecoInvent',
+            'partition_column' : '',
+            'quality_checks': []
+        },
+        'ecoinvent_complete_new_raw': {
+            'columns' :  StructType([
+                StructField('Activity UUID & Product UUID', StringType(), True),
+                StructField('Activity UUID', StringType(), True),
+                StructField('Activity Name', StringType(), True),
+                StructField('Geography', StringType(), True),
+                StructField('Time Period', StringType(), True),
+                StructField('Special Activity Type', StringType(), True),
+                StructField('Sector', StringType(), True),
+                StructField('ISIC Classification', StringType(), True),
+                StructField('ISIC Section', StringType(), True),
+                StructField('Product UUID', StringType(), True),
+                StructField('Reference Product Name', StringType(), True),
+                StructField('CPC Classification', StringType(), True),
+                StructField('Unit', StringType(), True),
+                # StructField('Product Information', StringType(), True),
+                StructField('CAS Number', StringType(), True),
+                StructField('Cut-Off Classification', StringType(), True), 
+                StructField('from_date', DateType(), False),
+                StructField('to_date', DateType(), False),
+                StructField('tiltRecordID', StringType(), False),
+            ]  
+            ), 
+            'container': 'raw',
+            'location': 'ecoinvent_complete_new',
+            'type': 'parquet',
+            'partition_column' : '',
+            'quality_checks': []
+        },
         'ictr_products_landingzone': {
             'columns' :  StructType([
                 StructField('activity_uuid_product_uuid', StringType(), False),
@@ -1747,7 +1835,7 @@ def get_table_definition(table_name: str = '') -> dict:
                 StructField('input_isic_4digit', StringType(), True),               
                 StructField('from_date', DateType(), False),
                 StructField('to_date', DateType(), False),
-                StructField('tiltRecordID', StringType(), False),
+                StructField('tiltRecordID', StringType(), False)
             ]  
             ), 
             'container': 'raw',
