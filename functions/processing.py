@@ -2,7 +2,7 @@ import os
 from functions.spark_session import read_table, write_table, create_spark_session
 import pyspark.sql.functions as F
 from pyspark.sql.functions import col, when
-from pyspark.sql.types import DoubleType, IntegerType, TimestampType, BooleanType, DoubleType, ShortType, DoubleType
+from pyspark.sql.types import DoubleType, IntegerType, TimestampType, BooleanType, DoubleType, ShortType, DoubleType, ByteType
 
 
 def generate_table(table_name: str) -> None:
@@ -483,6 +483,8 @@ def generate_table(table_name: str) -> None:
         for column_name in columns_to_replace:
             sector_profile_upstream_products = sector_profile_upstream_products.withColumn(column_name, 
                                            when(F.col(column_name) == "nan", F.lit(None)))
+            
+        sector_profile_upstream_products = sector_profile_upstream_products.distinct()
 
         write_table(spark_generate, sector_profile_upstream_products, 'sector_profile_upstream_products_raw')
 
@@ -530,6 +532,8 @@ def generate_table(table_name: str) -> None:
         for column_name in columns_to_replace:
             sector_profile_companies = sector_profile_companies.withColumn(column_name, 
                                            when(F.col(column_name) == "nan", F.lit(None)))
+            
+        sector_profile_companies = sector_profile_companies.distinct()
 
         write_table(spark_generate, sector_profile_companies, 'sector_profile_companies_raw')
 
@@ -589,6 +593,8 @@ def generate_table(table_name: str) -> None:
 
         df = read_table(spark_generate, 'ep_companies_landingzone')
 
+        df = df.distinct()
+
         write_table(spark_generate, df, 'ep_companies_raw')
 
     elif table_name == 'ei_input_data_raw':
@@ -597,9 +603,9 @@ def generate_table(table_name: str) -> None:
 
         ei_input_data = df
 
-        # to double
-        column_name = "exchange_amount"
-        ei_input_data = ei_input_data.withColumn(column_name,F.col(column_name).cast(DoubleType()))
+        # to byte
+        column_name = "input_priotiry"
+        ei_input_data = ei_input_data.withColumn(column_name,F.col(column_name).cast(ByteType()))
 
         write_table(spark_generate, ei_input_data, 'ei_input_data_raw')
 

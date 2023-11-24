@@ -1,4 +1,4 @@
-from pyspark.sql.types import StringType,StructType, StructField, DataType, BooleanType, DoubleType, ShortType, TimestampType, IntegerType, DoubleType, DateType
+from pyspark.sql.types import StringType,StructType, StructField, DataType, BooleanType, DoubleType, ShortType, TimestampType, IntegerType, DoubleType, DateType, ByteType
 
 def get_table_definition(table_name: str = '') -> dict:
     """
@@ -2105,14 +2105,12 @@ def get_table_definition(table_name: str = '') -> dict:
         },
         'mapper_ep_ei_landingzone': {
             'columns' :  StructType([
-                StructField('ep_id', StringType(), False), 
                 StructField('country', StringType(), True), 
                 StructField('main_activity', StringType(), True), 
                 StructField('clustered', StringType(), True), 
                 StructField('activity_uuid_product_uuid', StringType(), False), 
                 StructField('multi_match', StringType(), True), 
-                StructField('completion', StringType(), True), 
-                StructField('category', StringType(), True)
+                StructField('completion', StringType(), True)
             ]
             ), 
             'container': 'landingzone',
@@ -2123,14 +2121,12 @@ def get_table_definition(table_name: str = '') -> dict:
         },
         'mapper_ep_ei_raw': {
             'columns' :  StructType([
-                StructField('ep_id', StringType(), False), 
                 StructField('country', StringType(), True), 
                 StructField('main_activity', StringType(), True), 
                 StructField('clustered', StringType(), True), 
                 StructField('activity_uuid_product_uuid', StringType(), False), 
                 StructField('multi_match', BooleanType(), True), 
                 StructField('completion', StringType(), True), 
-                StructField('category', StringType(), True),
                 StructField('from_date', DateType(), False),
                 StructField('to_date', DateType(), False),
                 StructField('tiltRecordID', StringType(), False)
@@ -2151,9 +2147,6 @@ def get_table_definition(table_name: str = '') -> dict:
                 StructField('postcode', StringType(), True), 
                 StructField('address', StringType(), True), 
                 StructField('main_activity', StringType(), True), 
-                StructField('group', StringType(), True),
-                StructField('sector', StringType(), True),
-                StructField('subsector', StringType(), True),
                 StructField('clustered', StringType(), True)
             ]
             ), 
@@ -2172,9 +2165,6 @@ def get_table_definition(table_name: str = '') -> dict:
                 StructField('postcode', StringType(), True), 
                 StructField('address', StringType(), True), 
                 StructField('main_activity', StringType(), True), 
-                StructField('group', StringType(), True),
-                StructField('sector', StringType(), True),
-                StructField('subsector', StringType(), True),
                 StructField('clustered', StringType(), True),
                 StructField('from_date', DateType(), False),
                 StructField('to_date', DateType(), False),
@@ -2196,7 +2186,8 @@ def get_table_definition(table_name: str = '') -> dict:
                 StructField('exchange_name', StringType(), True), 
                 StructField('input_geography', StringType(), True), 
                 StructField('exchange_unit_name', StringType(), True), 
-                StructField('exchange_amount', StringType(), True)
+                StructField('input_priotiry', StringType(), True), 
+                StructField('ecoinvent_geography', StringType(), True)
             ]
             ), 
             'container': 'landingzone',
@@ -2214,7 +2205,8 @@ def get_table_definition(table_name: str = '') -> dict:
                 StructField('exchange_name', StringType(), True), 
                 StructField('input_geography', StringType(), True), 
                 StructField('exchange_unit_name', StringType(), True), 
-                StructField('exchange_amount', DoubleType(), True),
+                StructField('input_priotiry', ByteType(), True), 
+                StructField('ecoinvent_geography', StringType(), True),
                 StructField('from_date', DateType(), False),
                 StructField('to_date', DateType(), False),
                 StructField('tiltRecordID', StringType(), False)
