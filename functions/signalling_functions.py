@@ -83,7 +83,7 @@ def calculate_filled_values(dataframe: DataFrame) -> DataFrame:
             .withColumn('signalling_id', F.lit(None)) \
             .withColumnRenamed('invalid_count_column', 'column_name')
     col_order = ['signalling_id','check_id', 'column_name', 'check_name', 'total_count', 'valid_count']
-    df = df.select(col_order)
+    df = df.select(col_order).filter(~F.col('column_name').isin(['from_date','to_date','tiltRecordID']))
 
     return df
 
