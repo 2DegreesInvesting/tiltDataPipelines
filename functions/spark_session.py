@@ -229,9 +229,9 @@ def validate_table_format(spark_session: SparkSession, data_frame: DataFrame, ta
         # Union the empty DataFrame with the provided DataFrame
         check_df = check_df.union(data_frame)
         check_df.head()
-    except:
+    except Exception as e:
         # An exception occurred, indicating a format mismatchs
-        raise ValueError("The initial structure can not be joined.")
+        raise ValueError("The initial structure can not be joined, because:" + str(e))
 
     # Compare the first row of the original DataFrame with the check DataFrame
     if not data_frame.orderBy(F.col('tiltRecordID')).head().asDict() == check_df.orderBy(F.col('tiltRecordID')).head().asDict():
@@ -458,21 +458,21 @@ def check_signalling_issues(spark_session: SparkSession, table_name: str) -> Non
                     .select(F.max(F.col('signalling_id')).alias('max_signalling_id')).collect()[0]['max_signalling_id']
     if not max_issue:
         max_issue = 0
-    existing_monitoring_df = existing_monitoring_df.select([F.col(c).alias(c+'_old') if c != 'signalling_id' else F.col(c).alias(c) for c in existing_monitoring_df.columns  ])\
-                                .select(['signalling_id','column_name_old','check_name_old','table_name_old','check_id_old'])
+    existing_monitoring_df = existing_monitoring_df.select([F.col(c).alias(c+'_old') for c in existing_monitoring_df.columns  ])\
+                                .select(['signalling_id_old','column_name_old','check_name_old','table_name_old','check_id_old'])
     w = Window().partitionBy('table_name').orderBy(F.col('check_id'))
     join_conditions = [monitoring_values_df.table_name == existing_monitoring_df.table_name_old, 
                         monitoring_values_df.column_name == existing_monitoring_df.column_name_old, 
                         monitoring_values_df.check_name == existing_monitoring_df.check_name_old, 
-                        monitoring_values_df.check_id == existing_monitoring_df.check_id_old ]
+                        monitoring_values_df.check_id == existing_monitoring_df.check_id_old]
     monitoring_values_intermediate = monitoring_values_df.join(existing_monitoring_df, on=join_conditions, how='left')
 
-    existing_signalling_id = monitoring_values_intermediate.where(F.col('signalling_id').isNotNull())
-    non_existing_signalling_id = monitoring_values_intermediate.where(F.col('signalling_id').isNull())
+    existing_signalling_id = monitoring_values_intermediate.where(F.col('signalling_id_old').isNotNull())
+    non_existing_signalling_id = monitoring_values_intermediate.where(F.col('signalling_id_old').isNull())
     non_existing_signalling_id = non_existing_signalling_id.withColumn('signalling_id',F.row_number().over(w)+F.lit(max_issue))
-
+    
     monitoring_values_intermediate = existing_signalling_id.union(non_existing_signalling_id)
-
+    monitoring_values_intermediate = monitoring_values_intermediate.withColumn('signalling_id',F.coalesce(F.col('signalling_id_old'),F.col('signalling_id')))
     monitoring_values_df = monitoring_values_intermediate.select(['signalling_id','check_id', 'column_name', 'check_name', 'total_count', 'valid_count', 'table_name'])
 
     # Write the table to the location
@@ -520,6 +520,7 @@ def create_catalog_tables(spark_session: SparkSession, table_name: str) -> bool:
     create_string += f" USING {table_definition['type']} LOCATION '{table_path}'"
     if table_definition['partition_column']:
         create_string += f" PARTITIONED BY (`{table_definition['partition_column']}` STRING)"
+    set_owner_string = f"ALTER TABLE `{table_definition['container']}`.`default`.`{table_definition['location'].replace('.','')}` SET OWNER TO tiltDevelopers"
 
     # Try and delete the already existing definition of the table
     try:
@@ -532,13 +533,12 @@ def create_catalog_tables(spark_session: SparkSession, table_name: str) -> bool:
             with open(r'./settings.yaml') as file:
                 settings = yaml.load(file, Loader=yaml.FullLoader)
             databricks_settings = settings['databricks']
-            username = databricks_settings['user_name']
-            set_owner_string = f"ALTER TABLE `{table_definition['container']}`.`default`.`{table_definition['location'].replace('.','')}` SET OWNER TO `{username}`"
             spark_session.sql(set_owner_string)
             spark_session.sql(delete_string)
         # If we encounter any other error, raise as the error
         else:
             raise(e)
     spark_session.sql(create_string)
+    spark_session.sql(set_owner_string)
 
     return True
