@@ -427,130 +427,149 @@ def generate_table(table_name: str) -> None:
 
         write_table(spark_generate, ecoinvent_input_data_relevant_columns_raw, 'ecoinvent_input_data_relevant_columns_raw') 
     
-    elif table_name == 'ictr_products_raw':
+    elif table_name == 'emissions_profile_upstream_products_raw':
     
-        df = read_table(spark_generate, 'ictr_products_landingzone')
+        df = read_table(spark_generate, 'emissions_profile_upstream_products_landingzone')
 
-        ictr_products = df
+        emissions_profile_upstream_products = df
 
         # to decimal
         column_name = "input_co2_footprint"
-        ictr_products = ictr_products.withColumn(column_name,F.col(column_name).cast(DoubleType()))
+        emissions_profile_upstream_products = emissions_profile_upstream_products.withColumn(column_name,F.col(column_name).cast(DoubleType()))
 
-        write_table(spark_generate, ictr_products, "ictr_products_raw")
+        write_table(spark_generate, emissions_profile_upstream_products, "emissions_profile_upstream_products_raw")
 
-    elif table_name == 'istr_companies_raw':
+    elif table_name == 'emissions_profile_upstream_products_ecoinvent_raw':
+    
+        df = read_table(spark_generate, 'emissions_profile_upstream_products_ecoinvent_landingzone')
 
-        df = read_table(spark_generate, 'istr_companies_landingzone')
+        emissions_profile_upstream_products_ecoinvent = df
 
-        istr_companies = df
+        column_names = ["input_co2_footprint", "profile_ranking"]
+        # to decimal values
+        for column in column_names:
+            emissions_profile_upstream_products_ecoinvent = emissions_profile_upstream_products_ecoinvent.withColumn(column, F.col(column).cast(DoubleType())) 
 
-        # List of columns to replace string 'nan' with None values
-        columns_to_replace = istr_companies.columns
+        write_table(spark_generate, emissions_profile_upstream_products_ecoinvent, "emissions_profile_upstream_products_ecoinvent_raw")
 
-        for column_name in columns_to_replace:
-            istr_companies = istr_companies.withColumn(column_name, 
-                                           when(F.col(column_name) == "nan", F.lit(None)))
+    elif table_name == 'sector_profile_upstream_companies_raw':
 
-        write_table(spark_generate, istr_companies, 'istr_companies_raw')
+        df = read_table(spark_generate, 'sector_profile_upstream_companies_landingzone')
 
-    elif table_name == 'istr_products_raw':
-
-        df = read_table(spark_generate, 'istr_products_landingzone')
-
-        istr_products = df
+        sector_profile_upstream_companies = df
 
         # List of columns to replace string 'nan' with None values
-        columns_to_replace = istr_products.columns
+        columns_to_replace = sector_profile_upstream_companies.columns
 
         for column_name in columns_to_replace:
-            istr_products = istr_products.withColumn(column_name, 
+            sector_profile_upstream_companies = sector_profile_upstream_companies.withColumn(column_name, 
+                                           when(F.col(column_name) == "nan", F.lit(None)))
+            
+        sector_profile_upstream_companies = sector_profile_upstream_companies.distinct()
+
+        write_table(spark_generate, sector_profile_upstream_companies, 'sector_profile_upstream_companies_raw')
+
+    elif table_name == 'sector_profile_upstream_products_raw':
+
+        df = read_table(spark_generate, 'sector_profile_upstream_products_landingzone')
+
+        sector_profile_upstream_products = df
+
+        # List of columns to replace string 'nan' with None values
+        columns_to_replace = sector_profile_upstream_products.columns
+
+        for column_name in columns_to_replace:
+            sector_profile_upstream_products = sector_profile_upstream_products.withColumn(column_name, 
                                            when(F.col(column_name) == "nan", F.lit(None)))
 
-        write_table(spark_generate, istr_products, 'istr_products_raw')
+        write_table(spark_generate, sector_profile_upstream_products, 'sector_profile_upstream_products_raw')
 
-    elif table_name == 'pctr_products_raw':
+    elif table_name == 'emissions_profile_products_raw':
 
-        df = read_table(spark_generate, 'pctr_products_landingzone')
+        df = read_table(spark_generate, 'emissions_profile_products_landingzone')
 
-        pctr_products = df
+        emissions_profile_products = df
 
          # to decimal
         column_name = "co2_footprint"
-        pctr_products = pctr_products.withColumn(column_name,F.col(column_name).cast(DoubleType()))
+        emissions_profile_products = emissions_profile_products.withColumn(column_name,F.col(column_name).cast(DoubleType()))
 
         # List of columns to replace string 'not available' with None values
         columns_to_replace = ["isic_4digit"]
 
         for column_name_2 in columns_to_replace:
-            pctr_products = pctr_products.withColumn(column_name_2, 
+            emissions_profile_products = emissions_profile_products.withColumn(column_name_2, 
                                            when(F.col(column_name_2) == "not available", F.lit(None)))
 
-        write_table(spark_generate, pctr_products, 'pctr_products_raw')
+        write_table(spark_generate, emissions_profile_products, 'emissions_profile_products_raw')
 
-    elif table_name == 'pstr_companies_raw':
+    elif table_name == 'emissions_profile_products_ecoinvent_raw':
 
-        df = read_table(spark_generate, 'pstr_companies_landingzone')
+        df = read_table(spark_generate, 'emissions_profile_products_ecoinvent_landingzone')
 
-        pstr_companies = df
+        emissions_profile_products_ecoinvent = df
+
+        column_names = ["co2_footprint", "profile_ranking"]
+        # to decimal values
+        for column in column_names:
+            emissions_profile_products_ecoinvent = emissions_profile_products_ecoinvent.withColumn(column, F.col(column).cast(DoubleType())) 
+
+        write_table(spark_generate, emissions_profile_products_ecoinvent, 'emissions_profile_products_ecoinvent_raw') 
+
+    elif table_name == 'sector_profile_companies_raw':
+
+        df = read_table(spark_generate, 'sector_profile_companies_landingzone')
+
+        sector_profile_companies = df
 
         # List of columns to replace string 'nan' with None values
-        columns_to_replace = pstr_companies.columns
+        columns_to_replace = sector_profile_companies.columns
 
         for column_name in columns_to_replace:
-            pstr_companies = pstr_companies.withColumn(column_name, 
+            sector_profile_companies = sector_profile_companies.withColumn(column_name, 
                                            when(F.col(column_name) == "nan", F.lit(None)))
 
-        write_table(spark_generate, pstr_companies, 'pstr_companies_raw')
+        write_table(spark_generate, sector_profile_companies, 'sector_profile_companies_raw')
 
-    elif table_name == 'str_ipr_targets_raw':
+    elif table_name == 'sector_profile_any_scenarios_raw':
 
-        df = read_table(spark_generate, 'str_ipr_targets_landingzone')
+        df = read_table(spark_generate, 'sector_profile_any_scenarios_landingzone')
 
         # List of column names to replace to double
-        columns_to_replace_double = ["value", "co2_reductions"]
+        columns_to_replace_double = ["value", "reductions"]
 
-        str_ipr_targets = df
+        sector_profile_any_scenarios = df
         
         for column_name in columns_to_replace_double:
-            str_ipr_targets = str_ipr_targets.withColumn(column_name,F.col(column_name).cast(DoubleType()))
+            sector_profile_any_scenarios = sector_profile_any_scenarios.withColumn(column_name,F.col(column_name).cast(DoubleType()))
         # to short type
-        column_to_short_type = "year"
-        str_ipr_targets = str_ipr_targets.withColumn(column_to_short_type,F.col(column_to_short_type).cast(ShortType()))
+        # column_to_short_type = "year"
+        # str_ipr_targets = str_ipr_targets.withColumn(column_to_short_type,F.col(column_to_short_type).cast(ShortType()))
 
-        write_table(spark_generate, str_ipr_targets, 'str_ipr_targets_raw')
+        write_table(spark_generate, sector_profile_any_scenarios, 'sector_profile_any_scenarios_raw')
 
-    elif table_name == 'str_weo_targets_raw':
+    elif table_name == 'emissions_profile_any_companies_raw':
 
-        df = read_table(spark_generate, 'str_weo_targets_landingzone')
+        df = read_table(spark_generate, 'emissions_profile_any_companies_landingzone')
 
-        str_weo_targets = df
-
-        # List of column names to replace to double
-        columns_to_replace_double = ["value", "co2_reductions"]
-
-        for column_name in columns_to_replace_double:
-            str_weo_targets = str_weo_targets.withColumn(column_name,F.col(column_name).cast(DoubleType()))
-        # to short type
-        column_to_short_type = "year"
-        str_weo_targets = str_weo_targets.withColumn(column_to_short_type,F.col(column_to_short_type).cast(ShortType()))
-
-        write_table(spark_generate, str_weo_targets, 'str_weo_targets_raw')
-
-    elif table_name == 'xctr_companies_raw':
-
-        df = read_table(spark_generate, 'xctr_companies_landingzone')
-
-        xctr_companies = df
+        emissions_profile_any_companies = df
 
         # List of columns to replace string 'nan' with None values
-        columns_to_replace = xctr_companies.columns
+        columns_to_replace = emissions_profile_any_companies.columns
 
         for column_name in columns_to_replace:
-            xctr_companies = xctr_companies.withColumn(column_name, 
+            emissions_profile_any_companies = emissions_profile_any_companies.withColumn(column_name, 
                                            when(F.col(column_name) == "nan", F.lit(None)))
             
-        write_table(spark_generate, xctr_companies, 'xctr_companies_raw'),
+        emissions_profile_any_companies = emissions_profile_any_companies.distinct()
+             
+        write_table(spark_generate, emissions_profile_any_companies, 'emissions_profile_any_companies_raw')
+    
+    elif table_name == 'emissions_profile_any_companies_ecoinvent_raw':
+
+        df = read_table(spark_generate, 'emissions_profile_any_companies_ecoinvent_landingzone')
+
+        write_table(spark_generate, df, 'emissions_profile_any_companies_ecoinvent_raw')
     
     elif table_name == 'mapper_ep_ei_raw':
 
