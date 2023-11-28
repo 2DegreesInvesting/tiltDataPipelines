@@ -83,7 +83,7 @@ def calculate_filled_values(dataframe: DataFrame) -> DataFrame:
             .withColumn('signalling_id', F.lit(None)) \
             .withColumnRenamed('invalid_count_column', 'column_name')
     col_order = ['signalling_id','check_id', 'column_name', 'check_name', 'total_count', 'valid_count']
-    df = df.select(col_order)
+    df = df.select(col_order).filter(~F.col('column_name').isin(['from_date','to_date','tiltRecordID']))
 
     return df
 
@@ -360,9 +360,10 @@ def calculate_signalling_issues(spark_session: SparkSession, dataframe: DataFram
 
         signalling_check_df = signalling_check_df.withColumn('valid_count', F.lit(valid_count).cast(IntegerType()))\
                                 .withColumn('check_id',F.lit(check_id))\
-                                .withColumn('check_name',F.lit(description_string))
+                                .withColumn('check_name',F.lit(description_string))\
+                                .withColumn('signalling_id',F.lit(None))
         
-        df = df.union(signalling_check_df).select(['check_id', 'column_name', 'check_name', 'total_count', 'valid_count'])
+        df = df.union(signalling_check_df).select(['signalling_id','check_id', 'column_name', 'check_name', 'total_count', 'valid_count'])
 
     return df
 

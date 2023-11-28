@@ -38,6 +38,8 @@ def generate_table(table_name: str) -> None:
 
         df = read_table(spark_generate, 'undefined_ao_landingzone')
 
+        df = df.distinct()
+
         write_table(spark_generate, df, 'undefined_ao_raw')
 
     elif table_name == 'cut_off_ao_raw':
