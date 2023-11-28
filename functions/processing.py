@@ -458,35 +458,13 @@ def generate_table(table_name: str) -> None:
 
         df = read_table(spark_generate, 'sector_profile_upstream_companies_landingzone')
 
-        sector_profile_upstream_companies = df
-
-        # List of columns to replace string 'nan' with None values
-        columns_to_replace = sector_profile_upstream_companies.columns
-
-        for column_name in columns_to_replace:
-            sector_profile_upstream_companies = sector_profile_upstream_companies.withColumn(column_name, 
-                                           when(F.col(column_name) == "nan", F.lit(None)))
-            
-        sector_profile_upstream_companies = sector_profile_upstream_companies.distinct()
-
-        write_table(spark_generate, sector_profile_upstream_companies, 'sector_profile_upstream_companies_raw')
+        write_table(spark_generate, df, 'sector_profile_upstream_companies_raw')
 
     elif table_name == 'sector_profile_upstream_products_raw':
 
         df = read_table(spark_generate, 'sector_profile_upstream_products_landingzone')
 
-        sector_profile_upstream_products = df
-
-        # List of columns to replace string 'nan' with None values
-        columns_to_replace = sector_profile_upstream_products.columns
-
-        for column_name in columns_to_replace:
-            sector_profile_upstream_products = sector_profile_upstream_products.withColumn(column_name, 
-                                           when(F.col(column_name) == "nan", F.lit(None)))
-            
-        sector_profile_upstream_products = sector_profile_upstream_products.distinct()
-
-        write_table(spark_generate, sector_profile_upstream_products, 'sector_profile_upstream_products_raw')
+        write_table(spark_generate, df, 'sector_profile_upstream_products_raw')
 
     elif table_name == 'emissions_profile_products_raw':
 
@@ -524,18 +502,7 @@ def generate_table(table_name: str) -> None:
 
         df = read_table(spark_generate, 'sector_profile_companies_landingzone')
 
-        sector_profile_companies = df
-
-        # List of columns to replace string 'nan' with None values
-        columns_to_replace = sector_profile_companies.columns
-
-        for column_name in columns_to_replace:
-            sector_profile_companies = sector_profile_companies.withColumn(column_name, 
-                                           when(F.col(column_name) == "nan", F.lit(None)))
-            
-        sector_profile_companies = sector_profile_companies.distinct()
-
-        write_table(spark_generate, sector_profile_companies, 'sector_profile_companies_raw')
+        write_table(spark_generate, df, 'sector_profile_companies_raw')
 
     elif table_name == 'sector_profile_any_scenarios_raw':
 
@@ -557,19 +524,8 @@ def generate_table(table_name: str) -> None:
     elif table_name == 'emissions_profile_any_companies_raw':
 
         df = read_table(spark_generate, 'emissions_profile_any_companies_landingzone')
-
-        emissions_profile_any_companies = df
-
-        # List of columns to replace string 'nan' with None values
-        columns_to_replace = emissions_profile_any_companies.columns
-
-        for column_name in columns_to_replace:
-            emissions_profile_any_companies = emissions_profile_any_companies.withColumn(column_name, 
-                                           when(F.col(column_name) == "nan", F.lit(None)))
-            
-        emissions_profile_any_companies = emissions_profile_any_companies.distinct()
              
-        write_table(spark_generate, emissions_profile_any_companies, 'emissions_profile_any_companies_raw')
+        write_table(spark_generate, df, 'emissions_profile_any_companies_raw')
     
     elif table_name == 'emissions_profile_any_companies_ecoinvent_raw':
 
