@@ -290,6 +290,7 @@ def calculate_signalling_issues(spark_session: SparkSession, dataframe: DataFram
 
     for signalling_check in signalling_check_dict:
         check_types = signalling_check.get('check')
+        
         column_name = signalling_check.get('columns')
 
         signalling_check_df = signalling_check_dummy.withColumn('column_name',F.lit(','.join(column_name)))\
