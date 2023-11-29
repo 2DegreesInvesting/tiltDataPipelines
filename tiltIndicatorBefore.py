@@ -10,4 +10,5 @@ generate_table("tilt_isic_mapper_2023-07-20_raw")
 generate_table("ecoinvent-v3.9.1_raw")
 generate_table("ecoinvent_inputs_overview_raw_raw")
 generate_table("ecoinvent_input_data_relevant_columns_raw")
+generate_table("tilt_sector_classification_raw")
 

@@ -336,10 +336,6 @@ def generate_table(table_name: str) -> None:
         column_name = "multi_match"
         ep_ei_matcher = ep_ei_matcher.withColumn(column_name, F.col(column_name).cast(BooleanType()))
 
-        # to decimal values
-        column_name = "logprob"
-        ep_ei_matcher = ep_ei_matcher.withColumn(column_name, F.col(column_name).cast(DoubleType()))  
-
         write_table(spark_generate, ep_ei_matcher, 'ep_ei_matcher_raw')  
 
     elif table_name == 'scenario_targets_IPR_NEW_raw':
@@ -382,16 +378,11 @@ def generate_table(table_name: str) -> None:
 
         write_table(spark_generate, df, 'scenario_tilt_mapper_2023-07-20_raw')
 
-    elif table_name == 'sector_resolve_raw':
+    elif table_name == 'sector_resolve_without_tiltsector_raw':
 
-        df = read_table(spark_generate, 'sector_resolve_landingzone')
+        df = read_table(spark_generate, 'sector_resolve_without_tiltsector_landingzone')
 
-        sector_resolve = df
-
-        column_name = "index"
-        sector_resolve = sector_resolve.withColumn(column_name, F.col(column_name).cast(IntegerType()))
-
-        write_table(spark_generate, sector_resolve, 'sector_resolve_raw') 
+        write_table(spark_generate, df, 'sector_resolve_without_tiltsector_raw') 
 
     elif table_name == 'tilt_isic_mapper_2023-07-20_raw':
 
@@ -428,6 +419,12 @@ def generate_table(table_name: str) -> None:
         ecoinvent_input_data_relevant_columns_raw = ecoinvent_input_data_relevant_columns_raw.withColumn(column_name, F.col(column_name).cast(DoubleType()))
 
         write_table(spark_generate, ecoinvent_input_data_relevant_columns_raw, 'ecoinvent_input_data_relevant_columns_raw') 
+
+    elif table_name == 'tilt_sector_classification_raw':
+
+        df = read_table(spark_generate, 'tilt_sector_classification_landingzone')
+
+        write_table(spark_generate, df, 'tilt_sector_classification_raw')
     
     elif table_name == 'emissions_profile_upstream_products_raw':
     

@@ -1353,11 +1353,7 @@ def get_table_definition(table_name: str = '') -> dict:
                 StructField('ep_clustered', StringType(), True),
                 StructField('activity_uuid_product_uuid', StringType(), True),
                 StructField('multi_match', StringType(), True),
-                StructField('completion', StringType(), True),
-                StructField('logprob', StringType(), True),
-                StructField('category', StringType(), True),
-                StructField('bert_activities', StringType(), True),
-                StructField('bert_epact_lcaprod', StringType(), True)
+                StructField('completion', StringType(), True)
             ]  
             ), 
             'container': 'landingzone',
@@ -1376,10 +1372,6 @@ def get_table_definition(table_name: str = '') -> dict:
                 StructField('activity_uuid_product_uuid', StringType(), True),
                 StructField('multi_match', BooleanType(), True),
                 StructField('completion', StringType(), True),
-                StructField('logprob', DoubleType(), True),
-                StructField('category', StringType(), True),
-                StructField('bert_activities', StringType(), True),
-                StructField('bert_epact_lcaprod', StringType(), True),
                 StructField('from_date', DateType(), False),
                 StructField('to_date', DateType(), False),
                 StructField('tiltRecordID', StringType(), False),
@@ -1512,33 +1504,31 @@ def get_table_definition(table_name: str = '') -> dict:
             'partition_column' : '',
             'quality_checks': []
         },
-        'sector_resolve_landingzone': {
+        'sector_resolve_without_tiltsector_landingzone': {
             'columns' :  StructType([
-                StructField('index', StringType(), False),     #renamed to index from ...1
-                StructField('clustered', StringType(), True),
-                StructField('tilt_sector', StringType(), True),
+                StructField('main_activity', StringType(), True),
+                StructField('clustered', StringType(), False),
                 StructField('tilt_subsector', StringType(), True)
             ]  
             ), 
             'container': 'landingzone',
-            'location': 'tiltIndicatorBefore/sector_resolve.csv',
+            'location': 'tiltIndicatorBefore/sector_resolve_without_tiltsector.csv',
             'type': 'csv',
             'partition_column' : '',
             'quality_checks': []
         },
-        'sector_resolve_raw': {
+        'sector_resolve_without_tiltsector_raw': {
             'columns' :  StructType([
-                StructField('index', IntegerType(), False),
-                StructField('clustered', StringType(), True),
-                StructField('tilt_sector', StringType(), True),
+                StructField('main_activity', StringType(), True),
+                StructField('clustered', StringType(), False),
                 StructField('tilt_subsector', StringType(), True),
                 StructField('from_date', DateType(), False),
                 StructField('to_date', DateType(), False),
-                StructField('tiltRecordID', StringType(), False),
+                StructField('tiltRecordID', StringType(), False)
             ]  
             ), 
             'container': 'raw',
-            'location': 'sector_resolve',
+            'location': 'sector_resolve_without_tiltsector',
             'type': 'parquet',
             'partition_column' : '',
             'quality_checks': []
@@ -1717,6 +1707,33 @@ def get_table_definition(table_name: str = '') -> dict:
             'partition_column' : '',
             'quality_checks': []
          },
+        'tilt_sector_classification_landingzone': {
+            'columns' :  StructType([
+                StructField('tilt_sector', StringType(), False),
+                StructField('tilt_subsector', StringType(), False)
+            ]  
+            ), 
+            'container': 'landingzone',
+            'location': 'tiltIndicatorBefore/tilt_sector_classification.csv',
+            'type': 'csv',
+            'partition_column' : '',
+            'quality_checks': []
+        },
+        'tilt_sector_classification_raw': {
+            'columns' :  StructType([
+                StructField('tilt_sector', StringType(), False),
+                StructField('tilt_subsector', StringType(), False),
+                StructField('from_date', DateType(), False),
+                StructField('to_date', DateType(), False),
+                StructField('tiltRecordID', StringType(), False),
+            ]  
+            ), 
+            'container': 'raw',
+            'location': 'tilt_sector_classification',
+            'type': 'parquet',
+            'partition_column' : '',
+            'quality_checks': []
+        },
         'emissions_profile_upstream_products_landingzone': {
             'columns' :  StructType([
                 StructField('activity_uuid_product_uuid', StringType(), False),
