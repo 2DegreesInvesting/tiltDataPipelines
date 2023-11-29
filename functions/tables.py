@@ -1347,13 +1347,13 @@ def get_table_definition(table_name: str = '') -> dict:
         'ep_ei_matcher_landingzone': {
             'columns' :  StructType([
                 StructField('group_var', StringType(), False),
-                StructField('ep_id', StringType(), True),
-                StructField('ep_country', StringType(), True),
-                StructField('ep_main_act', StringType(), True),
-                StructField('ep_clustered', StringType(), True),
-                StructField('activity_uuid_product_uuid', StringType(), True),
-                StructField('multi_match', StringType(), True),
-                StructField('completion', StringType(), True)
+                StructField('ep_id', StringType(), False),
+                StructField('ep_country', StringType(), False),
+                StructField('ep_main_act', StringType(), False),
+                StructField('ep_clustered', StringType(), False),
+                StructField('activity_uuid_product_uuid', StringType(), False),
+                StructField('multi_match', StringType(), False),
+                StructField('completion', StringType(), False)
             ]  
             ), 
             'container': 'landingzone',
@@ -1365,23 +1365,23 @@ def get_table_definition(table_name: str = '') -> dict:
         'ep_ei_matcher_raw': {
             'columns' :  StructType([
                 StructField('group_var', StringType(), False),
-                StructField('ep_id', StringType(), True),
+                StructField('ep_id', StringType(), False),
                 StructField('ep_country', StringType(), False),
-                StructField('ep_main_act', StringType(), True),
-                StructField('ep_clustered', StringType(), True),
-                StructField('activity_uuid_product_uuid', StringType(), True),
-                StructField('multi_match', BooleanType(), True),
-                StructField('completion', StringType(), True),
+                StructField('ep_main_act', StringType(), False),
+                StructField('ep_clustered', StringType(), False),
+                StructField('activity_uuid_product_uuid', StringType(), False),
+                StructField('multi_match', BooleanType(), False),
+                StructField('completion', StringType(), False),
                 StructField('from_date', DateType(), False),
                 StructField('to_date', DateType(), False),
-                StructField('tiltRecordID', StringType(), False),
+                StructField('tiltRecordID', StringType(), False)
             ]  
             ), 
             'container': 'raw',
             'location': 'ep_ei_matcher',
             'type': 'parquet',
             'partition_column' : '',
-            'quality_checks': []
+            'quality_checks': [['unique',['group_var']]]
         },
         'scenario_targets_IPR_NEW_landingzone': {
             'columns' :  StructType([
