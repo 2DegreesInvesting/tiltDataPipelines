@@ -426,4 +426,7 @@ def generate_table(table_name: str) -> None:
 
         write_table(spark_generate, ecoinvent_input_data_relevant_columns_raw, 'ecoinvent_input_data_relevant_columns_raw') 
 
+    else:
+        raise ValueError(f"Table {table_name} is not a valid argument for processing!")
+
     spark_generate.stop()
