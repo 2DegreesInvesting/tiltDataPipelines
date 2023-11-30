@@ -513,8 +513,8 @@ def generate_table(table_name: str) -> None:
         for column_name in columns_to_replace_double:
             sector_profile_any_scenarios = sector_profile_any_scenarios.withColumn(column_name,F.col(column_name).cast(DoubleType()))
         # to short type
-        # column_to_short_type = "year"
-        # str_ipr_targets = str_ipr_targets.withColumn(column_to_short_type,F.col(column_to_short_type).cast(ShortType()))
+        column_to_short_type = "year"
+        sector_profile_any_scenarios = sector_profile_any_scenarios.withColumn(column_to_short_type,F.col(column_to_short_type).cast(IntegerType()))
 
         write_table(spark_generate, sector_profile_any_scenarios, 'sector_profile_any_scenarios_raw')
 

@@ -1746,7 +1746,7 @@ def get_table_definition(table_name: str = '') -> dict:
             ]  
             ), 
             'container': 'landingzone',
-            'location': 'tiltIndicator/emissions_profile_upstream_products.csv',
+            'location': 'tiltIndicator/emissions_profile_upstream_products.csv/',
             'type': 'csv',
             'partition_column' : '',
             'quality_checks': []
@@ -1787,7 +1787,7 @@ def get_table_definition(table_name: str = '') -> dict:
             ]  
             ), 
             'container': 'landingzone',
-            'location': 'tiltIndicator/emissions_profile_upstream_products_ecoinvent.csv',
+            'location': 'tiltIndicator/emissions_profile_upstream_products_ecoinvent.csv/',
             'type': 'csv',
             'partition_column' : '',
             'quality_checks': []
@@ -1826,7 +1826,7 @@ def get_table_definition(table_name: str = '') -> dict:
             ]  
             ), 
             'container': 'landingzone',
-            'location': 'tiltIndicator/sector_profile_upstream_companies.csv',
+            'location': 'tiltIndicator/sector_profile_upstream_companies.csv/',
             'type': 'csv',
             'partition_column' : '',
             'quality_checks': []
@@ -1864,7 +1864,7 @@ def get_table_definition(table_name: str = '') -> dict:
             ]  
             ), 
             'container': 'landingzone',
-            'location': 'tiltIndicator/sector_profile_upstream_products.csv',
+            'location': 'tiltIndicator/sector_profile_upstream_products.csv/',
             'type': 'csv',
             'partition_column' : '',
             'quality_checks': []
@@ -1904,7 +1904,7 @@ def get_table_definition(table_name: str = '') -> dict:
             ]  
             ), 
             'container': 'landingzone',
-            'location': 'tiltIndicator/emissions_profile_products.csv',
+            'location': 'tiltIndicator/emissions_profile_products.csv/',
             'type': 'csv',
             'partition_column' : '',
             'quality_checks': []
@@ -1944,7 +1944,7 @@ def get_table_definition(table_name: str = '') -> dict:
             ]  
             ), 
             'container': 'landingzone',
-            'location': 'tiltIndicator/emissions_profile_products_ecoinvent.csv',
+            'location': 'tiltIndicator/emissions_profile_products_ecoinvent.csv/',
             'type': 'csv',
             'partition_column' : '',
             'quality_checks': []
@@ -1987,7 +1987,7 @@ def get_table_definition(table_name: str = '') -> dict:
             ]  
             ), 
             'container': 'landingzone',
-            'location': 'tiltIndicator/sector_profile_companies.csv',
+            'location': 'tiltIndicator/sector_profile_companies.csv/',
             'type': 'csv',
             'partition_column' : '',
             'quality_checks': []
@@ -2021,13 +2021,14 @@ def get_table_definition(table_name: str = '') -> dict:
                 StructField('region', StringType(), True),
                 StructField('sector', StringType(), False),
                 StructField('subsector', StringType(), True),
+                StructField('year', StringType(), True),
                 StructField('value', StringType(), False),
                 StructField('reductions', StringType(), False),
                 StructField('type', StringType(), False)
             ]  
             ), 
             'container': 'landingzone',
-            'location': 'tiltIndicator/sector_profile_any_scenarios.csv',
+            'location': 'tiltIndicator/sector_profile_any_scenarios.csv/',
             'type': 'csv',
             'partition_column' : '',
             'quality_checks': []
@@ -2038,6 +2039,7 @@ def get_table_definition(table_name: str = '') -> dict:
                 StructField('region', StringType(), True),
                 StructField('sector', StringType(), False),
                 StructField('subsector', StringType(), True),
+                StructField('year', IntegerType(), True),
                 StructField('value', DoubleType(), False),
                 StructField('reductions', DoubleType(), False),
                 StructField('type', StringType(), False),
@@ -2061,7 +2063,7 @@ def get_table_definition(table_name: str = '') -> dict:
             ]  
             ), 
             'container': 'landingzone',
-            'location': 'tiltIndicator/emissions_profile_any_companies.csv',
+            'location': 'tiltIndicator/emissions_profile_any_companies.csv/',
             'type': 'csv',
             'partition_column' : '',
             'quality_checks': []
@@ -2095,7 +2097,7 @@ def get_table_definition(table_name: str = '') -> dict:
             ]  
             ), 
             'container': 'landingzone',
-            'location': 'tiltIndicator/emissions_profile_any_companies_ecoinvent.csv',
+            'location': 'tiltIndicator/emissions_profile_any_companies_ecoinvent.csv/',
             'type': 'csv',
             'partition_column' : '',
             'quality_checks': []
