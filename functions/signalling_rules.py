@@ -845,6 +845,23 @@ signalling_checks_dictionary = {
             'value_list': ['Other Non-metallic Minerals','Agriculture & Livestock','Construction Buildings','Food Related Products','Fishing & Forestry','Bioenergy & Waste Power','Other Industry','Cement','Bioenergy & Waste Energy','Automotive LDV','Renewable Energy','Iron & Steel','Aviation','no_match','Oil Energy','Other Metals','Machinery & Equipment','Other Transport','Coal Energy','Construction Residential','Total Power','Chemicals','Shipping','Gas Energy','Total Energy','Automotive HDV']
         },
     ],
+    'ep_ei_matcher_raw':[
+        {
+            'check': 'values within list',
+            'columns':['ep_main_act'],
+            'value_list':['manufacturer/ producer', 'distributor', 'wholesaler', 'agent/ representative', 'retailer']
+        },
+        {
+            'check': 'values within list',
+            'columns': ['completion'],
+            'value_list': ['low', 'medium', 'high']
+        },
+        {
+            'check': 'values are unique',
+            'columns': ['group_var']
+        }
+
+    ]
 
 }
 

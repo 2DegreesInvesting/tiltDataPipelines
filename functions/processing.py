@@ -420,6 +420,18 @@ def generate_table(table_name: str) -> None:
 
         write_table(spark_generate, ecoinvent_input_data_relevant_columns_raw, 'ecoinvent_input_data_relevant_columns_raw') 
 
+    elif table_name == 'geography_mapper_raw':
+
+        df = read_table(spark_generate, 'geography_mapper_landingzone')
+
+        write_table(spark_generate, df, 'geography_mapper_raw')
+
+    elif table_name == 'ecoinvent_complete_new_raw':
+
+        df = read_table(spark_generate, 'ecoinvent_complete_new_landingzone')
+
+        write_table(spark_generate, df, 'ecoinvent_complete_new_raw')
+
     elif table_name == 'tilt_sector_classification_raw':
 
         df = read_table(spark_generate, 'tilt_sector_classification_landingzone')
@@ -737,6 +749,9 @@ def generate_table(table_name: str) -> None:
                             .otherwise(F.lit(None))) 
 
         write_table(spark_generate, df, 'sector_upstream_profile_product_raw')
+
+    else:
+        raise ValueError(f'The table: {table_name} is not specified in the processing functions')
 
     # If the code is run as a workflow on databricks, we do not want to shutdown the spark session. 
     # This will cause the cluster to be unusable for other spark processes
