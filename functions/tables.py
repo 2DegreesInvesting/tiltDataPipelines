@@ -1,4 +1,4 @@
-from pyspark.sql.types import StringType, StructType, StructField, DataType, BooleanType, DoubleType, ShortType, TimestampType, IntegerType, DoubleType, DateType, ByteType
+from pyspark.sql.types import StringType, StructType, StructField, DataType, BooleanType, DoubleType, ShortType, TimestampType, IntegerType, DateType, ByteType
 
 
 def get_table_definition(table_name: str = '') -> dict:
