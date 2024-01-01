@@ -1,4 +1,33 @@
-from pyspark.sql.types import StringType, StructType, StructField, DataType, BooleanType, DoubleType, ShortType, TimestampType, IntegerType, DateType, ByteType
+"""
+This module contains the definition of various tables used in the application.
+
+Each table is defined as a dictionary with the following keys:
+- 'columns': A StructType object defining the schema of the table.
+- 'container': The name of the container where the table is stored.
+- 'location': The location of the table within the container.
+- 'type': The data type of the table.
+- 'partition_column': The name of the partition column in the table.
+- 'quality_checks': A list of quality checks to be performed on the table.
+
+The `get_table_definition` function is used to retrieve the definition of a specific table.
+
+Example:
+    'table_name_container': {
+        'columns' :  StructType([
+            StructField('string_column', StringType(), False),
+            StructField('integer_column', IntegerType(), True),
+            StructField('decimal_column', DoubleType(), True),
+            StructField('Date_column', DateType(), True),
+        ]), 
+        'container': 'container_name',
+        'location': 'location_in_container',
+        'type': 'data_type',
+        'partition_column' : 'name_of_partition_column',
+        'quality_checks': [['unique', ['string_column']],
+                           ['format', 'string_column', r"[a-zA-Z\-]"]]
+    }
+"""
+from pyspark.sql.types import StringType, StructType, StructField, BooleanType, DoubleType, ShortType, TimestampType, IntegerType, DateType, ByteType
 
 
 def get_table_definition(table_name: str = '') -> dict:
