@@ -1,6 +1,6 @@
 import os
 import pyspark.sql.functions as F
-from pyspark.sql.types import DoubleType, IntegerType, TimestampType, BooleanType, ShortType, DoubleType, ByteType
+from pyspark.sql.types import DoubleType, IntegerType, BooleanType, ShortType
 from functions.custom_dataframes import CustomDF
 from functions.spark_session import create_spark_session
 
