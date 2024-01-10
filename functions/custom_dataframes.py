@@ -10,6 +10,27 @@ from functions.tables import get_table_definition
 
 
 class CustomDF:
+    """
+    A custom DataFrame class that wraps a PySpark DataFrame for additional functionality.
+
+    This class provides a convenient way to work with PySpark DataFrames. It includes methods for reading data from a table, writing data to a table, and performing various transformations on the data.
+
+    Attributes:
+        _name (str): The name of the table.
+        _spark_session (SparkSession): The SparkSession object.
+        _schema (dict): The schema of the table, retrieved from the get_table_definition function.
+        _partition_name (str): The name of the partition column in the table.
+        _history (str): The history setting for the table, either 'complete' or 'recent'.
+        _env (str): The environment setting, default is 'develop'.
+        _path (str): The path to the table.
+        _df (DataFrame): The PySpark DataFrame containing the table data.
+
+    Methods:
+        table_path(): Builds the path for a table based on the container, location, and optional partition.
+        read_table(): Reads data from a table based on the schema type and applies various transformations.
+        write_table(): Writes data from the DataFrame to a table.
+    """
+
     def __init__(self, table_name: str, spark_session: SparkSession, initial_df: DataFrame = None,  partition_name: str = '', history: str = 'recent'):
         self._name = table_name
         self._spark_session = spark_session
@@ -457,6 +478,12 @@ class CustomDF:
 
         if self._name != 'monitoring_values':
             self.check_signalling_issues()
+
+    def convert_data_types(self, column_list: list, data_type):
+
+        for column in column_list:
+            self._df = self._df.withColumn(
+                column, F.col(column).cast(data_type))
 
     def custom_join(self, custom_other: 'CustomDF', custom_on: str = None, custom_how: str = None):
         """

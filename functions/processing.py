@@ -2,7 +2,7 @@ import os
 import pyspark.sql.functions as F
 from pyspark.sql.types import DoubleType, IntegerType, TimestampType, BooleanType, ShortType, DoubleType, ByteType
 from functions.custom_dataframes import CustomDF
-from functions.spark_session import create_spark_session  # read_table, write_table,
+from functions.spark_session import create_spark_session
 
 
 def generate_table(table_name: str) -> None:
@@ -23,24 +23,24 @@ def generate_table(table_name: str) -> None:
 
         geographies_raw.write_table()
 
-    elif table_name == 'geographies_transform':
+    # elif table_name == 'geographies_transform':
 
-        geographies_raw = CustomDF('geographies_raw', spark_generate)
+    #     geographies_raw = CustomDF('geographies_raw', spark_generate)
 
-        geographies_transform = CustomDF('geographies_transform', spark_generate, initial_df=geographies_raw.data.select(
-            'ID', 'Name', 'Shortname', 'Geographical Classification'))
+    #     geographies_transform = CustomDF('geographies_transform', spark_generate, initial_df=geographies_raw.data.select(
+    #         'ID', 'Name', 'Shortname', 'Geographical Classification'))
 
-        geographies_related_df = geographies_raw.data.select(
-            'Shortname', 'Contained and Overlapping Geographies')
+    #     geographies_related_df = geographies_raw.data.select(
+    #         'Shortname', 'Contained and Overlapping Geographies')
 
-        geographies_related_df = geographies_related_df.withColumn(
-            'Shortname_related', F.explode(F.split('Contained and Overlapping Geographies', ';')))
+    #     geographies_related_df = geographies_related_df.withColumn(
+    #         'Shortname_related', F.explode(F.split('Contained and Overlapping Geographies', ';')))
 
-        geographies_related = CustomDF('geographies_related', spark_generate, initial_df=geographies_related_df.select(
-            'Shortname', 'Shortname_related'))
+    #     geographies_related = CustomDF('geographies_related', spark_generate, initial_df=geographies_related_df.select(
+    #         'Shortname', 'Shortname_related'))
 
-        geographies_transform.write_table()
-        geographies_related.write_table()
+    #     geographies_transform.write_table()
+    #     geographies_related.write_table()
 
     elif table_name == 'undefined_ao_raw':
 
@@ -145,11 +145,14 @@ def generate_table(table_name: str) -> None:
     #     write_table(spark_generate, relational_df,
     #                 'products_activities_transformed', 'AO Method')
 
-    # elif table_name == 'lcia_methods_raw':
+    elif table_name == 'lcia_methods_raw':
 
-    #     df = read_table(spark_generate, 'lcia_methods_landingzone')
+        lcia_methods_landingzone = CustomDF(
+            'lcia_methods_landingzone', spark_generate)
 
-    #     write_table(spark_generate, df, 'lcia_methods_raw')
+        lcia_methods_raw = CustomDF(
+            'lcia_methods_raw', spark_generate, initial_df=lcia_methods_landingzone.data)
+        lcia_methods_raw.write_table()
 
     elif table_name == 'impact_categories_raw':
 
@@ -169,690 +172,249 @@ def generate_table(table_name: str) -> None:
             'intermediate_exchanges_raw', spark_generate, initial_df=intermediate_exchanges_landingzone.data)
         intermediate_exchanges_raw.write_table()
 
-    # elif table_name == 'elementary_exchanges_raw':
+    elif table_name == 'elementary_exchanges_raw':
 
-    #     df = read_table(spark_generate, 'elementary_exchanges_landingzone')
+        elementary_exchanges_landingzone = CustomDF(
+            'elementary_exchanges_landingzone', spark_generate)
 
-    #     write_table(spark_generate, df, 'elementary_exchanges_raw')
+        elementary_exchanges_raw = CustomDF(
+            'elementary_exchanges_raw', spark_generate, initial_df=elementary_exchanges_landingzone.data)
+        elementary_exchanges_raw.write_table()
 
-    # elif table_name == 'issues_companies_raw':
+    elif table_name == 'ep_ei_matcher_raw':
 
-    #     df = read_table(spark_generate, 'issues_companies_landingzone')
+        ep_ei_matcher_landingzone = CustomDF(
+            'ep_ei_matcher_landingzone', spark_generate)
 
-    #     write_table(spark_generate, df, 'issues_companies_raw')
+        ep_ei_matcher_landingzone.convert_data_types(
+            ['multi_match'], BooleanType())
 
-    # elif table_name == 'issues_raw':
+        ep_ei_matcher_raw = CustomDF(
+            'ep_ei_matcher_raw', spark_generate, initial_df=ep_ei_matcher_landingzone.data)
 
-    #     df = read_table(spark_generate, 'issues_landingzone')
+        ep_ei_matcher_raw.write_table()
 
-    #     write_table(spark_generate, df, 'issues_raw')
+    elif table_name == 'scenario_targets_IPR_NEW_raw':
 
-    # elif table_name == 'sea_food_companies_raw':
+        scenario_targets_IPR_NEW_landingzone = CustomDF(
+            'scenario_targets_IPR_NEW_landingzone', spark_generate)
 
-    #     df = read_table(spark_generate, 'sea_food_companies_landingzone')
+        scenario_targets_IPR_NEW_landingzone.convert_data_types(
+            ['Year'], ShortType())
 
-    #     write_table(spark_generate, df, 'sea_food_companies_raw')
+        column_names = ["Value", "Reductions"]
 
-    # elif table_name == 'sea_food_raw':
+        scenario_targets_IPR_NEW_landingzone.convert_data_types(
+            column_names, DoubleType())
 
-    #     sea_food = read_table(spark_generate, 'sea_food_landingzone')
+        scenario_targets_IPR_NEW_raw = CustomDF(
+            'scenario_targets_IPR_NEW_raw', spark_generate, initial_df=scenario_targets_IPR_NEW_landingzone.data)
 
-    #     # List of column names to replace to boolean values
-    #     columns_to_replace = ["supply_chain_feed", "supply_chain_fishing", "supply_chain_aquaculture", "supply_chain_processing",
-    #                           "supply_chain_wholesale_distribution", "supply_chain_retail", "supply_chain_foodservice", "supply_chain_fishing_vessels",
-    #                           "supply_chain_fishing_and_aquaculture_gear_equipment", "supply_chain_other", "full_species_disclosure_for_entire_portfolio",
-    #                           "full_species_disclosure_for_at_least_part_of_portfolio"]
-    #     for column_name_1 in columns_to_replace:
+        scenario_targets_IPR_NEW_raw.write_table()
 
-    #         sea_food = sea_food.withColumn(column_name_1,
-    #                                        when(F.col(column_name_1)
-    #                                             == "yes", F.lit(True))
-    #                                        .when(F.col(column_name_1) == "no", F.lit(False))
-    #                                        .otherwise(F.lit(None)))
+    elif table_name == 'scenario_targets_WEO_NEW_raw':
 
-    #     # List of column names to replace to float values
-    #     columns_to_replace_float = ["reporting_precision_pt_score", "world_benchmarking_alliance_seafood_stewardship_index", "ocean_health_index_score_2012",
-    #                                 "ocean_health_index_score_2021", "ocean_health_index_score_percent_change_2021_2012", "fish_source_score_management_quality",
-    #                                 "fish_source_score_managers_compliance", "fish_source_score_fishers_compliance", "fish_source_score_current_stock_health",
-    #                                 "fish_source_score_future_stock_health", "sea_around_us_unreported_total_catch_percent", "sea_around_us_bottom_trawl_total_catch_percent_35", "sea_around_us_gillnets_total_catch_percent", "global_fishing_index_data_availability_on_stock_sustainability", "global_fishing_index_proportion_of_assessed_fish_stocks_that_is_sustainable", "global_fishing_index_proportion_of_1990_2018_catches_that_is_sustainable", "global_fishing_index_proportion_of_1990_2018_catches_that_is_overfished", "global_fishing_index_proportion_of_1990_2018_catches_that_is_not_assessed", "global_fishing_index_fisheries_governance_score", "global_fishing_index_alignment_with_international_standards_for_protecting_worker_rights_and_safety_in_fisheries_assessment_score", "global_fishing_index_fishery_subsidy_program_assessment_score", "global_fishing_index_knowledge_on_fishing_fleets_assessment_score",
-    #                                 "global_fishing_index_compliance_monitoring_and_surveillance_programs_assessment_score", "global_fishing_index_severity_of_fishery_sanctions_assessment_score", "global_fishing_index_access_of_foreign_fishing_fleets_assessment_score"]
+        scenario_targets_WEO_NEW_landingzone = CustomDF(
+            'scenario_targets_WEO_NEW_landingzone', spark_generate)
 
-    #     for column_name_2 in columns_to_replace_float:
-    #         sea_food = sea_food.withColumn(
-    #             column_name_2, F.col(column_name_2).cast(DoubleType()))
+        scenario_targets_WEO_NEW_landingzone.convert_data_types(
+            ['Year'], ShortType())
 
-    #     # writing the dataframe is a temporary fix to avoid getting an error within the grpc package
-    #     temp_seafood_location = 'abfss://raw@storagetiltdevelop.dfs.core.windows.net/sea_food_temp/'
-    #     sea_food.coalesce(1).write.mode(
-    #         'overwrite').parquet(temp_seafood_location)
+        column_names = ["Value", "Reductions"]
 
-    #     sea_food = spark_generate.read.format(
-    #         'parquet').load(temp_seafood_location)
+        scenario_targets_WEO_NEW_landingzone.convert_data_types(
+            column_names, DoubleType())
 
-    #     write_table(spark_generate, sea_food, 'sea_food_raw')
+        scenario_targets_WEO_NEW_raw = CustomDF(
+            'scenario_targets_WEO_NEW_raw', spark_generate, initial_df=scenario_targets_IPR_NEW_landingzone.data)
 
-    # elif table_name == 'products_companies_raw':
+        scenario_targets_WEO_NEW_raw.write_table()
 
-    #     df = read_table(spark_generate, 'products_companies_landingzone')
+    elif table_name == 'scenario_tilt_mapper_2023-07-20_raw':
 
-    #     write_table(spark_generate, df, 'products_companies_raw')
+        scenario_tilt_mapper_landingzone = CustomDF(
+            'scenario_tilt_mapper_2023-07-20_landingzone', spark_generate)
 
-    # elif table_name == 'companies_raw':
+        scenario_tilt_mapper_raw = CustomDF(
+            'scenario_tilt_mapper_2023-07-20_raw', spark_generate, initial_df=scenario_tilt_mapper_landingzone.data)
 
-    #     companies = read_table(spark_generate, 'companies_landingzone')
+        scenario_tilt_mapper_raw.write_table()
 
-    #     # List of column names to replace to byte values
-    #     columns_to_replace_byte = ["min_headcount",
-    #                                "max_headcount", "year_established"]
+    elif table_name == 'tilt_isic_mapper_2023-07-20_raw':
 
-    #     for column_name in columns_to_replace_byte:
-    #         companies = companies.withColumn(
-    #             column_name, F.col(column_name).cast(IntegerType()))
+        tilt_isic_mapper_landingzone = CustomDF(
+            'tilt_isic_mapper_2023-07-20_raw', spark_generate)
 
-    #     # to boolean values
-    #     column_name = "verified_by_europages"
-    #     companies = companies.withColumn(
-    #         column_name, F.col(column_name).cast(BooleanType()))
+        tilt_isic_mapper_raw = CustomDF(
+            'tilt_isic_mapper_2023-07-20_raw', spark_generate, initial_df=tilt_isic_mapper_landingzone.data)
 
-    #     # to timestamp values
-    #     column_name = "download_datetime"
-    #     companies = companies.withColumn(
-    #         column_name, F.col(column_name).cast(TimestampType()))
+        tilt_isic_mapper_raw.write_table()
 
-    #     write_table(spark_generate, companies, 'companies_raw')
+    elif table_name == 'geography_mapper_raw':
 
-    # elif table_name == 'main_activity_raw':
+        geography_mapper_landingzone = CustomDF(
+            'geography_mapper_landingzone', spark_generate)
 
-    #     df = read_table(spark_generate, 'main_activity_landingzone')
+        geography_mapper_raw = CustomDF(
+            'geography_mapper_raw', spark_generate, initial_df=geography_mapper_landingzone.data)
 
-    #     write_table(spark_generate, df, 'main_activity_raw')
+        geography_mapper_raw.write_table()
 
-    # elif table_name == 'geography_raw':
+    elif table_name == 'mapper_ep_ei_raw':
 
-    #     df = read_table(spark_generate, 'geography_landingzone')
+        mapper_ep_ei_landingzone = CustomDF(
+            'mapper_ep_ei_landingzone', spark_generate)
 
-    #     write_table(spark_generate, df, 'geography_raw')
+        mapper_ep_ei_landingzone.convert_data_types(
+            ['multi_match'], BooleanType())
 
-    # elif table_name == 'country_raw':
+        mapper_ep_ei_raw = CustomDF(
+            'mapper_ep_ei_raw', spark_generate, initial_df=mapper_ep_ei_landingzone.data)
 
-    #     df = read_table(spark_generate, 'country_landingzone')
+        mapper_ep_ei_raw.write_table()
 
-    #     write_table(spark_generate, df, 'country_raw')
+    elif table_name == 'emission_profile_company_raw':
 
-    # elif table_name == 'delimited_products_raw':
+        emission_profile_company_landingzone = CustomDF(
+            'emission_profile_company_landingzone', spark_generate)
 
-    #     df = read_table(spark_generate, 'delimited_products_landingzone')
+        cast_to_float = ['emission_share_ew', 'emission_share_bc',
+                         'emission_share_wc', 'Co2e_upper', 'Co2e_lower']
 
-    #     write_table(spark_generate, df, 'delimited_products_raw')
+        emission_profile_company_landingzone.convert_data_types(
+            cast_to_float, DoubleType())
 
-    # elif table_name == 'products_raw':
+        emission_profile_company_raw = CustomDF(
+            'emission_profile_company_raw', spark_generate, initial_df=emission_profile_company_landingzone.data)
 
-    #     df = read_table(spark_generate, 'products_landingzone')
+        emission_profile_company_raw.write_table()
 
-    #     write_table(spark_generate, df, 'products_raw')
+    elif table_name == 'emission_profile_product_raw':
 
-    # elif table_name == 'categories_companies_raw':
+        emission_profile_product_landingzone = CustomDF(
+            'emission_profile_product_landingzone', spark_generate)
 
-    #     df = read_table(spark_generate, 'categories_companies_landingzone')
+        cast_to_float = ['Co2e_upper', 'Co2e_lower']
 
-    #     write_table(spark_generate, df, 'categories_companies_raw')
+        emission_profile_product_landingzone.convert_data_types(
+            cast_to_float, DoubleType())
 
-    # elif table_name == 'delimited_raw':
+        emission_profile_product_landingzone.data = emission_profile_product_landingzone.data.withColumn('multi_match',
+                                                                                                         F.when(
+                                                                                                             F.col('multi_match') == "TRUE", F.lit(True))
+                                                                                                         .when(F.col('multi_match') == "FALSE", F.lit(False))
+                                                                                                         .otherwise(F.lit(None)))
 
-    #     df = read_table(spark_generate, 'delimited_landingzone')
+        emission_profile_product_raw = CustomDF(
+            'emission_profile_product_raw', spark_generate, initial_df=emission_profile_product_landingzone.data)
 
-    #     write_table(spark_generate, df, 'delimited_raw')
+        emission_profile_product_raw.write_table()
 
-    # elif table_name == 'clustered_delimited_raw':
+    elif table_name == 'emission_upstream_profile_company_raw':
 
-    #     df = read_table(spark_generate, 'clustered_delimited_landingzone')
+        emission_upstream_profile_company_landingzone = CustomDF(
+            'emission_upstream_profile_company_landingzone', spark_generate)
 
-    #     write_table(spark_generate, df, 'clustered_delimited_raw')
+        cast_to_float = ['emission_upstream_share_ew', 'emission_upstream_share_bc',
+                         'emission_upstream_share_wc', 'Co2e_input_lower', 'Co2e_input_upper']
 
-    # elif table_name == 'clustered_raw':
+        emission_upstream_profile_company_landingzone.convert_data_types(
+            cast_to_float, DoubleType())
 
-    #     df = read_table(spark_generate, 'clustered_landingzone')
+        emission_upstream_profile_company_raw = CustomDF(
+            'emission_upstream_profile_company_raw', spark_generate, initial_df=emission_upstream_profile_company_landingzone.data)
 
-    #     write_table(spark_generate, df, 'clustered_raw')
+        emission_upstream_profile_company_raw.write_table()
 
-    # elif table_name == 'categories_sector_ecoinvent_delimited_raw':
+    elif table_name == 'emission_upstream_profile_product_raw':
 
-    #     df = read_table(
-    #         spark_generate, 'categories_sector_ecoinvent_delimited_landingzone')
+        emission_upstream_profile_product_landingzone = CustomDF(
+            'emission_upstream_profile_product_landingzone', spark_generate)
 
-    #     write_table(spark_generate, df,
-    #                 'categories_sector_ecoinvent_delimited_raw')
+        cast_to_float = ['Co2e_input_lower', 'Co2e_input_upper']
 
-    # elif table_name == 'categories_raw':
+        emission_upstream_profile_product_landingzone.convert_data_types(
+            cast_to_float, DoubleType())
+        emission_upstream_profile_product_landingzone.data = emission_upstream_profile_product_landingzone.data.withColumn('multi_match',
+                                                                                                                           F.when(
+                                                                                                                               F.col('multi_match') == "TRUE", F.lit(True))
+                                                                                                                           .when(F.col('multi_match') == "FALSE", F.lit(False))
+                                                                                                                           .otherwise(F.lit(None)))
 
-    #     df = read_table(spark_generate, 'categories_landingzone')
+        emission_upstream_profile_product_raw = CustomDF(
+            'emission_upstream_profile_product_raw', spark_generate, initial_df=emission_upstream_profile_product_landingzone.data)
 
-    #     write_table(spark_generate, df, 'categories_raw')
+        emission_upstream_profile_product_raw.write_table()
 
-    # elif table_name == 'sector_ecoinvent_delimited_sector_ecoinvent_raw':
+    elif table_name == 'sector_profile_company_raw':
 
-    #     df = read_table(
-    #         spark_generate, 'sector_ecoinvent_delimited_sector_ecoinvent_landingzone')
+        sector_profile_company_landingzone = CustomDF(
+            'sector_profile_company_landingzone', spark_generate)
 
-    #     write_table(spark_generate, df,
-    #                 'sector_ecoinvent_delimited_sector_ecoinvent_raw')
+        cast_to_float = ['sector_share_ew',
+                         'sector_share_bc', 'sector_share_wc']
 
-    # elif table_name == 'sector_ecoinvent_delimited_raw':
+        sector_profile_company_landingzone.convert_data_types(
+            cast_to_float, DoubleType())
 
-    #     df = read_table(
-    #         spark_generate, 'sector_ecoinvent_delimited_landingzone')
+        sector_profile_company_landingzone.convert_data_types(
+            ['year'], IntegerType())
 
-    #     write_table(spark_generate, df, 'sector_ecoinvent_delimited_raw')
+        sector_profile_company_raw = CustomDF(
+            'sector_profile_company_raw', spark_generate, initial_df=sector_profile_company_landingzone.data)
 
-    # elif table_name == 'sector_ecoinvent_raw':
+        sector_profile_company_raw.write_table()
 
-    #     df = read_table(spark_generate, 'sector_ecoinvent_landingzone')
+    elif table_name == 'sector_profile_product_raw':
 
-    #     write_table(spark_generate, df, 'sector_ecoinvent_raw')
+        sector_profile_product_landingzone = CustomDF(
+            'sector_profile_product_landingzone', spark_generate)
 
-    # elif table_name == 'product_matching_complete_all_cases_raw':
+        sector_profile_product_landingzone.convert_data_types(
+            ['year'], IntegerType())
+        sector_profile_product_landingzone.data = sector_profile_product_landingzone.data.withColumn('multi_match',
+                                                                                                     F.when(
+                                                                                                         F.col('multi_match') == "TRUE", F.lit(True))
+                                                                                                     .when(F.col('multi_match') == "FALSE", F.lit(False))
+                                                                                                     .otherwise(F.lit(None)))
 
-    #     df = read_table(
-    #         spark_generate, 'product_matching_complete_all_cases_landingzone')
+        sector_profile_product_raw = CustomDF(
+            'sector_profile_product_raw', spark_generate, initial_df=sector_profile_product_landingzone.data)
 
-    #     product_matching_df = df.select('group_var', 'ep_id', 'lca_id')
+        sector_profile_product_raw.write_table()
 
-    #     write_table(spark_generate, product_matching_df,
-    #                 'product_matching_complete_all_cases_raw')
+    elif table_name == 'sector_upstream_profile_company_raw':
 
-    # elif table_name == 'labelled_activity_v1.0_raw':
+        sector_upstream_profile_company_landingzone = CustomDF(
+            'sector_upstream_profile_company_landingzone', spark_generate)
 
-    #     df = read_table(spark_generate, 'labelled_activity_v1.0_landingzone')
+        cast_to_float = ['sector_upstream_share_ew',
+                         'sector_upstream_share_bc', 'sector_upstream_share_wc']
+        sector_upstream_profile_company_landingzone.convert_data_types(
+            cast_to_float, DoubleType())
+        sector_upstream_profile_company_landingzone.convert_data_types(
+            ['year'], IntegerType())
 
-    #     activity_matching_df = df.select(
-    #         'index', 'ep_act_id', 'ep_country', 'Activity UUID & Product UUID')
+        sector_upstream_profile_company_raw = CustomDF(
+            'sector_upstream_profile_company_raw', spark_generate, initial_df=sector_upstream_profile_company_landingzone.data)
+        sector_upstream_profile_company_raw.write_table()
 
-    #     write_table(spark_generate, activity_matching_df,
-    #                 'labelled_activity_v1.0_raw')
+    elif table_name == 'sector_upstream_profile_product_raw':
 
-    # elif table_name == 'ep_companies_NL_postcode_raw':
+        sector_upstream_profile_product_landingzone = CustomDF(
+            'sector_upstream_profile_product_landingzone', spark_generate)
 
-    #     df = read_table(spark_generate, 'ep_companies_NL_postcode_landingzone')
+        sector_upstream_profile_product_landingzone.convert_data_types(
+            ['year'], IntegerType())
+        sector_upstream_profile_product_landingzone.data = sector_upstream_profile_product_landingzone.data.withColumn('multi_match',
+                                                                                                                       F.when(
+                                                                                                                           F.col('multi_match') == "TRUE", F.lit(True))
+                                                                                                                       .when(F.col('multi_match') == "FALSE", F.lit(False))
+                                                                                                                       .otherwise(F.lit(None)))
 
-    #     write_table(spark_generate, df, 'ep_companies_NL_postcode_raw')
-
-    # elif table_name == 'ep_ei_matcher_raw':
-
-    #     df = read_table(spark_generate, 'ep_ei_matcher_landingzone')
-
-    #     ep_ei_matcher = df
-
-    #     # to replace to boolean values
-    #     column_name = "multi_match"
-    #     ep_ei_matcher = ep_ei_matcher.withColumn(
-    #         column_name, F.col(column_name).cast(BooleanType()))
-
-    #     write_table(spark_generate, ep_ei_matcher, 'ep_ei_matcher_raw')
-
-    # elif table_name == 'scenario_targets_IPR_NEW_raw':
-
-    #     df = read_table(spark_generate, 'scenario_targets_IPR_NEW_landingzone')
-
-    #     scenario_targets_IPR_NEW = df
-
-    #     # to replace to integer values
-    #     column_name = "Year"
-    #     scenario_targets_IPR_NEW = scenario_targets_IPR_NEW.withColumn(
-    #         column_name, F.col(column_name).cast(ShortType()))
-
-    #     column_names = ["Value", "Reductions"]
-    #     # to decimal values
-    #     for column in column_names:
-    #         scenario_targets_IPR_NEW = scenario_targets_IPR_NEW.withColumn(
-    #             column, F.col(column).cast(DoubleType()))
-
-    #     write_table(spark_generate, scenario_targets_IPR_NEW,
-    #                 'scenario_targets_IPR_NEW_raw')
-
-    # elif table_name == 'scenario_targets_WEO_NEW_raw':
-
-    #     df = read_table(spark_generate, 'scenario_targets_WEO_NEW_landingzone')
-
-    #     scenario_targets_WEO_NEW = df
-
-    #     # to replace to integer values
-    #     column_name = "YEAR"
-    #     scenario_targets_WEO_NEW = scenario_targets_WEO_NEW.withColumn(
-    #         column_name, F.col(column_name).cast(ShortType()))
-
-    #     column_names = ["VALUE", "REDUCTIONS"]
-    #     # to decimal values
-    #     for column in column_names:
-    #         scenario_targets_WEO_NEW = scenario_targets_WEO_NEW.withColumn(
-    #             column, F.col(column).cast(DoubleType()))
-
-    #     write_table(spark_generate, scenario_targets_WEO_NEW,
-    #                 'scenario_targets_WEO_NEW_raw')
-
-    # elif table_name == 'scenario_tilt_mapper_2023-07-20_raw':
-
-    #     df = read_table(
-    #         spark_generate, 'scenario_tilt_mapper_2023-07-20_landingzone')
-
-    #     write_table(spark_generate, df, 'scenario_tilt_mapper_2023-07-20_raw')
-
-    # elif table_name == 'sector_resolve_without_tiltsector_raw':
-
-    #     df = read_table(
-    #         spark_generate, 'sector_resolve_without_tiltsector_landingzone')
-
-    #     write_table(spark_generate, df,
-    #                 'sector_resolve_without_tiltsector_raw')
-
-    # elif table_name == 'tilt_isic_mapper_2023-07-20_raw':
-
-    #     df = read_table(
-    #         spark_generate, 'tilt_isic_mapper_2023-07-20_landingzone')
-
-    #     write_table(spark_generate, df, 'tilt_isic_mapper_2023-07-20_raw')
-
-    # elif table_name == 'ecoinvent-v3.9.1_raw':
-
-    #     df = read_table(spark_generate, 'ecoinvent-v3.9.1_landingzone')
-
-    #     ecoinvent_licenced = df
-
-    #     # to replace to decimal values
-    #     column_name = "ipcc_2021_climate_change_global_warming_potential_gwp100_kg_co2_eq"
-    #     ecoinvent_licenced = ecoinvent_licenced.withColumn(
-    #         column_name, F.col(column_name).cast(DoubleType()))
-
-    #     write_table(spark_generate, ecoinvent_licenced, 'ecoinvent-v3.9.1_raw')
-
-    # elif table_name == 'ecoinvent_inputs_overview_raw_raw':
-
-    #     df = read_table(
-    #         spark_generate, 'ecoinvent_inputs_overview_raw_landingzone')
-
-    #     write_table(spark_generate, df, 'ecoinvent_inputs_overview_raw_raw')
-
-    # elif table_name == 'ecoinvent_input_data_relevant_columns_raw':
-
-    #     df = read_table(
-    #         spark_generate, 'ecoinvent_input_data_relevant_columns_landingzone')
-
-    #     ecoinvent_input_data_relevant_columns_raw = df
-
-    #     # to replace to decimal values
-    #     column_name = "exchange amount"
-    #     ecoinvent_input_data_relevant_columns_raw = ecoinvent_input_data_relevant_columns_raw.withColumn(
-    #         column_name, F.col(column_name).cast(DoubleType()))
-
-    #     write_table(spark_generate, ecoinvent_input_data_relevant_columns_raw,
-    #                 'ecoinvent_input_data_relevant_columns_raw')
-
-    # elif table_name == 'geography_mapper_raw':
-
-    #     df = read_table(spark_generate, 'geography_mapper_landingzone')
-
-    #     write_table(spark_generate, df, 'geography_mapper_raw')
-
-    # elif table_name == 'ecoinvent_complete_new_raw':
-
-    #     df = read_table(spark_generate, 'ecoinvent_complete_new_landingzone')
-
-    #     write_table(spark_generate, df, 'ecoinvent_complete_new_raw')
-
-    # elif table_name == 'tilt_sector_classification_raw':
-
-    #     df = read_table(
-    #         spark_generate, 'tilt_sector_classification_landingzone')
-
-    #     write_table(spark_generate, df, 'tilt_sector_classification_raw')
-
-    # elif table_name == 'emissions_profile_upstream_products_raw':
-
-    #     df = read_table(
-    #         spark_generate, 'emissions_profile_upstream_products_landingzone')
-
-    #     emissions_profile_upstream_products = df
-
-    #     # to decimal
-    #     column_name = "input_co2_footprint"
-    #     emissions_profile_upstream_products = emissions_profile_upstream_products.withColumn(
-    #         column_name, F.col(column_name).cast(DoubleType()))
-
-    #     write_table(spark_generate, emissions_profile_upstream_products,
-    #                 "emissions_profile_upstream_products_raw")
-
-    # elif table_name == 'emissions_profile_upstream_products_ecoinvent_raw':
-
-    #     df = read_table(
-    #         spark_generate, 'emissions_profile_upstream_products_ecoinvent_landingzone')
-
-    #     emissions_profile_upstream_products_ecoinvent = df
-
-    #     column_names = ["input_co2_footprint", "profile_ranking"]
-    #     # to decimal values
-    #     for column in column_names:
-    #         emissions_profile_upstream_products_ecoinvent = emissions_profile_upstream_products_ecoinvent.withColumn(
-    #             column, F.col(column).cast(DoubleType()))
-
-    #     write_table(spark_generate, emissions_profile_upstream_products_ecoinvent,
-    #                 "emissions_profile_upstream_products_ecoinvent_raw")
-
-    # elif table_name == 'sector_profile_upstream_companies_raw':
-
-    #     df = read_table(
-    #         spark_generate, 'sector_profile_upstream_companies_landingzone')
-
-    #     write_table(spark_generate, df,
-    #                 'sector_profile_upstream_companies_raw')
-
-    # elif table_name == 'sector_profile_upstream_products_raw':
-
-    #     df = read_table(
-    #         spark_generate, 'sector_profile_upstream_products_landingzone')
-
-    #     write_table(spark_generate, df, 'sector_profile_upstream_products_raw')
-
-    # elif table_name == 'emissions_profile_products_raw':
-
-    #     df = read_table(
-    #         spark_generate, 'emissions_profile_products_landingzone')
-
-    #     emissions_profile_products = df
-
-    #     # to decimal
-    #     column_name = "co2_footprint"
-    #     emissions_profile_products = emissions_profile_products.withColumn(
-    #         column_name, F.col(column_name).cast(DoubleType()))
-
-    #     # List of columns to replace string 'not available' with None values
-    #     columns_to_replace = ["isic_4digit"]
-
-    #     for column_name_2 in columns_to_replace:
-    #         emissions_profile_products = emissions_profile_products.withColumn(column_name_2,
-    #                                                                            when(F.col(column_name_2) == "not available", F.lit(None)))
-
-    #     write_table(spark_generate, emissions_profile_products,
-    #                 'emissions_profile_products_raw')
-
-    # elif table_name == 'emissions_profile_products_ecoinvent_raw':
-
-    #     df = read_table(
-    #         spark_generate, 'emissions_profile_products_ecoinvent_landingzone')
-
-    #     emissions_profile_products_ecoinvent = df
-
-    #     column_names = ["co2_footprint", "profile_ranking"]
-    #     # to decimal values
-    #     for column in column_names:
-    #         emissions_profile_products_ecoinvent = emissions_profile_products_ecoinvent.withColumn(
-    #             column, F.col(column).cast(DoubleType()))
-
-    #     write_table(spark_generate, emissions_profile_products_ecoinvent,
-    #                 'emissions_profile_products_ecoinvent_raw')
-
-    # elif table_name == 'sector_profile_companies_raw':
-
-    #     df = read_table(spark_generate, 'sector_profile_companies_landingzone')
-
-    #     write_table(spark_generate, df, 'sector_profile_companies_raw')
-
-    # elif table_name == 'sector_profile_any_scenarios_raw':
-
-    #     df = read_table(
-    #         spark_generate, 'sector_profile_any_scenarios_landingzone')
-
-    #     # List of column names to replace to double
-    #     columns_to_replace_double = ["value", "reductions"]
-
-    #     sector_profile_any_scenarios = df
-
-    #     for column_name in columns_to_replace_double:
-    #         sector_profile_any_scenarios = sector_profile_any_scenarios.withColumn(
-    #             column_name, F.col(column_name).cast(DoubleType()))
-    #     # to short type
-    #     # column_to_short_type = "year"
-    #     # str_ipr_targets = str_ipr_targets.withColumn(column_to_short_type,F.col(column_to_short_type).cast(ShortType()))
-
-    #     write_table(spark_generate, sector_profile_any_scenarios,
-    #                 'sector_profile_any_scenarios_raw')
-
-    # elif table_name == 'emissions_profile_any_companies_raw':
-
-    #     df = read_table(
-    #         spark_generate, 'emissions_profile_any_companies_landingzone')
-
-    #     write_table(spark_generate, df, 'emissions_profile_any_companies_raw')
-
-    # elif table_name == 'emissions_profile_any_companies_ecoinvent_raw':
-
-    #     df = read_table(
-    #         spark_generate, 'emissions_profile_any_companies_ecoinvent_landingzone')
-
-    #     write_table(spark_generate, df,
-    #                 'emissions_profile_any_companies_ecoinvent_raw')
-
-    # elif table_name == 'mapper_ep_ei_raw':
-
-    #     df = read_table(spark_generate, 'mapper_ep_ei_landingzone')
-
-    #     mapper_ep_ei = df
-
-    #     # to boolean
-    #     column_name = "multi_match"
-    #     mapper_ep_ei = mapper_ep_ei.withColumn(
-    #         column_name, F.col(column_name).cast(BooleanType()))
-
-    #     write_table(spark_generate, mapper_ep_ei, 'mapper_ep_ei_raw')
-
-    # elif table_name == 'ep_companies_raw':
-
-    #     df = read_table(spark_generate, 'ep_companies_landingzone')
-
-    #     df = df.distinct()
-
-    #     write_table(spark_generate, df, 'ep_companies_raw')
-
-    # elif table_name == 'ei_input_data_raw':
-
-    #     df = read_table(spark_generate, 'ei_input_data_landingzone')
-
-    #     ei_input_data = df
-
-    #     # to byte
-    #     column_name = "input_priotiry"
-    #     ei_input_data = ei_input_data.withColumn(
-    #         column_name, F.col(column_name).cast(ByteType()))
-
-    #     write_table(spark_generate, ei_input_data, 'ei_input_data_raw')
-
-    # elif table_name == 'ei_activities_overview_raw':
-
-    #     df = read_table(spark_generate, 'ei_activities_overview_landingzone')
-
-    #     write_table(spark_generate, df, 'ei_activities_overview_raw')
-
-    # elif table_name == 'ictr_company_result_raw':
-
-    #     df = read_table(spark_generate, 'ictr_company_result_landingzone')
-
-    #     df = df.withColumn('ICTR_share', F.col(
-    #         'ICTR_share').cast(DoubleType()))
-
-    #     write_table(spark_generate, df, 'ictr_company_result_raw')
-
-    # elif table_name == 'ictr_product_result_raw':
-
-    #     df = read_table(spark_generate, 'ictr_product_result_landingzone')
-
-    #     write_table(spark_generate, df, 'ictr_product_result_raw')
-
-    # elif table_name == 'istr_company_result_raw':
-
-    #     df = read_table(spark_generate, 'istr_company_result_landingzone')
-
-    #     df = df.withColumn('ISTR_share', F.col(
-    #         'ISTR_share').cast(DoubleType()))
-
-    #     write_table(spark_generate, df, 'istr_company_result_raw')
-
-    # elif table_name == 'istr_product_result_raw':
-
-    #     df = read_table(spark_generate, 'istr_product_result_landingzone')
-
-    #     df = df.withColumn('year', F.col('year').cast(IntegerType()))
-
-    #     df = df.withColumn('multi_match',
-    #                        when(F.col('multi_match') == "TRUE", F.lit(True))
-    #                        .when(F.col('multi_match') == "FALSE", F.lit(False))
-    #                        .otherwise(F.lit(None)))
-
-    #     write_table(spark_generate, df, 'istr_product_result_raw')
-
-    # elif table_name == 'pctr_company_result_raw':
-
-    #     df = read_table(spark_generate, 'pctr_company_result_landingzone')
-
-    #     df = df.withColumn('PCTR_share', F.col(
-    #         'PCTR_share').cast(DoubleType()))
-
-    #     write_table(spark_generate, df, 'pctr_company_result_raw')
-
-    # elif table_name == 'pctr_product_result_raw':
-
-    #     df = read_table(spark_generate, 'pctr_product_result_landingzone')
-
-    #     df = df.withColumn('multi_match',
-    #                        when(F.col('multi_match') == "TRUE", F.lit(True))
-    #                        .when(F.col('multi_match') == "FALSE", F.lit(False))
-    #                        .otherwise(F.lit(None)))
-
-    #     write_table(spark_generate, df, 'pctr_product_result_raw')
-
-    # elif table_name == 'pstr_company_result_raw':
-
-    #     df = read_table(spark_generate, 'pstr_company_result_landingzone')
-
-    #     df = df.withColumn('year', F.col('year').cast(IntegerType()))
-    #     df = df.withColumn('PSTR_share', F.col(
-    #         'PSTR_share').cast(DoubleType()))
-
-    #     write_table(spark_generate, df, 'pstr_company_result_raw')
-
-    # elif table_name == 'pstr_product_result_raw':
-
-    #     df = read_table(spark_generate, 'pstr_product_result_landingzone')
-
-    #     df = df.withColumn('year', F.col('year').cast(IntegerType()))
-    #     df = df.withColumn('multi_match',
-    #                        when(F.col('multi_match') == "TRUE", F.lit(True))
-    #                        .when(F.col('multi_match') == "FALSE", F.lit(False))
-    #                        .otherwise(F.lit(None)))
-
-    #     write_table(spark_generate, df, 'pstr_product_result_raw')
-
-    # elif table_name == 'emission_profile_company_raw':
-
-    #     df = read_table(spark_generate, 'emission_profile_company_landingzone')
-
-    #     cast_to_float = ['emission_share_ew', 'emission_share_bc',
-    #                      'emission_share_wc', 'Co2e_upper', 'Co2e_lower']
-    #     for col in cast_to_float:
-    #         df = df.withColumn(col, F.col(col).cast(DoubleType()))
-
-    #     write_table(spark_generate, df, 'emission_profile_company_raw')
-
-    # elif table_name == 'emission_profile_product_raw':
-
-    #     df = read_table(spark_generate, 'emission_profile_product_landingzone')
-
-    #     cast_to_float = ['Co2e_upper', 'Co2e_lower']
-    #     for col in cast_to_float:
-    #         df = df.withColumn(col, F.col(col).cast(DoubleType()))
-    #     df = df.withColumn('multi_match',
-    #                        when(F.col('multi_match') == "TRUE", F.lit(True))
-    #                        .when(F.col('multi_match') == "FALSE", F.lit(False))
-    #                        .otherwise(F.lit(None)))
-
-    #     write_table(spark_generate, df, 'emission_profile_product_raw')
-
-    # elif table_name == 'emission_upstream_profile_company_raw':
-
-    #     df = read_table(
-    #         spark_generate, 'emission_upstream_profile_company_landingzone')
-
-    #     cast_to_float = ['emission_upstream_share_ew', 'emission_upstream_share_bc',
-    #                      'emission_upstream_share_wc', 'Co2e_input_lower', 'Co2e_input_upper']
-    #     for col in cast_to_float:
-    #         df = df.withColumn(col, F.col(col).cast(DoubleType()))
-
-    #     write_table(spark_generate, df,
-    #                 'emission_upstream_profile_company_raw')
-
-    # elif table_name == 'emission_upstream_profile_product_raw':
-
-    #     df = read_table(
-    #         spark_generate, 'emission_upstream_profile_product_landingzone')
-
-    #     cast_to_float = ['Co2e_input_lower', 'Co2e_input_upper']
-    #     for col in cast_to_float:
-    #         df = df.withColumn(col, F.col(col).cast(DoubleType()))
-    #     df = df.withColumn('multi_match',
-    #                        when(F.col('multi_match') == "TRUE", F.lit(True))
-    #                        .when(F.col('multi_match') == "FALSE", F.lit(False))
-    #                        .otherwise(F.lit(None)))
-
-    #     write_table(spark_generate, df,
-    #                 'emission_upstream_profile_product_raw')
-
-    # elif table_name == 'sector_profile_company_raw':
-
-    #     df = read_table(spark_generate, 'sector_profile_company_landingzone')
-
-    #     cast_to_float = ['sector_share_ew',
-    #                      'sector_share_bc', 'sector_share_wc']
-    #     for col in cast_to_float:
-    #         df = df.withColumn(col, F.col(col).cast(DoubleType()))
-
-    #     df = df.withColumn('year', F.col('year').cast(IntegerType()))
-
-    #     write_table(spark_generate, df, 'sector_profile_company_raw')
-
-    # elif table_name == 'sector_profile_product_raw':
-
-    #     df = read_table(spark_generate, 'sector_profile_product_landingzone')
-
-    #     df = df.withColumn('year', F.col('year').cast(IntegerType()))
-    #     df = df.withColumn('multi_match',
-    #                        when(F.col('multi_match') == "TRUE", F.lit(True))
-    #                        .when(F.col('multi_match') == "FALSE", F.lit(False))
-    #                        .otherwise(F.lit(None)))
-
-    #     write_table(spark_generate, df, 'sector_profile_product_raw')
-
-    # elif table_name == 'sector_upstream_profile_company_raw':
-
-    #     df = read_table(
-    #         spark_generate, 'sector_upstream_profile_company_landingzone')
-
-    #     cast_to_float = ['sector_upstream_share_ew',
-    #                      'sector_upstream_share_bc', 'sector_upstream_share_wc']
-    #     for col in cast_to_float:
-    #         df = df.withColumn(col, F.col(col).cast(DoubleType()))
-    #     df = df.withColumn('year', F.col('year').cast(IntegerType()))
-
-    #     write_table(spark_generate, df, 'sector_upstream_profile_company_raw')
-
-    # elif table_name == 'sector_upstream_profile_product_raw':
-
-    #     df = read_table(
-    #         spark_generate, 'sector_upstream_profile_product_landingzone')
-
-    #     df = df.withColumn('year', F.col('year').cast(IntegerType()))
-    #     df = df.withColumn('multi_match',
-    #                        when(F.col('multi_match') == "TRUE", F.lit(True))
-    #                        .when(F.col('multi_match') == "FALSE", F.lit(False))
-    #                        .otherwise(F.lit(None)))
-
-    #     write_table(spark_generate, df, 'sector_upstream_profile_product_raw')
+        sector_upstream_profile_product_raw = CustomDF(
+            'sector_upstream_profile_product_raw', spark_generate, initial_df=sector_upstream_profile_product_landingzone.data)
+        sector_upstream_profile_product_raw.write_table()
 
     else:
         raise ValueError(
