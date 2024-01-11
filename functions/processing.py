@@ -421,6 +421,7 @@ def generate_table(table_name: str) -> None:
             f'The table: {table_name} is not specified in the processing functions')
 
     # If the code is run as a workflow on databricks, we do not want to shutdown the spark session.
+    # If the code is run as a workflow on databricks, we do not want to shutdown the spark session.
     # This will cause the cluster to be unusable for other spark processes
     if not 'DATABRICKS_RUNTIME_VERSION' in os.environ:
         spark_generate.stop()
