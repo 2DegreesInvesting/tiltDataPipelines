@@ -480,7 +480,16 @@ class CustomDF:
             self.check_signalling_issues()
 
     def convert_data_types(self, column_list: list, data_type):
+        """
+        Converts the data type of specified columns in the DataFrame.
 
+        Args:
+            column_list (list): A list of column names in the DataFrame for which the data type needs to be converted.
+            data_type (DataType): The target data type to which the column data should be converted.
+
+        Returns:
+            None. The method updates the DataFrame in-place.
+        """
         for column in column_list:
             self._df = self._df.withColumn(
                 column, F.col(column).cast(data_type))
