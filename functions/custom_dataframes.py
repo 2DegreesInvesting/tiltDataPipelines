@@ -11,7 +11,7 @@ from functions.tables import get_table_definition
 
 class CustomDF:
     """
-    A custom DataFrame class that wraps a PySpark DataFrame for additional functionality.
+    A custom DataFrame class that wraps a PySpark DataFrame for additional functionality, like data tracing, quality checks and slowly changing dimensions.
 
     This class provides a convenient way to work with PySpark DataFrames. It includes methods for reading data from a table, writing data to a table, and performing various transformations on the data.
 
@@ -91,12 +91,12 @@ class CustomDF:
             'csv': lambda: self._spark_session.read.format('csv').schema(self._schema['columns']).option('header', True).option("quote", '"').option("multiline", 'True').load(self._path),
             'ecoInvent': lambda: self._spark_session.read.format('csv').schema(self._schema['columns']).option('header', True).option("quote", '~').option('delimiter', ';').option("multiline", 'True').load(self._path),
             'tiltData': lambda: self._spark_session.read.format('csv').schema(self._schema['columns']).option('header', True).option("quote", '~').option('delimiter', ';').option("multiline", 'True').load(self._path),
-            'default': lambda: self._spark_session.read.format(self._schema['type']).schema(self._schema['columns']).option('header', True).load(self._path)
+            'parquet': lambda: self._spark_session.read.format(self._schema['type']).schema(self._schema['columns']).option('header', True).load(self._path)
         }
 
         try:
             df = read_functions.get(
-                self._schema['type'], read_functions['default'])()
+                self._schema['type'], read_functions['parquet'])()
             df.head()  # Force to load first record of the data to check if it throws an error
         except Exception as e:
             if "Path does not exist:" in str(e):
@@ -126,14 +126,6 @@ class CustomDF:
         """
         Compare an incoming DataFrame with an existing table, identifying new, identical, and closed records.
 
-        Parameters:
-        - spark_session (SparkSession): The SparkSession used for Spark operations.
-        - data_frame (DataFrame): The incoming DataFrame to be compared.
-        - table_name (str): The name of the existing table to compare against.
-
-        Returns:
-        - DataFrame: A DataFrame containing records that are new, identical, or closed compared to the existing table.
-
         This function compares an incoming DataFrame with an existing table and identifies the following types of records:
         - New records: Records in the incoming DataFrame that do not exist in the existing table.
         - Identical records: Records with unchanged values present in both the incoming and existing table.
@@ -142,6 +134,9 @@ class CustomDF:
         The comparison is based on SHA values of selected columns, and the function returns a DataFrame containing all relevant records.
 
         Note: The function assumes that the incoming DataFrame and existing table have a common set of columns for comparison.
+
+        Returns:
+            DataFrame: A DataFrame containing records that are new, identical, or closed compared to the existing table.
         """
         # Determine the processing date
         processing_date = F.current_date()
@@ -216,10 +211,10 @@ class CustomDF:
         """
         Validates the format of a DataFrame against the specified table definition.
 
+        This function checks if the DataFrame's structure matches the table definition, if the first row of the DataFrame matches the first row of the table, and if all rows in the DataFrame are unique. If any of these checks fail, a ValueError is raised.
+
         Args:
-            spark_session (SparkSession): The SparkSession object for interacting with Spark.
-            data_frame (DataFrame): The DataFrame to be validated.
-            table_name (str): The name of the table to use for validation.
+            None. The method uses the instance's SparkSession, DataFrame, and table name.
 
         Returns:
             bool: True if the DataFrame format is valid, False otherwise.
@@ -227,7 +222,6 @@ class CustomDF:
         Raises:
             ValueError: If the initial structure does not match or the head of the table does not match,
                         or if the data quality rules on a column are violated.
-
         """
         # Create an empty DataFrame with the table definition columns
         if self._schema['partition_column']:
@@ -270,14 +264,11 @@ class CustomDF:
         """
         Computes SHA-256 hash values for each row in the DataFrame and adds the hash as a new column 'tiltRecordID'.
 
-        This function takes a SparkSession object and a DataFrame as input, and it computes SHA-256 hash values
-        for each row in the DataFrame based on the values in all columns. The computed hash is then appended
-        as a new column called 'tiltRecordID' to the DataFrame. The order of columns in the DataFrame will
-        affect the generated hash value.
+        This method computes SHA-256 hash values for each row in the DataFrame based on the values in all columns, 
+        excluding 'tiltRecordID' and 'to_date'. The computed hash is then appended as a new column called 'tiltRecordID' 
+        to the DataFrame. The order of columns in the DataFrame will affect the generated hash value.
 
-        Args:
-            spark_session (SparkSession): The SparkSession instance.
-            data_frame (DataFrame): The input DataFrame containing the data to be processed.
+        If a partition column is specified in the schema, the method ensures that it is the rightmost column in the DataFrame.
 
         Returns:
             pyspark.sql.DataFrame: A new DataFrame with an additional 'tiltRecordID' column, where each row's
@@ -306,15 +297,14 @@ class CustomDF:
 
     def create_catalog_table(self) -> bool:
         """
-        Create or replace an external Hive table in the specified Hive container using the given SparkSession.
+        Create or replace an external Hive table in the specified Hive container.
 
-        This function generates and executes SQL statements to create or replace an external Hive table. It first drops
+        This method generates and executes SQL statements to create or replace an external Hive table. It first drops
         the table if it already exists and then creates the table based on the provided table definition. The table
         definition is obtained using the 'get_table_definition' function.
 
-        Args:
-            spark_session (SparkSession): The SparkSession to use for executing SQL statements.
-            table_name (str): The name of the table to create or replace.
+        The table is created with the specified columns, data types, and partitioning (if applicable). If the table 
+        already exists, it is dropped and recreated.
 
         Returns:
             bool: True if the table creation was successful, False otherwise.
@@ -325,7 +315,6 @@ class CustomDF:
             - The table is created with the specified columns, data types, and partitioning (if applicable).
             - If the table already exists, it is dropped and recreated.
         """
-
         # Drop the table definition in the unity catalog
         delete_string = f"DROP TABLE IF EXISTS `{self._schema['container']}`.`default`.`{self._schema['location'].replace('.','')}`"
 
@@ -367,12 +356,8 @@ class CustomDF:
         This function performs signalling checks on a given table by executing various data quality checks as defined in
         the 'signalling_checks_dictionary'. The results of these checks are recorded in the 'monitoring_values' table.
 
-        Args:
-            spark_session (SparkSession): The SparkSession to use for reading and writing data.
-            table_name (str): The name of the table to perform signalling checks on.
-
         Returns:
-            None
+            None. The method updates the 'monitoring_values' table in-place.
 
         Note:
             - Signalling checks are defined in the 'signalling_checks_dictionary'.
@@ -433,18 +418,18 @@ class CustomDF:
         """
         Writes the DataFrame to a table with the specified table name and optional partition.
 
-        Args:
-            spark_session (SparkSession): The SparkSession object for writing the table.
-            data_frame (DataFrame): The DataFrame to be written to the table.
-            table_name (str): The name of the table.
-            partition_name (str, optional): The partition_name value (default: '').
+        This method writes the DataFrame to a table in the Hive catalog. If a partition is specified, the DataFrame is written to that partition of the table. If the table does not exist, it is created.
 
         Returns:
-            None
+            None. The method writes the DataFrame to a table in-place.
 
         Raises:
-            ValueError: If the table format validation fails.
+            ValueError: If the DataFrame is empty or if the table name is not specified.
 
+        Note:
+            - The DataFrame is written in the Parquet format.
+            - If a partition is specified, the DataFrame is written to that partition of the table.
+            - If the table does not exist, it is created.
         """
         # Compare the newly created records with the existing tables
 
@@ -531,6 +516,21 @@ class CustomDF:
 
     @data.setter
     def data(self, new_df: DataFrame):
+        """
+        Sets the DataFrame associated with the CustomDF instance.
+
+        This method allows you to replace the DataFrame associated with the CustomDF instance with a new DataFrame.
+
+        Args:
+            new_df (DataFrame): The new DataFrame to associate with the CustomDF instance.
+
+        Returns:
+            None. The method replaces the DataFrame in-place.
+
+        Note:
+            - The new DataFrame should have the same schema as the original DataFrame.
+            - The new DataFrame replaces the original DataFrame in-place.
+        """
         self._df = new_df
 
     @property

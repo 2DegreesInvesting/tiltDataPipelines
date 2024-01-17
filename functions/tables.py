@@ -1,5 +1,5 @@
 """
-This module contains the definition of various tables used in the application.
+This module contains the definition of various tables used in the datahub.
 
 Each table is defined as a dictionary with the following keys:
 - 'columns': A StructType object defining the schema of the table.
@@ -21,13 +21,13 @@ Example:
         ]), 
         'container': 'container_name',
         'location': 'location_in_container',
-        'type': 'data_type',
+        'type': ['tiltData','ecoInvent','csv','parquet'],
         'partition_column' : 'name_of_partition_column',
         'quality_checks': [['unique', ['string_column']],
                            ['format', 'string_column', r"[a-zA-Z\-]"]]
     }
 """
-from pyspark.sql.types import StringType, StructType, StructField, BooleanType, DoubleType, ShortType, TimestampType, IntegerType, DateType, ByteType
+from pyspark.sql.types import StringType, StructType, StructField, BooleanType, DoubleType, ShortType, IntegerType, DateType
 
 
 def get_table_definition(table_name: str = '') -> dict:
