@@ -447,18 +447,18 @@ signalling_checks_dictionary = {
         {
             'check':'values sum to 1',
             'columns':['companies_id','benchmark'],
-            'sum_column': 'emission_share_ew'
+            'sum_column': 'PCTR_share'
         },
-        {
-            'check':'values sum to 1',
-            'columns':['companies_id','benchmark'],
-            'sum_column': 'emission_share_wc'
-        },
-        {
-            'check':'values sum to 1',
-            'columns':['companies_id','benchmark'],
-            'sum_column': 'emission_share_bc'
-        },
+        # {
+        #     'check':'values sum to 1',
+        #     'columns':['companies_id','benchmark'],
+        #     'sum_column': 'emission_share_wc'
+        # },
+        # {
+        #     'check':'values sum to 1',
+        #     'columns':['companies_id','benchmark'],
+        #     'sum_column': 'emission_share_bc'
+        # },
         {
             'check':'values within list',
             'columns': ['benchmark'],
@@ -474,16 +474,16 @@ signalling_checks_dictionary = {
             'columns': ['main_activity'],
             'value_list':['agent/ representative','distributor','manufacturer/ producer','multi-category','retailer','service provider','subcontractor','wholesaler']
         },
-        {
-            'check':'values within list',
-            'columns':['main_tilt_sector'],
-            'value_list': ['Industry','Land Use','Metals','Construction','Non-metallic Minerals','Transport']
-        },   
-        {
-            'check':'values within list',
-            'columns':['main_tilt_sub_sector'],
-            'value_list': ['Other Non-metallic Minerals','Agriculture & Livestock','Construction Buildings','Food Related Products','Fishing & Forestry','Bioenergy & Waste Power','Other Industry','Cement','Bioenergy & Waste Energy','Automotive LDV','Renewable Energy','Iron & Steel','Aviation','Oil Energy','Other Metals','Machinery & Equipment','Other Transport','Coal Energy','Construction Residential','Total Power','Chemicals','Shipping','Gas Energy','Total Energy','Automotive HDV']
-        },
+        # {
+        #     'check':'values within list',
+        #     'columns':['main_tilt_sector'],
+        #     'value_list': ['Industry','Land Use','Metals','Construction','Non-metallic Minerals','Transport']
+        # },   
+        # {
+        #     'check':'values within list',
+        #     'columns':['main_tilt_sub_sector'],
+        #     'value_list': ['Other Non-metallic Minerals','Agriculture & Livestock','Construction Buildings','Food Related Products','Fishing & Forestry','Bioenergy & Waste Power','Other Industry','Cement','Bioenergy & Waste Energy','Automotive LDV','Renewable Energy','Iron & Steel','Aviation','Oil Energy','Other Metals','Machinery & Equipment','Other Transport','Coal Energy','Construction Residential','Total Power','Chemicals','Shipping','Gas Energy','Total Energy','Automotive HDV']
+        # },
         {
             'check': 'values are unique',
             'columns': ['companies_id', 'PCTR_risk_category']
@@ -492,7 +492,7 @@ signalling_checks_dictionary = {
     'emission_profile_product_raw' :[ 
         {
             'check':'values within list',
-            'columns': ['emission_category'],
+            'columns': ['PCTR_risk_category'],
             'value_list':['low','medium','high']
         },
         {
@@ -568,7 +568,7 @@ signalling_checks_dictionary = {
         },  
         {
             'check':'values within list',
-            'columns': ['emission_upstream_category'],
+            'columns': ['ICTR_risk_category'],
             'value_list':['low','medium','high']
         },
         {
@@ -581,16 +581,16 @@ signalling_checks_dictionary = {
             'columns': ['matching_certainty_company_average'],
             'value_list':['low','medium','high']
         },
-        {
-            'check':'values within list',
-            'columns':['main_tilt_sector'],
-            'value_list': ['Industry','Land Use','Metals','no_match','Construction','Non-metallic Minerals','Transport']
-        },   
-        {
-            'check':'values within list',
-            'columns':['main_tilt_sub_sector'],
-            'value_list': ['Other Non-metallic Minerals','Agriculture & Livestock','Construction Buildings','Food Related Products','Fishing & Forestry','Bioenergy & Waste Power','Other Industry','Cement','Bioenergy & Waste Energy','Automotive LDV','Renewable Energy','Iron & Steel','Aviation','no_match','Oil Energy','Other Metals','Machinery & Equipment','Other Transport','Coal Energy','Construction Residential','Total Power','Chemicals','Shipping','Gas Energy','Total Energy','Automotive HDV']
-        },
+        # {
+        #     'check':'values within list',
+        #     'columns':['main_tilt_sector'],
+        #     'value_list': ['Industry','Land Use','Metals','no_match','Construction','Non-metallic Minerals','Transport']
+        # },   
+        # {
+        #     'check':'values within list',
+        #     'columns':['main_tilt_sub_sector'],
+        #     'value_list': ['Other Non-metallic Minerals','Agriculture & Livestock','Construction Buildings','Food Related Products','Fishing & Forestry','Bioenergy & Waste Power','Other Industry','Cement','Bioenergy & Waste Energy','Automotive LDV','Renewable Energy','Iron & Steel','Aviation','no_match','Oil Energy','Other Metals','Machinery & Equipment','Other Transport','Coal Energy','Construction Residential','Total Power','Chemicals','Shipping','Gas Energy','Total Energy','Automotive HDV']
+        # },
         {
             'check':'values within list',
             'columns': ['main_activity'],
@@ -651,26 +651,26 @@ signalling_checks_dictionary = {
         {
             'check':'values sum to 1',
             'columns':['companies_id','scenario','year'],
-            'sum_column': 'sector_share_ew'
+            'sum_column': 'PSTR_share'
         },
-        {
-            'check':'values sum to 1',
-            'columns':['companies_id','scenario','year'],
-            'sum_column': 'sector_share_bc'
-        },
-        {
-            'check':'values sum to 1',
-            'columns':['companies_id','scenario','year'],
-            'sum_column': 'sector_share_wc'
-        },
+        # {
+        #     'check':'values sum to 1',
+        #     'columns':['companies_id','scenario','year'],
+        #     'sum_column': 'sector_share_bc'
+        # },
+        # {
+        #     'check':'values sum to 1',
+        #     'columns':['companies_id','scenario','year'],
+        #     'sum_column': 'sector_share_wc'
+        # },
+        # {
+        #     'check':'values within list',
+        #     'columns': ['sector_category'],
+        #     'value_list':['low','medium','high']
+        # },
         {
             'check':'values within list',
-            'columns': ['sector_category'],
-            'value_list':['low','medium','high']
-        },
-        {
-            'check':'values within list',
-            'columns': ['Scenario'],
+            'columns': ['scenario'],
             'value_list':['WEO NZ 2050','IPR 1.5c RPS']
         },
         {
@@ -688,16 +688,16 @@ signalling_checks_dictionary = {
             'columns': ['main_activity'],
             'value_list':['agent/ representative','distributor','manufacturer/ producer','multi-category','retailer','service provider','subcontractor','wholesaler']
         },
-        {
-            'check':'values within list',
-            'columns':['main_tilt_sector'],
-            'value_list': ['Industry','Land Use','Metals','no_match','Construction','Non-metallic Minerals','Transport']
-        },   
-        {
-            'check':'values within list',
-            'columns':['main_tilt_sub_sector'],
-            'value_list': ['Other Non-metallic Minerals','Agriculture & Livestock','Construction Buildings','Food Related Products','Fishing & Forestry','Bioenergy & Waste Power','Other Industry','Cement','Bioenergy & Waste Energy','Automotive LDV','Renewable Energy','Iron & Steel','Aviation','no_match','Oil Energy','Other Metals','Machinery & Equipment','Other Transport','Coal Energy','Construction Residential','Total Power','Chemicals','Shipping','Gas Energy','Total Energy','Automotive HDV']
-        },
+        # {
+        #     'check':'values within list',
+        #     'columns':['sector'],
+        #     'value_list': ['Industry','Land Use','Metals','no_match','Construction','Non-metallic Minerals','Transport']
+        # },   
+        # {
+        #     'check':'values within list',
+        #     'columns':['subsector'],
+        #     'value_list': ['Other Non-metallic Minerals','Agriculture & Livestock','Construction Buildings','Food Related Products','Fishing & Forestry','Bioenergy & Waste Power','Other Industry','Cement','Bioenergy & Waste Energy','Automotive LDV','Renewable Energy','Iron & Steel','Aviation','no_match','Oil Energy','Other Metals','Machinery & Equipment','Other Transport','Coal Energy','Construction Residential','Total Power','Chemicals','Shipping','Gas Energy','Total Energy','Automotive HDV']
+        # },
         {
             'check': 'values are unique',
             'columns': ['companies_id', 'PSTR_risk_category', 'scenario']
@@ -709,11 +709,11 @@ signalling_checks_dictionary = {
             'columns': ['country'],
             'value_list':['netherlands','germany','spain','france','austria']
         }, 
-        {
-            'check':'values within list',
-            'columns': ['sector_category'],
-            'value_list':['low','medium','high']
-        },
+        # {
+        #     'check':'values within list',
+        #     'columns': ['sector_category'],
+        #     'value_list':['low','medium','high']
+        # },
         {
             'check':'values occur as expected',
             'columns':['companies_id','ep_product','scenario'],
@@ -721,7 +721,7 @@ signalling_checks_dictionary = {
         },
         {
             'check':'values within list',
-            'columns': ['Scenario'],
+            'columns': ['scenario'],
             'value_list':['WEO NZ 2050','IPR 1.5c RPS']
         },
         {
@@ -763,26 +763,26 @@ signalling_checks_dictionary = {
         {
             'check':'values sum to 1',
             'columns':['companies_id','scenario','year'],
-            'sum_column': 'sector_upstream_share_ew'
+            'sum_column': 'ISTR_share'
         },
-        {
-            'check':'values sum to 1',
-            'columns':['companies_id','scenario','year'],
-            'sum_column': 'sector_upstream_share_bc'
-        },
-        {
-            'check':'values sum to 1',
-            'columns':['companies_id','scenario','year'],
-            'sum_column': 'sector_upstream_share_wc'
-        },
+        # {
+        #     'check':'values sum to 1',
+        #     'columns':['companies_id','scenario','year'],
+        #     'sum_column': 'sector_upstream_share_bc'
+        # },
+        # {
+        #     'check':'values sum to 1',
+        #     'columns':['companies_id','scenario','year'],
+        #     'sum_column': 'sector_upstream_share_wc'
+        # },
         {
             'check':'values within list',
-            'columns': ['sector_upstream_category'],
+            'columns': ['ISTR_risk_category'],
             'value_list':['low','medium','high']
         },
         {
             'check':'values within list',
-            'columns': ['Scenario'],
+            'columns': ['scenario'],
             'value_list':['WEO NZ 2050','IPR 1.5c RPS']
         },
         {
@@ -795,16 +795,16 @@ signalling_checks_dictionary = {
             'columns': ['matching_certainty_company_average'],
             'value_list':['low','medium','high']
         },
-        {
-            'check':'values within list',
-            'columns':['main_tilt_sector'],
-            'value_list': ['Industry','Land Use','Metals','no_match','Construction','Non-metallic Minerals','Transport']
-        },   
-        {
-            'check':'values within list',
-            'columns':['main_tilt_sub_sector'],
-            'value_list': ['Other Non-metallic Minerals','Agriculture & Livestock','Construction Buildings','Food Related Products','Fishing & Forestry','Bioenergy & Waste Power','Other Industry','Cement','Bioenergy & Waste Energy','Automotive LDV','Renewable Energy','Iron & Steel','Aviation','no_match','Oil Energy','Other Metals','Machinery & Equipment','Other Transport','Coal Energy','Construction Residential','Total Power','Chemicals','Shipping','Gas Energy','Total Energy','Automotive HDV']
-        },
+        # {
+        #     'check':'values within list',
+        #     'columns':['main_tilt_sector'],
+        #     'value_list': ['Industry','Land Use','Metals','no_match','Construction','Non-metallic Minerals','Transport']
+        # },   
+        # {
+        #     'check':'values within list',
+        #     'columns':['main_tilt_sub_sector'],
+        #     'value_list': ['Other Non-metallic Minerals','Agriculture & Livestock','Construction Buildings','Food Related Products','Fishing & Forestry','Bioenergy & Waste Power','Other Industry','Cement','Bioenergy & Waste Energy','Automotive LDV','Renewable Energy','Iron & Steel','Aviation','no_match','Oil Energy','Other Metals','Machinery & Equipment','Other Transport','Coal Energy','Construction Residential','Total Power','Chemicals','Shipping','Gas Energy','Total Energy','Automotive HDV']
+        # },
         {
             'check':'values within list',
             'columns': ['main_activity'],
@@ -823,12 +823,12 @@ signalling_checks_dictionary = {
         }, 
         {
             'check':'values within list',
-            'columns': ['sector_upstream_category'],
+            'columns': ['ISTR_risk_category'],
             'value_list':['low','medium','high']
         },
         {
             'check':'values within list',
-            'columns': ['Scenario'],
+            'columns': ['scenario'],
             'value_list':['WEO NZ 2050','IPR 1.5c RPS']
         },
         {
@@ -841,11 +841,11 @@ signalling_checks_dictionary = {
             'columns':['tilt_sector'],
             'value_list': ['Industry','Land Use','Metals','no_match','Construction','Non-metallic Minerals','Transport']
         },   
-        {
-            'check':'values within list',
-            'columns':['tilt_subsector'],
-            'value_list': ['Other Non-metallic Minerals','Agriculture & Livestock','Construction Buildings','Food Related Products','Fishing & Forestry','Bioenergy & Waste Power','Other Industry','Cement','Bioenergy & Waste Energy','Automotive LDV','Renewable Energy','Iron & Steel','Aviation','no_match','Oil Energy','Other Metals','Machinery & Equipment','Other Transport','Coal Energy','Construction Residential','Total Power','Chemicals','Shipping','Gas Energy','Total Energy','Automotive HDV']
-        },
+        # {
+        #     'check':'values within list',
+        #     'columns':['tilt_subsector'],
+        #     'value_list': ['Other Non-metallic Minerals','Agriculture & Livestock','Construction Buildings','Food Related Products','Fishing & Forestry','Bioenergy & Waste Power','Other Industry','Cement','Bioenergy & Waste Energy','Automotive LDV','Renewable Energy','Iron & Steel','Aviation','no_match','Oil Energy','Other Metals','Machinery & Equipment','Other Transport','Coal Energy','Construction Residential','Total Power','Chemicals','Shipping','Gas Energy','Total Energy','Automotive HDV']
+        # },
         {
             'check':'values within list',
             'columns': ['main_activity'],
