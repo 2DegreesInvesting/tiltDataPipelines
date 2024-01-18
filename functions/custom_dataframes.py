@@ -5,7 +5,6 @@ from pyspark.sql.window import Window
 from functions.dataframe_helpers import create_map_column, create_sha_values
 from functions.signalling_functions import calculate_signalling_issues
 from functions.signalling_rules import signalling_checks_dictionary
-from functions.spark_session import build_table_path
 from functions.tables import get_table_definition
 
 
@@ -326,10 +325,8 @@ class CustomDF:
             col_string = f"`{col_info['name']}` {col_info['type']} {'NOT NULL' if not col_info['nullable'] else ''},"
             create_string += col_string
 
-        table_path = build_table_path(
-            self._schema['container'], self._schema['location'], None)
         create_string = create_string[:-1] + ")"
-        create_string += f" USING {self._schema['type']} LOCATION '{table_path}'"
+        create_string += f" USING {self._schema['type']} LOCATION '{self._path}'"
         if self._schema['partition_column']:
             create_string += f" PARTITIONED BY (`{self._schema['partition_column']}` STRING)"
         set_owner_string = f"ALTER TABLE `{self._schema['container']}`.`default`.`{self._schema['location'].replace('.','')}` SET OWNER TO tiltDevelopers"
