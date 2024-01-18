@@ -1,3 +1,4 @@
+from functions.signalling_functions import calculate_signalling_issues
 from pyspark.sql import SparkSession, DataFrame
 from pyspark.sql.window import Window
 import pyspark.sql.functions as F
@@ -9,6 +10,7 @@ from functions.signalling_rules import signalling_checks_dictionary
 
 
 env = 'develop'
+
 
 def create_spark_session() -> SparkSession:
     """
@@ -44,7 +46,8 @@ def create_spark_session() -> SparkSession:
         ).getOrCreate()
 
     # Dynamic Overwrite mode makes sure that other parts of a partition that are not processed are not overwritten as well.
-    spark_session.conf.set("spark.sql.sources.partitionOverwriteMode","dynamic")
+    spark_session.conf.set(
+        "spark.sql.sources.partitionOverwriteMode", "dynamic")
 
     return spark_session
 
@@ -81,8 +84,9 @@ def read_table(read_session: SparkSession, table_name: str, partition_name: str 
         all_data = read_table(spark, 'products_activities_transformed', partition='CutOff', history='complete')
     """
 
-    if history not in ['recent','complete']:
-        raise ValueError(f"Value {history} is not in valid arguments [recent,complete] for history argument")
+    if history not in ['recent', 'complete']:
+        raise ValueError(
+            f"Value {history} is not in valid arguments [recent,complete] for history argument")
 
     table_definition = get_table_definition(table_name)
 
@@ -92,15 +96,19 @@ def read_table(read_session: SparkSession, table_name: str, partition_name: str 
     else:
         partition_path = partition_name
 
-    table_location = build_table_path(table_definition['container'], table_definition['location'], partition_path)
+    table_location = build_table_path(
+        table_definition['container'], table_definition['location'], partition_path)
 
     try:
         if table_definition['type'] == 'csv':
-            df = read_session.read.format('csv').schema(table_definition['columns']).option('header', True).option("quote", '"').option("multiline", 'True').load(table_location)
-        if table_definition['type'] in ['ecoInvent','tiltData']:
-            df = read_session.read.format('csv').schema(table_definition['columns']).option('header', True).option("quote", '~').option('delimiter',';').option("multiline", 'True').load(table_location)
+            df = read_session.read.format('csv').schema(table_definition['columns']).option(
+                'header', True).option("quote", '"').option("multiline", 'True').load(table_location)
+        if table_definition['type'] in ['ecoInvent', 'tiltData']:
+            df = read_session.read.format('csv').schema(table_definition['columns']).option('header', True).option(
+                "quote", '~').option('delimiter', ';').option("multiline", 'True').load(table_location)
         else:
-            df = read_session.read.format(table_definition['type']).schema(table_definition['columns']).option('header', True).load(table_location)
+            df = read_session.read.format(table_definition['type']).schema(
+                table_definition['columns']).option('header', True).load(table_location)
         # Force to load first record of the data to check if it throws an error
         df.head()
     # Try to catch the specific exception where the table to be read does not exist
@@ -110,18 +118,18 @@ def read_table(read_session: SparkSession, table_name: str, partition_name: str 
             df = read_session.createDataFrame([], table_definition['columns'])
         # If we encounter any other error, raise as the error
         else:
-            raise(e)
+            raise (e)
 
     if partition_name != '':
         df = df.withColumn(partition_column, F.lit(partition_name))
 
     if history == 'recent' and 'to_date' in df.columns:
-        df = df.filter(F.col('to_date')=='2099-12-31')
+        df = df.filter(F.col('to_date') == '2099-12-31')
 
     # Replace empty values with None/null
     replacement_dict = {'NA': None, 'nan': None}
     df = df.replace(replacement_dict, subset=df.columns)
-    
+
     return df
 
 
@@ -146,7 +154,8 @@ def write_table(spark_session: SparkSession, data_frame: DataFrame, table_name: 
     table_definition = get_table_definition(table_name)
 
     # Compare the newly created records with the existing tables
-    data_frame = compare_tables(spark_session, data_frame, table_name, partition_name)
+    data_frame = compare_tables(
+        spark_session, data_frame, table_name, partition_name)
 
     # Add the SHA value to create a unique ID within tilt
     partition_column = table_definition['partition_column']
@@ -155,25 +164,31 @@ def write_table(spark_session: SparkSession, data_frame: DataFrame, table_name: 
     table_check = validate_table_format(spark_session, data_frame, table_name)
 
     if table_check:
-        table_location = build_table_path(table_definition['container'], table_definition['location'], None)
+        table_location = build_table_path(
+            table_definition['container'], table_definition['location'], None)
         if partition_column:
             if table_definition['type'] == 'csv':
-                data_frame.write.partitionBy(partition_column).mode('overwrite').csv(table_location)
+                data_frame.write.partitionBy(partition_column).mode(
+                    'overwrite').csv(table_location)
             else:
-                data_frame.write.partitionBy(partition_column).mode('overwrite').parquet(table_location)
-            
+                data_frame.write.partitionBy(partition_column).mode(
+                    'overwrite').parquet(table_location)
+
         else:
             if table_definition['type'] == 'csv':
-                data_frame.coalesce(1).write.mode('overwrite').csv(table_location)
+                data_frame.coalesce(1).write.mode(
+                    'overwrite').csv(table_location)
             else:
-                data_frame.coalesce(1).write.mode('overwrite').parquet(table_location)
+                data_frame.coalesce(1).write.mode(
+                    'overwrite').parquet(table_location)
     else:
         raise ValueError("Table format validation failed.")
 
     create_catalog_tables(spark_session, table_name)
 
     if table_name != 'monitoring_values':
-     check_signalling_issues(spark_session,table_name)
+        check_signalling_issues(spark_session, table_name)
+
 
 def build_table_path(container: str, location: str, partition_column_and_name: str) -> str:
     """
@@ -221,9 +236,11 @@ def validate_table_format(spark_session: SparkSession, data_frame: DataFrame, ta
 
     # Create an empty DataFrame with the table definition columns
     if table_definition['partition_column']:
-        check_df = spark_session.createDataFrame([], table_definition['columns'].add(table_definition['partition_column'], StringType(), False))
+        check_df = spark_session.createDataFrame([], table_definition['columns'].add(
+            table_definition['partition_column'], StringType(), False))
     else:
-        check_df = spark_session.createDataFrame([], table_definition['columns'])
+        check_df = spark_session.createDataFrame(
+            [], table_definition['columns'])
 
     try:
         # Union the empty DataFrame with the provided DataFrame
@@ -231,18 +248,18 @@ def validate_table_format(spark_session: SparkSession, data_frame: DataFrame, ta
         check_df.head()
     except Exception as e:
         # An exception occurred, indicating a format mismatchs
-        raise ValueError("The initial structure can not be joined, because:" + str(e))
+        raise ValueError(
+            "The initial structure can not be joined, because:" + str(e))
 
     # Compare the first row of the original DataFrame with the check DataFrame
     if not data_frame.orderBy(F.col('tiltRecordID')).head().asDict() == check_df.orderBy(F.col('tiltRecordID')).head().asDict():
         # The format of the DataFrame does not match the table definition
         raise ValueError("The head of the table does not match.")
-    
+
     # Check if all of the rows are unique in the table
     if data_frame.count() != data_frame.distinct().count():
         # The format of the DataFrame does not match the table definition
         raise ValueError("Not all rows in the table are unqiue")
-
 
     # Perform additional quality checks on specific columns
     validated = validate_data_quality(spark_session, data_frame, table_name)
@@ -270,11 +287,12 @@ def validate_data_quality(spark_session: SparkSession, data_frame: DataFrame, ta
 
     table_definition = get_table_definition(table_name)
 
-    writing_data_frame = data_frame.filter(F.col('to_date')=='2099-12-31')
+    writing_data_frame = data_frame.filter(F.col('to_date') == '2099-12-31')
 
     for condition_list in table_definition['quality_checks']:
-        if condition_list[0] not in ['unique', 'format','in list']:
-            raise ValueError(f'The quality check -{condition_list[0]}- is not implemented')
+        if condition_list[0] not in ['unique', 'format', 'in list']:
+            raise ValueError(
+                f'The quality check -{condition_list[0]}- is not implemented')
 
         # Check uniqueness by comparing the total values versus distinct values in a column
         if condition_list[0] == 'unique':
@@ -286,24 +304,29 @@ def validate_data_quality(spark_session: SparkSession, data_frame: DataFrame, ta
                 # Compare the total count of values agains the distinct count of values per partition
                 if writing_data_frame.groupBy(table_definition['partition_column']).agg(F.count(*[F.col(column) for column in unique_columns]).alias('count')).collect() != writing_data_frame.groupBy(table_definition['partition_column']).agg(F.countDistinct(*[F.col(column) for column in unique_columns]).alias('count')).collect():
                     # If the values of count and distinct count are not identical, the columns are not unique.
-                    raise ValueError(f"Column: {unique_columns} is not unique along grouped columns.")
+                    raise ValueError(
+                        f"Column: {unique_columns} is not unique along grouped columns.")
             else:
                 # Compare the total count of values in the tables against the distinct count
                 if writing_data_frame.select(*[F.col(column) for column in unique_columns]).count() != writing_data_frame.select(*[F.col(column) for column in unique_columns]).distinct().count():
                     # If the values of count and distinct count are not identical, the columns are not unique.
-                    raise ValueError(f"Column: {unique_columns} is not unique.")
+                    raise ValueError(
+                        f"Column: {unique_columns} is not unique.")
 
         # Check if the formatting aligns with a specified pattern
         elif condition_list[0] == 'format':
             if writing_data_frame.filter(~F.col(condition_list[1]).rlike(condition_list[2])).count() > 0:
-                raise ValueError(f'Column: {condition_list[1]} does not align with the specified format {condition_list[2]}')
+                raise ValueError(
+                    f'Column: {condition_list[1]} does not align with the specified format {condition_list[2]}')
 
         elif condition_list[0] == 'in list':
             list_column = condition_list[1][0]
             if writing_data_frame.filter(~F.col(list_column).isin(condition_list[2])).count() > 0:
-                raise ValueError(f'Columns: {list_column} have values that are not contained in the following values {";".join(condition_list[2])}')
+                raise ValueError(
+                    f'Columns: {list_column} have values that are not contained in the following values {";".join(condition_list[2])}')
 
     return True
+
 
 def add_record_id(spark_session: SparkSession, data_frame: DataFrame, partition_column: str = '') -> DataFrame:
     """
@@ -323,27 +346,25 @@ def add_record_id(spark_session: SparkSession, data_frame: DataFrame, partition_
         value represents the SHA-256 hash of the respective row's contents.
     """
     # Select all columns that are needed for the creation of a record ID
-    sha_columns = [F.col(col_name) for col_name in data_frame.columns if col_name not in ['tiltRecordID','to_date']]
+    sha_columns = [F.col(col_name) for col_name in data_frame.columns if col_name not in [
+        'tiltRecordID', 'to_date']]
 
     # Create the SHA256 record ID by concatenating all relevant columns
     data_frame = create_sha_values(spark_session, data_frame, sha_columns)
-    data_frame = data_frame.withColumnRenamed('shaValue','tiltRecordID')
+    data_frame = data_frame.withColumnRenamed('shaValue', 'tiltRecordID')
 
     # Reorder the columns, to make sure the partition column is the most right column in the data frame
     if partition_column:
-        col_order = [x for x in data_frame.columns if x not in ['tiltRecordID', partition_column]] + ['tiltRecordID',partition_column]
+        col_order = [x for x in data_frame.columns if x not in [
+            'tiltRecordID', partition_column]] + ['tiltRecordID', partition_column]
     else:
-        col_order = [x for x in data_frame.columns if x not in ['tiltRecordID']] + ['tiltRecordID']
-    
+        col_order = [x for x in data_frame.columns if x not in [
+            'tiltRecordID']] + ['tiltRecordID']
+
     data_frame = data_frame.select(col_order)
 
     return data_frame
 
-def create_sha_values(spark_session: SparkSession, data_frame: DataFrame, col_list: list) -> DataFrame:
-
-    data_frame = data_frame.withColumn('shaValue',F.sha2(F.concat_ws('|',*col_list),256))
-
-    return data_frame
 
 def compare_tables(spark_session: SparkSession, data_frame: DataFrame, table_name: str, partition_name: str) -> DataFrame:
     """
@@ -369,64 +390,77 @@ def compare_tables(spark_session: SparkSession, data_frame: DataFrame, table_nam
     # Determine the processing date
     processing_date = F.current_date()
     future_date = F.lit('2099-12-31')
-    from_to_list = [F.col('from_date'),F.col('to_date')]
-    
+    from_to_list = [F.col('from_date'), F.col('to_date')]
+
     # Select the columns that contain values that should be compared
-    value_columns = [F.col(col_name) for col_name in data_frame.columns if col_name not in ['tiltRecordID','from_date','to_date']]
+    value_columns = [F.col(col_name) for col_name in data_frame.columns if col_name not in [
+        'tiltRecordID', 'from_date', 'to_date']]
 
     # Read the already existing table
-    old_df = read_table(spark_session,table_name, partition_name, 'complete')
-    old_closed_records = old_df.filter(F.col('to_date')!=future_date).select(value_columns + from_to_list)
-    old_df = old_df.filter(F.col('to_date')==future_date).select(value_columns + from_to_list)
+    old_df = read_table(spark_session, table_name, partition_name, 'complete')
+    old_closed_records = old_df.filter(
+        F.col('to_date') != future_date).select(value_columns + from_to_list)
+    old_df = old_df.filter(F.col('to_date') == future_date).select(
+        value_columns + from_to_list)
 
     # Add the SHA representation of the old records and rename to unique name
     old_df = create_sha_values(spark_session, old_df, value_columns)
-    old_df = old_df.withColumnRenamed('shaValue','shaValueOld')
+    old_df = old_df.withColumnRenamed('shaValue', 'shaValueOld')
 
     # Add the SHA representation of the incoming records and rename to unique name
-    new_data_frame = create_sha_values(spark_session, data_frame, value_columns)
-    new_data_frame = new_data_frame.withColumn('from_date',processing_date).withColumn('to_date',F.to_date(future_date))
-    new_data_frame = new_data_frame.withColumnRenamed('shaValue','shaValueNew')
+    new_data_frame = create_sha_values(
+        spark_session, data_frame, value_columns)
+    new_data_frame = new_data_frame.withColumn(
+        'from_date', processing_date).withColumn('to_date', F.to_date(future_date))
+    new_data_frame = new_data_frame.withColumnRenamed(
+        'shaValue', 'shaValueNew')
 
     # Join the SHA values of both tables together
-    combined_df = new_data_frame.select(F.col('shaValueNew')).join(old_df.select('shaValueOld'),on=old_df.shaValueOld==new_data_frame.shaValueNew,how='full')
-    
+    combined_df = new_data_frame.select(F.col('shaValueNew')).join(old_df.select(
+        'shaValueOld'), on=old_df.shaValueOld == new_data_frame.shaValueNew, how='full')
+
     # Set the base of all records to the already expired/ closed records
     all_records = old_closed_records
     # Records that did not change are taken from the existing set of data
-    identical_records = combined_df.filter((F.col('shaValueOld').isNotNull())&(F.col('shaValueNew').isNotNull()))
+    identical_records = combined_df.filter(
+        (F.col('shaValueOld').isNotNull()) & (F.col('shaValueNew').isNotNull()))
     if identical_records.count() > 0:
-        identical_records = combined_df.filter((F.col('shaValueOld').isNotNull())&(F.col('shaValueNew').isNotNull())).join(old_df,on='shaValueOld',how='inner')
-        identical_records = identical_records.select(value_columns + from_to_list)
+        identical_records = combined_df.filter((F.col('shaValueOld').isNotNull()) & (
+            F.col('shaValueNew').isNotNull())).join(old_df, on='shaValueOld', how='inner')
+        identical_records = identical_records.select(
+            value_columns + from_to_list)
         all_records = all_records.union(identical_records)
 
     # Records that do not exist anymore are taken from the existing set of data
     # Records are closed by filling the to_date column with the current date
-    closed_records = combined_df.filter((F.col('shaValueOld').isNotNull())&(F.col('shaValueNew').isNull()))
+    closed_records = combined_df.filter(
+        (F.col('shaValueOld').isNotNull()) & (F.col('shaValueNew').isNull()))
     if closed_records.count() > 0:
-        closed_records = combined_df.filter((F.col('shaValueOld').isNotNull())&(F.col('shaValueNew').isNull())).join(old_df,on='shaValueOld',how='inner')
+        closed_records = combined_df.filter((F.col('shaValueOld').isNotNull()) & (
+            F.col('shaValueNew').isNull())).join(old_df, on='shaValueOld', how='inner')
         closed_records = closed_records.select(value_columns + from_to_list)
-        closed_records = closed_records.withColumn('to_date',processing_date)
+        closed_records = closed_records.withColumn('to_date', processing_date)
         all_records = all_records.union(closed_records)
 
     # Records that are new are taken from the new set of data
-    new_records = combined_df.filter((F.col('shaValueOld').isNull())&(F.col('shaValueNew').isNotNull()))
+    new_records = combined_df.filter(
+        (F.col('shaValueOld').isNull()) & (F.col('shaValueNew').isNotNull()))
     if new_records.count() > 0:
-        new_records = combined_df.filter((F.col('shaValueOld').isNull())&(F.col('shaValueNew').isNotNull())).join(new_data_frame,on='shaValueNew',how='inner')
+        new_records = combined_df.filter((F.col('shaValueOld').isNull()) & (F.col(
+            'shaValueNew').isNotNull())).join(new_data_frame, on='shaValueNew', how='inner')
         new_records = new_records.select(value_columns + from_to_list)
         all_records = all_records.union(new_records)
 
     return all_records
 
 
-from functions.signalling_functions import calculate_signalling_issues
 def check_signalling_issues(spark_session: SparkSession, table_name: str) -> None:
     """
     Perform signalling checks on a specified table and update the monitoring values table.
 
     This function performs signalling checks on a given table by executing various data quality checks as defined in
     the 'signalling_checks_dictionary'. The results of these checks are recorded in the 'monitoring_values' table.
-    
+
     Args:
         spark_session (SparkSession): The SparkSession to use for reading and writing data.
         table_name (str): The name of the table to perform signalling checks on.
@@ -440,9 +474,9 @@ def check_signalling_issues(spark_session: SparkSession, table_name: str) -> Non
         - It then iterates through the signalling checks, records the results, and updates the 'monitoring_values' table.
         - The specific checks performed depend on the definitions in the 'signalling_checks_dictionary'.
     """
-    
+
     dataframe = read_table(spark_session, table_name)
-    dummy_signalling_df = read_table(spark_session,'dummy_quality_check')
+    dummy_signalling_df = read_table(spark_session, 'dummy_quality_check')
 
     signalling_checks = {}
     # Check if there are additional data quality monitoring checks to be executed
@@ -450,34 +484,44 @@ def check_signalling_issues(spark_session: SparkSession, table_name: str) -> Non
         signalling_checks = signalling_checks_dictionary[table_name]
 
     # Generate the monitoring values table to be written
-    monitoring_values_df = calculate_signalling_issues(spark_session, dataframe, signalling_checks, dummy_signalling_df)
-    monitoring_values_df = monitoring_values_df.withColumn('table_name',F.lit(table_name))
+    monitoring_values_df = calculate_signalling_issues(
+        spark_session, dataframe, signalling_checks, dummy_signalling_df)
+    monitoring_values_df = monitoring_values_df.withColumn(
+        'table_name', F.lit(table_name))
 
-    existing_monitoring_df = read_table(spark_session, 'monitoring_values', table_name)
-    max_issue = existing_monitoring_df.fillna(0,subset='signalling_id') \
-                    .select(F.max(F.col('signalling_id')).alias('max_signalling_id')).collect()[0]['max_signalling_id']
+    existing_monitoring_df = read_table(
+        spark_session, 'monitoring_values', table_name)
+    max_issue = existing_monitoring_df.fillna(0, subset='signalling_id') \
+        .select(F.max(F.col('signalling_id')).alias('max_signalling_id')).collect()[0]['max_signalling_id']
     if not max_issue:
         max_issue = 0
-    existing_monitoring_df = existing_monitoring_df.select([F.col(c).alias(c+'_old') for c in existing_monitoring_df.columns  ])\
-                                .select(['signalling_id_old','column_name_old','check_name_old','table_name_old','check_id_old'])
+    existing_monitoring_df = existing_monitoring_df.select([F.col(c).alias(c+'_old') for c in existing_monitoring_df.columns])\
+        .select(['signalling_id_old', 'column_name_old', 'check_name_old', 'table_name_old', 'check_id_old'])
     w = Window().partitionBy('table_name').orderBy(F.col('check_id'))
-    join_conditions = [monitoring_values_df.table_name == existing_monitoring_df.table_name_old, 
-                        monitoring_values_df.column_name == existing_monitoring_df.column_name_old, 
-                        monitoring_values_df.check_name == existing_monitoring_df.check_name_old, 
-                        monitoring_values_df.check_id == existing_monitoring_df.check_id_old]
-    monitoring_values_intermediate = monitoring_values_df.join(existing_monitoring_df, on=join_conditions, how='left')
+    join_conditions = [monitoring_values_df.table_name == existing_monitoring_df.table_name_old,
+                       monitoring_values_df.column_name == existing_monitoring_df.column_name_old,
+                       monitoring_values_df.check_name == existing_monitoring_df.check_name_old,
+                       monitoring_values_df.check_id == existing_monitoring_df.check_id_old]
+    monitoring_values_intermediate = monitoring_values_df.join(
+        existing_monitoring_df, on=join_conditions, how='left')
 
-    existing_signalling_id = monitoring_values_intermediate.where(F.col('signalling_id_old').isNotNull())
-    non_existing_signalling_id = monitoring_values_intermediate.where(F.col('signalling_id_old').isNull())
-    non_existing_signalling_id = non_existing_signalling_id.withColumn('signalling_id',F.row_number().over(w)+F.lit(max_issue))
-    
-    monitoring_values_intermediate = existing_signalling_id.union(non_existing_signalling_id)
-    monitoring_values_intermediate = monitoring_values_intermediate.withColumn('signalling_id',F.coalesce(F.col('signalling_id_old'),F.col('signalling_id')))
-    monitoring_values_df = monitoring_values_intermediate.select(['signalling_id','check_id', 'column_name', 'check_name', 'total_count', 'valid_count', 'table_name'])
+    existing_signalling_id = monitoring_values_intermediate.where(
+        F.col('signalling_id_old').isNotNull())
+    non_existing_signalling_id = monitoring_values_intermediate.where(
+        F.col('signalling_id_old').isNull())
+    non_existing_signalling_id = non_existing_signalling_id.withColumn(
+        'signalling_id', F.row_number().over(w)+F.lit(max_issue))
+
+    monitoring_values_intermediate = existing_signalling_id.union(
+        non_existing_signalling_id)
+    monitoring_values_intermediate = monitoring_values_intermediate.withColumn(
+        'signalling_id', F.coalesce(F.col('signalling_id_old'), F.col('signalling_id')))
+    monitoring_values_df = monitoring_values_intermediate.select(
+        ['signalling_id', 'check_id', 'column_name', 'check_name', 'total_count', 'valid_count', 'table_name'])
 
     # Write the table to the location
-    write_table(spark_session, monitoring_values_df, 'monitoring_values', table_name)
-    return None
+    write_table(spark_session, monitoring_values_df,
+                'monitoring_values', table_name)
 
 
 def create_catalog_tables(spark_session: SparkSession, table_name: str) -> bool:
@@ -501,7 +545,7 @@ def create_catalog_tables(spark_session: SparkSession, table_name: str) -> bool:
         - The table is created with the specified columns, data types, and partitioning (if applicable).
         - If the table already exists, it is dropped and recreated.
     """
-    
+
     table_definition = get_table_definition(table_name)
 
     # Drop the table definition in the unity catalog
@@ -515,7 +559,8 @@ def create_catalog_tables(spark_session: SparkSession, table_name: str) -> bool:
         col_string = f"`{col_info['name']}` {col_info['type']} {'NOT NULL' if not col_info['nullable'] else ''},"
         create_string += col_string
 
-    table_path = build_table_path(table_definition['container'], table_definition['location'],None)
+    table_path = build_table_path(
+        table_definition['container'], table_definition['location'], None)
     create_string = create_string[:-1] + ")"
     create_string += f" USING {table_definition['type']} LOCATION '{table_path}'"
     if table_definition['partition_column']:
@@ -537,7 +582,7 @@ def create_catalog_tables(spark_session: SparkSession, table_name: str) -> bool:
             spark_session.sql(delete_string)
         # If we encounter any other error, raise as the error
         else:
-            raise(e)
+            raise (e)
     spark_session.sql(create_string)
     spark_session.sql(set_owner_string)
 
