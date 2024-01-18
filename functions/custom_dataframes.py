@@ -37,34 +37,15 @@ class CustomDF:
         self._partition_name = partition_name
         self._history = history
         self._env = 'develop'
-        self._path = self.table_path()
+        self._path = f"abfss://{self._schema['container']}@storagetilt{self._env}.dfs.core.windows.net/{self._schema['location']}/"
+        if self._partition_name:
+            self._partition_path = f"{self._schema['partition_column']}={self._partition_name}"
+        else:
+            self._partition_path = ''
         if initial_df:
             self._df = initial_df
         else:
             self._df = self.read_table()
-
-    def table_path(self):
-        """
-        Builds the path for a table based on the container, location, and optional partition.
-
-        Args:
-            container (str): The name of the storage container.
-            location (str): The location of the table within the container.
-            partition_column_and_name (str): The optional string that points to the location of the specified partition.
-
-        Returns:
-            str: The built table path.
-
-        Raises:
-            None
-
-        """
-        if self._partition_name:
-            # Return the table path with the specified partition
-            return f"abfss://{self._schema['container']}@storagetilt{self._env}.dfs.core.windows.net/{self._schema['location']}/{self._schema['partition_column']}={self._partition_name}"
-        else:
-            # Return the table path without a partition
-            return f"abfss://{self._schema['container']}@storagetilt{self._env}.dfs.core.windows.net/{self._schema['location']}"
 
     def read_table(self):
         """
@@ -87,10 +68,10 @@ class CustomDF:
                 f"Value {self._history} is not in valid arguments [recent,complete] for history argument")
 
         read_functions = {
-            'csv': lambda: self._spark_session.read.format('csv').schema(self._schema['columns']).option('header', True).option("quote", '"').option("multiline", 'True').load(self._path),
-            'ecoInvent': lambda: self._spark_session.read.format('csv').schema(self._schema['columns']).option('header', True).option("quote", '~').option('delimiter', ';').option("multiline", 'True').load(self._path),
-            'tiltData': lambda: self._spark_session.read.format('csv').schema(self._schema['columns']).option('header', True).option("quote", '~').option('delimiter', ';').option("multiline", 'True').load(self._path),
-            'parquet': lambda: self._spark_session.read.format(self._schema['type']).schema(self._schema['columns']).option('header', True).load(self._path)
+            'csv': lambda: self._spark_session.read.format('csv').schema(self._schema['columns']).option('header', True).option("quote", '"').option("multiline", 'True').load(self._path + self._partition_path),
+            'ecoInvent': lambda: self._spark_session.read.format('csv').schema(self._schema['columns']).option('header', True).option("quote", '~').option('delimiter', ';').option("multiline", 'True').load(self._path + self._partition_path),
+            'tiltData': lambda: self._spark_session.read.format('csv').schema(self._schema['columns']).option('header', True).option("quote", '~').option('delimiter', ';').option("multiline", 'True').load(self._path + self._partition_path),
+            'parquet': lambda: self._spark_session.read.format(self._schema['type']).schema(self._schema['columns']).option('header', True).load(self._path + self._partition_path)
         }
 
         try:
