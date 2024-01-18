@@ -383,14 +383,13 @@ def calculate_signalling_issues(spark_session: SparkSession, dataframe: DataFram
                                     for val in distinct_columns])[:100]
             description_string = f'{count_expected} distinct values occur in column {input_list}'
             check_id = 'tilt_9'
-        print(signalling_check_df.show(n=2, vertical=True))
+
         signalling_check_df = signalling_check_df.withColumn('valid_count', F.lit(valid_count).cast(IntegerType()))\
             .withColumn('check_id', F.lit(check_id))\
             .withColumn('check_name', F.lit(description_string))\
             .withColumn('signalling_id', F.lit(None))
-        print(signalling_check_df.show(n=2, vertical=True))
 
         df = df.union(signalling_check_df).select(
             ['signalling_id', 'check_id', 'column_name', 'check_name', 'total_count', 'valid_count'])
-        print(df.show(n=2, vertical=True))
+
     return df

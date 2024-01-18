@@ -245,10 +245,6 @@ class CustomDF:
         if not self._df.orderBy(F.col('tiltRecordID')).head().asDict() == check_df.orderBy(F.col('tiltRecordID')).head().asDict():
             # The format of the DataFrame does not match the table definition
             raise ValueError("The head of the table does not match.")
-        print(self._name)
-        if self._name == 'monitoring_values':
-            print(self._df.orderBy(F.col('signalling_id')).show(
-                n=20, vertical=True))
 
         # Check if all of the rows are unique in the table
         if self._df.count() != self._df.distinct().count():
