@@ -486,7 +486,7 @@ signalling_checks_dictionary = {
         # },
         {
             'check': 'values are unique',
-            'columns': ['companies_id', 'PCTR_risk_category']
+            'columns': ['companies_id']
         }, 
     ],
     'emission_profile_product_raw' :[ 
@@ -551,9 +551,8 @@ signalling_checks_dictionary = {
         },
         { 
             'check': 'values are unique',
-            'columns': ['companies_id', 'activity_uuid_product_uuid', 'matched_activity_name', 'PCTR_risk_category', 'isic_4digit', 'matched_reference_product']
+            'columns': ['companies_id']
         },
-
     ],
     'emission_upstream_profile_company_raw': [
         {
@@ -598,7 +597,7 @@ signalling_checks_dictionary = {
         },
         {
             'check': 'values are unique',
-            'columns': ['companies_id', 'ICTR_risk_category', 'ICTR_share']
+            'columns': ['companies_id']
         },
     ],
     'emission_upstream_profile_product_raw':[
@@ -634,7 +633,7 @@ signalling_checks_dictionary = {
         },
         {
             'check':'values are unique',
-            'columns':['companies_id', 'ICTR_risk_category', 'benchmark', 'activity_uuid_product_uuid']
+            'columns':['companies_id']
         },
     ],
     'sector_profile_company_raw' : [
@@ -700,7 +699,7 @@ signalling_checks_dictionary = {
         # },
         {
             'check': 'values are unique',
-            'columns': ['companies_id', 'PSTR_risk_category', 'scenario']
+            'columns': ['companies_id']
         },
     ],
     'sector_profile_product_raw' :[
@@ -756,7 +755,7 @@ signalling_checks_dictionary = {
         },
         {
             'check': 'values are unique',
-            'columns': ['companies_id', 'PSTR_risk_category', 'scenario', 'ep_product']
+            'columns': ['companies_id']
         },
     ],
     'sector_upstream_profile_company_raw':[
@@ -812,7 +811,7 @@ signalling_checks_dictionary = {
         },
         {
             'check':'values are unique',
-            'columns':['companies_id', 'scenario', 'ISTR_risk_category']
+            'columns':['companies_id']
         },
     ],
     'sector_upstream_profile_product_raw':[
@@ -873,7 +872,7 @@ signalling_checks_dictionary = {
         },
         { 
             'check':'values are unique',
-            'columns':['companies_id', 'ISTR_risk_category', 'input_isic_4digit', 'activity_uuid_product_uuid', 'scenario', 'ep_produc']
+            'columns':['companies_id']
         },
     ],
     'ep_ei_matcher_raw':[
