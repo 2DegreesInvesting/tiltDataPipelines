@@ -1423,5 +1423,5 @@ def get_table_definition(table_name: str = '') -> dict:
 
     if not table_name:
         return table_dict
-    else:
-        return table_dict[table_name]
+
+    return table_dict[table_name]

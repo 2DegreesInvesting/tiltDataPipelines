@@ -6,6 +6,25 @@ from functions.spark_session import create_spark_session
 
 
 def generate_table(table_name: str) -> None:
+    """
+    Generate a specified table from the raw data using either a remote or the Databricks SparkSession.
+
+    This function generates a specified table from the raw data. The table to be generated is determined by the 'table_name' argument.
+
+    Args:
+        table_name (str): The name of the table to generate.
+
+    Returns:
+        None. The function writes the generated tables to disk.
+
+    Raises:
+        ValueError: If the 'table_name' input is not a name mentioned in the function, a ValueError is raised.
+
+    Note:
+        - The function uses the 'CustomDF' class to handle DataFrames.
+        - The function writes the generated tables to disk using the 'write_table' method of the 'CustomDF' class.
+        - If the fuction is run in Databricks it will not terminate the SparkSession. This is to ensure that the cluster can be used for other processes.
+    """
 
     spark_generate = create_spark_session()
 
