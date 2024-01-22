@@ -15,14 +15,14 @@ def generate_table(table_name: str) -> None:
         table_name (str): The name of the table to generate.
 
     Returns:
-        None. The function writes the generated tables to disk.
+        None. The function writes the generated tables to storage, in this case an Azure Storage Account.
 
     Raises:
         ValueError: If the 'table_name' input is not a name mentioned in the function, a ValueError is raised.
 
     Note:
         - The function uses the 'CustomDF' class to handle DataFrames.
-        - The function writes the generated tables to disk using the 'write_table' method of the 'CustomDF' class.
+        - The function writes the generated tables to storage, in this case an Azure Storage Account, using the 'write_table' method of the 'CustomDF' class.
         - If the fuction is run in Databricks it will not terminate the SparkSession. This is to ensure that the cluster can be used for other processes.
     """
 
