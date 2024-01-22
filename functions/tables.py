@@ -989,7 +989,6 @@ def get_table_definition(table_name: str = '') -> dict:
                 StructField('main_activity', StringType(), True),
                 StructField('activity_uuid_product_uuid', StringType(), True),
                 StructField('profile_ranking', DoubleType(), True),
-                StructField('extra_rowid', IntegerType(), True),
                 StructField('geography', StringType(), True)
             ]
             ),
@@ -1024,7 +1023,6 @@ def get_table_definition(table_name: str = '') -> dict:
                 StructField('main_activity', StringType(), True),
                 StructField('activity_uuid_product_uuid', StringType(), True),
                 StructField('profile_ranking', DoubleType(), True),
-                StructField('extra_rowid', IntegerType(), True),
                 StructField('geography', StringType(), True),
                 StructField('from_date', DateType(), False),
                 StructField('to_date', DateType(), False),
@@ -1110,8 +1108,7 @@ def get_table_definition(table_name: str = '') -> dict:
                 StructField('address', StringType(), True),
                 StructField('main_activity', StringType(), True),
                 StructField('activity_uuid_product_uuid', StringType(), True),
-                StructField('profile_ranking', DoubleType(), True),
-                StructField('extra_rowid', IntegerType(), True)
+                StructField('profile_ranking', DoubleType(), True)
             ]
             ),
             'container': 'landingzone',
@@ -1147,7 +1144,6 @@ def get_table_definition(table_name: str = '') -> dict:
                 StructField('main_activity', StringType(), True),
                 StructField('activity_uuid_product_uuid', StringType(), True),
                 StructField('profile_ranking', DoubleType(), True),
-                StructField('extra_rowid', IntegerType(), True),
                 StructField('from_date', DateType(), False),
                 StructField('to_date', DateType(), False),
                 StructField('tiltRecordID', StringType(), False)
@@ -1232,7 +1228,6 @@ def get_table_definition(table_name: str = '') -> dict:
                 StructField('main_activity', StringType(), True),
                 StructField('activity_uuid_product_uuid', StringType(), True),
                 StructField('profile_ranking', DoubleType(), True),
-                StructField('extra_rowid', IntegerType(), True),
                 StructField('isic_4digit', StringType(), True),
                 StructField('sector', StringType(), True),
                 StructField('subsector', StringType(), True),
@@ -1269,7 +1264,6 @@ def get_table_definition(table_name: str = '') -> dict:
                 StructField('main_activity', StringType(), True),
                 StructField('activity_uuid_product_uuid', StringType(), True),
                 StructField('profile_ranking', DoubleType(), True),
-                StructField('extra_rowid', IntegerType(), True),
                 StructField('isic_4digit', StringType(), True),
                 StructField('sector', StringType(), True),
                 StructField('subsector', StringType(), True),
@@ -1361,7 +1355,6 @@ def get_table_definition(table_name: str = '') -> dict:
                 StructField('main_activity', StringType(), True),
                 StructField('activity_uuid_product_uuid', StringType(), True),
                 StructField('profile_ranking', DoubleType(), True),
-                StructField('extra_rowid', IntegerType(), True),
                 StructField('input_isic_4digit', StringType(), True),
                 StructField('sector', StringType(), True),
                 StructField('subsector', StringType(), True),
@@ -1401,7 +1394,6 @@ def get_table_definition(table_name: str = '') -> dict:
                 StructField('main_activity', StringType(), True),
                 StructField('activity_uuid_product_uuid', StringType(), True),
                 StructField('profile_ranking', DoubleType(), True),
-                StructField('extra_rowid', IntegerType(), True),
                 StructField('input_isic_4digit', StringType(), True),
                 StructField('sector', StringType(), True),
                 StructField('subsector', StringType(), True),
