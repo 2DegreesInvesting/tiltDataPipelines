@@ -338,7 +338,7 @@ def generate_table(table_name: str) -> None:
         emission_upstream_profile_company_landingzone = CustomDF(
             'emission_upstream_profile_company_landingzone', spark_generate)
 
-        cast_to_float = ['emission_profile_share']
+        cast_to_float = ['emission_upstream_profile_share']
 
         emission_upstream_profile_company_landingzone.convert_data_types(
             cast_to_float, DoubleType())
@@ -379,7 +379,7 @@ def generate_table(table_name: str) -> None:
         sector_profile_company_landingzone = CustomDF(
             'sector_profile_company_landingzone', spark_generate)
 
-        cast_to_float = ['emission_profile_share']
+        cast_to_float = ['sector_profile_share']
 
         sector_profile_company_landingzone.convert_data_types(
             cast_to_float, DoubleType())
@@ -425,7 +425,7 @@ def generate_table(table_name: str) -> None:
         sector_upstream_profile_company_landingzone = CustomDF(
             'sector_upstream_profile_company_landingzone', spark_generate)
 
-        cast_to_float = ['emission_profile_share']
+        cast_to_float = ['sector_upstream_profile_share']
         sector_upstream_profile_company_landingzone.convert_data_types(
             cast_to_float, DoubleType())
         sector_upstream_profile_company_landingzone.convert_data_types(
