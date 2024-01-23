@@ -1,4 +1,5 @@
-from functions.spark_session import create_spark_session, check_signalling_issues
+from functions.spark_session import create_spark_session
+from functions.custom_dataframes import CustomDF
 
 if __name__ == '__main__':
 
@@ -12,4 +13,5 @@ if __name__ == '__main__':
 
     # Apply the checks from dictionary
     for table_name in table_name_list:
-        check_signalling_issues(signalling_spark_session, table_name)
+        table_df = CustomDF(table_name, signalling_spark_session)
+        table_df.check_signalling_issues()

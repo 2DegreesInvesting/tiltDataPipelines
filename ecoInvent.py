@@ -19,7 +19,7 @@ Note:
 """
 from functions.processing import generate_table
 
-    if __name__ == '__main__':
+if __name__ == '__main__':
 
     generate_table('geographies_raw')
     # generate_table('geographies_transform')
