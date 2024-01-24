@@ -72,12 +72,13 @@ def calculate_filled_values(dataframe: DataFrame) -> DataFrame:
         - 'total_count': The total number of rows in the DataFrame.
         - 'valid_count': The count of non-null (filled) values for each column.
     """
+    df_cols = [col for col in dataframe.columns if ('map_' not in col) and (col not in ['from_date', 'to_date', 'tiltRecordID'])]
     total_count = dataframe.count()
     df = dataframe.select([(F.count(F.when(F.isnull(c), c)
                                     .when(F.col(c) == 'NA', None)
-                                    .when(F.col(c) == 'nan', None))).alias(c) for c in dataframe.columns]) \
+                                    .when(F.col(c) == 'nan', None))).alias(c) for c in df_cols]) \
         .withColumn('invalid_count_column', F.lit('invalid_count'))
-    df = TransposeDF(df, dataframe.columns, 'invalid_count_column')
+    df = TransposeDF(df, df_cols, 'invalid_count_column')
     df = df.withColumn('total_count', F.lit(total_count).cast(IntegerType())) \
         .withColumn('valid_count', F.lit(total_count).cast(IntegerType()) - F.col('invalid_count').cast(IntegerType())) \
         .withColumn('check_name', F.lit('Check if values are filled')) \
