@@ -1231,8 +1231,8 @@ def get_table_definition(table_name: str = '') -> dict:
                 StructField('activity_uuid_product_uuid', StringType(), True),
                 StructField('reduction_targets', DoubleType(), True),
                 StructField('isic_4digit', StringType(), True),
-                StructField('sector', StringType(), True),
-                StructField('subsector', StringType(), True),
+                StructField('sector_scenario', StringType(), True),
+                StructField('subsector_scenario', StringType(), True),
                 StructField('isic_4digit_name', StringType(), True)
             ]
             ),
