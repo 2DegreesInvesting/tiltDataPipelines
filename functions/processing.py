@@ -338,13 +338,26 @@ def generate_table(table_name: str) -> None:
         emission_upstream_profile_company_landingzone = CustomDF(
             'emission_upstream_profile_company_landingzone', spark_generate)
 
-        cast_to_float = ['emission_upstream_profile_share']
+        cast_to_float = ['emission_usptream_profile_share']
 
         emission_upstream_profile_company_landingzone.convert_data_types(
             cast_to_float, DoubleType())
 
         emission_upstream_profile_company_landingzone.data = emission_upstream_profile_company_landingzone.data.drop(
             'batch')
+
+        col_order = emission_upstream_profile_company_landingzone.data.columns
+
+        for num, val in enumerate(col_order):
+            if val == 'emission_usptream_profile':
+                col_order[num] = 'emission_upstream_profile'
+            if val == 'emission_usptream_profile_share':
+                col_order[num] = 'emission_upstream_profile_share'
+
+        emission_upstream_profile_company_landingzone.data = emission_upstream_profile_company_landingzone.data.withColumn(
+            'emission_upstream_profile', F.col('emission_usptream_profile')).drop('emission_usptream_profile')
+        emission_upstream_profile_company_landingzone.data = emission_upstream_profile_company_landingzone.data.withColumn(
+            'emission_upstream_profile_share', F.col('emission_usptream_profile_share')).drop('emission_usptream_profile_share').select(col_order)
 
         emission_upstream_profile_company_landingzone.data = emission_upstream_profile_company_landingzone.data.distinct()
 
@@ -366,6 +379,17 @@ def generate_table(table_name: str) -> None:
 
         emission_upstream_profile_product_landingzone.data = emission_upstream_profile_product_landingzone.data.drop(
             'batch')
+
+        col_order = emission_upstream_profile_product_landingzone.data.columns
+
+        for num, val in enumerate(col_order):
+            if val == 'emission_usptream_profile':
+                col_order[num] = 'emission_upstream_profile'
+            if val == 'emission_usptream_profile_share':
+                col_order[num] = 'emission_upstream_profile_share'
+
+        emission_upstream_profile_product_landingzone.data = emission_upstream_profile_product_landingzone.data.withColumn(
+            'emission_upstream_profile', F.col('emission_usptream_profile')).drop('emission_usptream_profile').select(col_order)
 
         emission_upstream_profile_product_landingzone.data = emission_upstream_profile_product_landingzone.data.distinct()
 
@@ -425,7 +449,7 @@ def generate_table(table_name: str) -> None:
         sector_upstream_profile_company_landingzone = CustomDF(
             'sector_upstream_profile_company_landingzone', spark_generate)
 
-        cast_to_float = ['sector_upstream_profile_share']
+        cast_to_float = ['sector_profile_upstream_share']
         sector_upstream_profile_company_landingzone.convert_data_types(
             cast_to_float, DoubleType())
         sector_upstream_profile_company_landingzone.convert_data_types(

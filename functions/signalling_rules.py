@@ -212,7 +212,7 @@ signalling_checks_dictionary = {
         },
         {
             'check': 'values within list',
-            'columns': ['emission_profile'],
+            'columns': ['emission_upstream_profile'],
             'value_list': ['low', 'medium', 'high']
         },
         {
@@ -288,7 +288,7 @@ signalling_checks_dictionary = {
         {
             'check': 'values sum to 1',
             'columns': ['companies_id', 'scenario', 'year'],
-            'sum_column': 'emission_profile_share'
+            'sum_column': 'sector_profile_share'
         },
         # {
         #     'check':'values sum to 1',
@@ -392,7 +392,7 @@ signalling_checks_dictionary = {
         {
             'check': 'values sum to 1',
             'columns': ['companies_id', 'scenario', 'year'],
-            'sum_column': 'emission_profile_share'
+            'sum_column': 'sector_profile_upstream_share'
         },
         # {
         #     'check':'values sum to 1',
@@ -406,7 +406,7 @@ signalling_checks_dictionary = {
         # },
         {
             'check': 'values within list',
-            'columns': ['emission_profile'],
+            'columns': ['sector_profile_upstream'],
             'value_list': ['low', 'medium', 'high']
         },
         {
@@ -449,7 +449,7 @@ signalling_checks_dictionary = {
         },
         {
             'check': 'values within list',
-            'columns': ['emission_profile'],
+            'columns': ['sector_profile_upstream'],
             'value_list': ['low', 'medium', 'high']
         },
         {
