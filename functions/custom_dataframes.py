@@ -5,7 +5,6 @@ from pyspark.sql.window import Window
 from functions.dataframe_helpers import create_map_column, create_sha_values
 from functions.signalling_functions import calculate_signalling_issues
 from functions.signalling_rules import signalling_checks_dictionary
-from functions.spark_session import build_table_path
 from functions.tables import get_table_definition
 
 
@@ -38,34 +37,15 @@ class CustomDF:
         self._partition_name = partition_name
         self._history = history
         self._env = 'develop'
-        self._path = self.table_path()
+        self._path = f"abfss://{self._schema['container']}@storagetilt{self._env}.dfs.core.windows.net/{self._schema['location']}/"
+        if self._partition_name:
+            self._partition_path = f"{self._schema['partition_column']}={self._partition_name}"
+        else:
+            self._partition_path = ''
         if initial_df:
             self._df = initial_df
         else:
             self._df = self.read_table()
-
-    def table_path(self):
-        """
-        Builds the path for a table based on the container, location, and optional partition.
-
-        Args:
-            container (str): The name of the storage container.
-            location (str): The location of the table within the container.
-            partition_column_and_name (str): The optional string that points to the location of the specified partition.
-
-        Returns:
-            str: The built table path.
-
-        Raises:
-            None
-
-        """
-        if self._partition_name:
-            # Return the table path with the specified partition
-            return f"abfss://{self._schema['container']}@storagetilt{self._env}.dfs.core.windows.net/{self._schema['location']}/{self._schema['partition_column']}={self._partition_name}"
-        else:
-            # Return the table path without a partition
-            return f"abfss://{self._schema['container']}@storagetilt{self._env}.dfs.core.windows.net/{self._schema['location']}"
 
     def read_table(self):
         """
@@ -88,10 +68,10 @@ class CustomDF:
                 f"Value {self._history} is not in valid arguments [recent,complete] for history argument")
 
         read_functions = {
-            'csv': lambda: self._spark_session.read.format('csv').schema(self._schema['columns']).option('header', True).option("quote", '"').option("multiline", 'True').load(self._path),
-            'ecoInvent': lambda: self._spark_session.read.format('csv').schema(self._schema['columns']).option('header', True).option("quote", '~').option('delimiter', ';').option("multiline", 'True').load(self._path),
-            'tiltData': lambda: self._spark_session.read.format('csv').schema(self._schema['columns']).option('header', True).option("quote", '~').option('delimiter', ';').option("multiline", 'True').load(self._path),
-            'parquet': lambda: self._spark_session.read.format(self._schema['type']).schema(self._schema['columns']).option('header', True).load(self._path)
+            'csv': lambda: self._spark_session.read.format('csv').schema(self._schema['columns']).option('header', True).option("quote", '"').option("multiline", 'True').load(self._path + self._partition_path),
+            'ecoInvent': lambda: self._spark_session.read.format('csv').schema(self._schema['columns']).option('header', True).option("quote", '~').option('delimiter', ';').option("multiline", 'True').load(self._path + self._partition_path),
+            'tiltData': lambda: self._spark_session.read.format('csv').schema(self._schema['columns']).option('header', True).option("quote", '~').option('delimiter', ';').option("multiline", 'True').load(self._path + self._partition_path),
+            'parquet': lambda: self._spark_session.read.format(self._schema['type']).schema(self._schema['columns']).option('header', True).load(self._path + self._partition_path)
         }
 
         try:
@@ -246,10 +226,6 @@ class CustomDF:
         if not self._df.orderBy(F.col('tiltRecordID')).head().asDict() == check_df.orderBy(F.col('tiltRecordID')).head().asDict():
             # The format of the DataFrame does not match the table definition
             raise ValueError("The head of the table does not match.")
-        print(self._name)
-        if self._name == 'monitoring_values':
-            print(self._df.orderBy(F.col('signalling_id')).show(
-                n=20, vertical=True))
 
         # Check if all of the rows are unique in the table
         if self._df.count() != self._df.distinct().count():
@@ -326,10 +302,8 @@ class CustomDF:
             col_string = f"`{col_info['name']}` {col_info['type']} {'NOT NULL' if not col_info['nullable'] else ''},"
             create_string += col_string
 
-        table_path = build_table_path(
-            self._schema['container'], self._schema['location'], None)
         create_string = create_string[:-1] + ")"
-        create_string += f" USING {self._schema['type']} LOCATION '{table_path}'"
+        create_string += f" USING {self._schema['type']} LOCATION '{self._path}'"
         if self._schema['partition_column']:
             create_string += f" PARTITIONED BY (`{self._schema['partition_column']}` STRING)"
         set_owner_string = f"ALTER TABLE `{self._schema['container']}`.`default`.`{self._schema['location'].replace('.','')}` SET OWNER TO tiltDevelopers"
