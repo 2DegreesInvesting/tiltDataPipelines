@@ -71,12 +71,16 @@ class CustomDF:
             'csv': lambda: self._spark_session.read.format('csv').schema(self._schema['columns']).option('header', True).option("quote", '"').option("multiline", 'True').load(self._path + self._partition_path),
             'ecoInvent': lambda: self._spark_session.read.format('csv').schema(self._schema['columns']).option('header', True).option("quote", '~').option('delimiter', ';').option("multiline", 'True').load(self._path + self._partition_path),
             'tiltData': lambda: self._spark_session.read.format('csv').schema(self._schema['columns']).option('header', True).option("quote", '~').option('delimiter', ';').option("multiline", 'True').load(self._path + self._partition_path),
+            'delta': lambda: self._spark_session.read.format('delta').schema(self._schema['columns']).option('header', True).load(self._path),
             'parquet': lambda: self._spark_session.read.format(self._schema['type']).schema(self._schema['columns']).option('header', True).load(self._path + self._partition_path)
         }
 
         try:
             df = read_functions.get(
                 self._schema['type'], read_functions['parquet'])()
+            if self._schema['type'] == 'delta' and self._partition_name != '':
+                df = df.where(
+                    F.col(self._schema['partition_column']) == self._partition_name)
             df.head()  # Force to load first record of the data to check if it throws an error
         except Exception as e:
             if "Path does not exist:" in str(e):
@@ -419,6 +423,9 @@ class CustomDF:
                 if self._schema['type'] == 'csv':
                     self._df.write.partitionBy(self._schema['partition_column']).mode(
                         'overwrite').csv(self._path)
+                elif self._schema['type'] == 'delta':
+                    self._df.write.partitionBy(self._schema['partition_column']).mode(
+                        'overwrite').format('delta').save(self._path)
                 else:
                     self._df.write.partitionBy(self._schema['partition_column']).mode(
                         'overwrite').parquet(self._path)
@@ -427,6 +434,9 @@ class CustomDF:
                 if self._schema['type'] == 'csv':
                     self._df.coalesce(1).write.mode(
                         'overwrite').csv(self._path)
+                elif self._schema['type'] == 'delta':
+                    self._df.write.mode(
+                        'overwrite').format('delta').save(self._path)
                 else:
                     self._df.coalesce(1).write.mode(
                         'overwrite').parquet(self._path)
