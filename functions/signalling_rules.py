@@ -486,7 +486,7 @@ signalling_checks_dictionary = {
         # },
         {
             'check': 'values are unique',
-            'columns': ['companies_id']
+            'columns': ['companies_id', 'benchmark', 'matching_certainty_company_average', 'emission_profile', 'emission_profile_share']
         }, 
     ],
     'emission_profile_product_raw': [
@@ -524,12 +524,12 @@ signalling_checks_dictionary = {
         {
             'check': 'values within list',
             'columns': ['tilt_sector'],
-            'value_list': ['Industry', 'Land Use', 'Metals', 'Construction', 'Non-metallic Minerals', 'Transport']
+            'value_list': ['industry', 'land use', 'metals', 'construction', 'non-metallic minerals', 'transport']
         },
         {
             'check': 'values within list',
             'columns': ['tilt_subsector'],
-            'value_list': ['Other Non-metallic Minerals', 'Agriculture & Livestock', 'Construction Buildings', 'Food Related Products', 'Fishing & Forestry', 'Bioenergy & Waste Power', 'Other Industry', 'Cement', 'Bioenergy & Waste Energy', 'Automotive LDV', 'Renewable Energy', 'Iron & Steel', 'Aviation', 'Oil Energy', 'Other Metals', 'Machinery & Equipment', 'Other Transport', 'Coal Energy', 'Construction Residential', 'Total Power', 'Chemicals', 'Shipping', 'Gas Energy', 'Total Energy', 'Automotive HDV']
+            'value_list': ['other non-metallic minerals', 'agriculture & livestock', 'construction buildings', 'food related products', 'fishing & forestry', 'bioenergy & waste power', 'other industry', 'cement', 'bioenergy & waste energy', 'automotive ldv', 'renewable energy', 'iron & steel', 'aviation', 'oil energy', 'other metals', 'machinery & equipment', 'other transport', 'coal energy', 'construction residential', 'total power', 'chemicals', 'shipping', 'gas energy', 'total energy', 'automotive hdv']
         },
         {
             'check': 'distinct values occur as expected',
@@ -551,7 +551,7 @@ signalling_checks_dictionary = {
         },
         { 
             'check': 'values are unique',
-            'columns': ['companies_id']
+            'columns': ['companies_id', 'emission_profile', 'benchmark', 'isic_4digit', 'activity_uuid_product_uuid', 'ep_product']
         },
     ],
     'emission_upstream_profile_company_raw': [
@@ -597,7 +597,7 @@ signalling_checks_dictionary = {
         },
         {
             'check': 'values are unique',
-            'columns': ['companies_id']
+            'columns': ['companies_id', 'benchmark', 'emission_upstream_profile', 'matching_certainty_company_average', 'emission_upstream_profile_share']
         },
     ],
     'emission_upstream_profile_product_raw': [
@@ -633,7 +633,7 @@ signalling_checks_dictionary = {
         },
         {
             'check':'values are unique',
-            'columns':['companies_id']
+            'columns':['companies_id', 'emission_upstream_profile', 'ep_product', 'benchmark', 'matched_activity_name', 'matched_certainty_company_average', 'input_tilt_sector', 'input_tilt_subsector', 'input_isic_4digit', 'activity_uuid_product_uuid', 'reduction_targets', 'main_activity', 'input_name', 'input_unit']
         },
     ],
     'sector_profile_company_raw': [
@@ -699,7 +699,7 @@ signalling_checks_dictionary = {
         # },
         {
             'check': 'values are unique',
-            'columns': ['companies_id']
+            'columns': ['companies_id', 'scenario', 'sector_profile', 'matching_certainty_company_average', 'year']
         },
     ],
     'sector_profile_product_raw': [
@@ -755,7 +755,7 @@ signalling_checks_dictionary = {
         },
         {
             'check': 'values are unique',
-            'columns': ['companies_id']
+            'columns': ['companies_id', 'sector_profile', 'scenario', 'year', 'ep_product', 'activity_uuid_product_uuid']
         },
     ],
     'sector_upstream_profile_company_raw': [
@@ -811,7 +811,7 @@ signalling_checks_dictionary = {
         },
         {
             'check':'values are unique',
-            'columns':['companies_id']
+            'columns':['companies_id', 'sector_profile', 'scenario', 'year', 'ep_product', 'activity_uuid_product_uuid', 'isic-4digit']
         },
     ],
     'sector_upstream_profile_product_raw': [
@@ -872,7 +872,7 @@ signalling_checks_dictionary = {
         },
         { 
             'check':'values are unique',
-            'columns':['companies_id']
+            'columns':['companies_id', 'sector_profile_upstream', 'scenario', 'year', 'activity_uuid_product_uuid', 'reduction_targets', 'input_name', 'input_unit', 'ep_product']
         },
     ],
     'ep_ei_matcher_raw': [
