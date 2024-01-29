@@ -2,6 +2,8 @@ from pyspark.sql import SparkSession, DataFrame
 from pyspark.sql import functions as F
 from pyspark.sql.window import Window
 
+from delta import *
+
 from functions.dataframe_helpers import create_map_column, create_sha_values
 from functions.signalling_functions import calculate_signalling_issues
 from functions.signalling_rules import signalling_checks_dictionary
@@ -38,6 +40,7 @@ class CustomDF:
         self._history = history
         self._env = 'develop'
         self._path = f"abfss://{self._schema['container']}@storagetilt{self._env}.dfs.core.windows.net/{self._schema['location']}/"
+        self._table_name = f"`{self._env}`.`{self._schema['container']}`.`{self._schema['location'].replace('.','')}`"
         if self._partition_name:
             self._partition_path = f"{self._schema['partition_column']}={self._partition_name}"
         else:
@@ -71,19 +74,19 @@ class CustomDF:
             'csv': lambda: self._spark_session.read.format('csv').schema(self._schema['columns']).option('header', True).option("quote", '"').option("multiline", 'True').load(self._path + self._partition_path),
             'ecoInvent': lambda: self._spark_session.read.format('csv').schema(self._schema['columns']).option('header', True).option("quote", '~').option('delimiter', ';').option("multiline", 'True').load(self._path + self._partition_path),
             'tiltData': lambda: self._spark_session.read.format('csv').schema(self._schema['columns']).option('header', True).option("quote", '~').option('delimiter', ';').option("multiline", 'True').load(self._path + self._partition_path),
-            'delta': lambda: self._spark_session.read.format('delta').schema(self._schema['columns']).option('header', True).load(self._path),
+            'delta': lambda: DeltaTable.forName(self._spark_session, self._table_name).toDF(),
             'parquet': lambda: self._spark_session.read.format(self._schema['type']).schema(self._schema['columns']).option('header', True).load(self._path + self._partition_path)
         }
 
         try:
             df = read_functions.get(
-                self._schema['type'], read_functions['parquet'])()
+                self._schema['type'], read_functions['delta'])()
             if self._schema['type'] == 'delta' and self._partition_name != '':
                 df = df.where(
                     F.col(self._schema['partition_column']) == self._partition_name)
             df.head()  # Force to load first record of the data to check if it throws an error
         except Exception as e:
-            if "Path does not exist:" in str(e):
+            if "Path does not exist:" in str(e) or f"`{self._schema['container']}`.`{self._schema['location']}` is not a Delta table" in str(e):
                 # If the table does not exist yet, return an empty data frame
                 df = self._spark_session.createDataFrame(
                     [], self._schema['columns'])
@@ -93,7 +96,7 @@ class CustomDF:
         if self._partition_name != '':
             df = df.withColumn(
                 self._schema['partition_column'], F.lit(self._partition_name))
-
+        print(df.printSchema())
         if self._history == 'recent' and 'to_date' in df.columns:
             df = df.filter(F.col('to_date') == '2099-12-31')
 
@@ -295,11 +298,10 @@ class CustomDF:
             - The table is created with the specified columns, data types, and partitioning (if applicable).
             - If the table already exists, it is dropped and recreated.
         """
-        # Drop the table definition in the unity catalog
-        delete_string = f"DROP TABLE IF EXISTS `{self._schema['container']}`.`default`.`{self._schema['location'].replace('.','')}`"
+        schema_string = f'CREATE SCHEMA IF NOT EXISTS {self._env}.{self._schema["container"]};'
 
         # Build a SQL string to recreate the table in the most up to date format
-        create_string = f"CREATE EXTERNAL TABLE IF NOT EXISTS `{self._schema['container']}`.`default`.`{self._schema['location'].replace('.','')}` ("
+        create_string = f"CREATE TABLE IF NOT EXISTS {self._table_name} ("
 
         for i in self._schema['columns']:
             col_info = i.jsonValue()
@@ -307,23 +309,12 @@ class CustomDF:
             create_string += col_string
 
         create_string = create_string[:-1] + ")"
-        create_string += f" USING {self._schema['type']} LOCATION '{self._path}'"
+        create_string += " USING DELTA "
         if self._schema['partition_column']:
             create_string += f" PARTITIONED BY (`{self._schema['partition_column']}` STRING)"
-        set_owner_string = f"ALTER TABLE `{self._schema['container']}`.`default`.`{self._schema['location'].replace('.','')}` SET OWNER TO tiltDevelopers"
+        set_owner_string = f"ALTER TABLE {self._table_name} SET OWNER TO tiltDevelopers"
 
-        # Try and delete the already existing definition of the table
-        try:
-            self._spark_session.sql(delete_string)
-        # Try to catch the specific exception where the users is not the owner of the table and can thus not delete the table
-        except Exception as e:
-            # If the user is not the owner, set the user to be the owner and then delete the table
-            if "User is not an owner of Table" in str(e):
-                self._spark_session.sql(set_owner_string)
-                self._spark_session.sql(delete_string)
-            # If we encounter any other error, raise as the error
-            else:
-                raise (e)
+        self._spark_session.sql(schema_string)
         self._spark_session.sql(create_string)
         self._spark_session.sql(set_owner_string)
 
@@ -418,32 +409,19 @@ class CustomDF:
 
         table_check = self.validate_table_format()
 
-        if table_check:
-            if self._schema['partition_column']:
-                if self._schema['type'] == 'csv':
-                    self._df.write.partitionBy(self._schema['partition_column']).mode(
-                        'overwrite').csv(self._path)
-                elif self._schema['type'] == 'delta':
-                    self._df.write.partitionBy(self._schema['partition_column']).mode(
-                        'overwrite').format('delta').save(self._path)
-                else:
-                    self._df.write.partitionBy(self._schema['partition_column']).mode(
-                        'overwrite').parquet(self._path)
-
-            else:
-                if self._schema['type'] == 'csv':
-                    self._df.coalesce(1).write.mode(
-                        'overwrite').csv(self._path)
-                elif self._schema['type'] == 'delta':
-                    self._df.write.mode(
-                        'overwrite').format('delta').save(self._path)
-                else:
-                    self._df.coalesce(1).write.mode(
-                        'overwrite').parquet(self._path)
-        else:
-            raise ValueError("Table format validation failed.")
+        print(self._df.printSchema())
 
         self.create_catalog_table()
+
+        if table_check:
+            if self._schema['partition_column']:
+                self._df.write.partitionBy(self._schema['partition_column']).mode(
+                    'overwrite').format('delta').saveAsTable(self._table_name)
+            else:
+                self._df.write.mode(
+                    'overwrite').format('delta').saveAsTable(self._table_name)
+        else:
+            raise ValueError("Table format validation failed.")
 
         if self._name != 'monitoring_values':
             self.check_signalling_issues()
