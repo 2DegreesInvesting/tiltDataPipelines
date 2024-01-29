@@ -384,12 +384,12 @@ signalling_checks_dictionary = {
         {
             'check': 'values within list',
             'columns': ['tilt_sector'],
-            'value_list': ['Industry', 'Land Use', 'Metals', 'no_match', 'Construction', 'Non-metallic Minerals', 'Transport']
+            'value_list': ['industry', 'land Use', 'metals', 'no_match', 'construction', 'non-metallic minerals', 'transport']
         },
         {
             'check': 'values within list',
             'columns': ['tilt_subsector'],
-            'value_list': ['Other Non-metallic Minerals', 'Agriculture & Livestock', 'Construction Buildings', 'Food Related Products', 'Fishing & Forestry', 'Bioenergy & Waste Power', 'Other Industry', 'Cement', 'Bioenergy & Waste Energy', 'Automotive LDV', 'Renewable Energy', 'Iron & Steel', 'Aviation', 'no_match', 'Oil Energy', 'Other Metals', 'Machinery & Equipment', 'Other Transport', 'Coal Energy', 'Construction Residential', 'Total Power', 'Chemicals', 'Shipping', 'Gas Energy', 'Total Energy', 'Automotive HDV']
+            'value_list': ['other non-metallic minerals', 'agriculture & livestock', 'construction buildings', 'food related products', 'fishing & forestry', 'bioenergy & waste power', 'other industry', 'cement', 'bioenergy & waste energy', 'automotive ldv', 'renewable energy', 'iron & steel', 'aviation', 'no_match', 'oil energy', 'other metals', 'machinery & equipment', 'other transport', 'coal energy', 'construction residential', 'total power', 'chemicals', 'shipping', 'gas energy', 'Total Energy', 'Automotive HDV']
         },
         {
             'check': 'values within list',
@@ -491,7 +491,7 @@ signalling_checks_dictionary = {
         {
             'check': 'values within list',
             'columns': ['tilt_sector'],
-            'value_list': ['Industry', 'Land Use', 'Metals', 'no_match', 'Construction', 'Non-metallic Minerals', 'Transport']
+            'value_list': ['industry', 'land use', 'metals', 'no_match', 'construction', 'non-metallic minerals', 'transport']
         },
         # {
         #     'check':'values within list',
