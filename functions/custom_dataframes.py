@@ -71,12 +71,14 @@ class CustomDF:
             'csv': lambda: self._spark_session.read.format('csv').schema(self._schema['columns']).option('header', True).option("quote", '"').option("multiline", 'True').load(self._path + self._partition_path),
             'ecoInvent': lambda: self._spark_session.read.format('csv').schema(self._schema['columns']).option('header', True).option("quote", '~').option('delimiter', ';').option("multiline", 'True').load(self._path + self._partition_path),
             'tiltData': lambda: self._spark_session.read.format('csv').schema(self._schema['columns']).option('header', True).option("quote", '~').option('delimiter', ';').option("multiline", 'True').load(self._path + self._partition_path),
-            'parquet': lambda: self._spark_session.read.format(self._schema['type']).schema(self._schema['columns']).option('header', True).load(self._path + self._partition_path)
+            'parquet': lambda: self._spark_session.read.format(self._schema['type']).schema(self._schema['columns']).option('header', True).load(self._path + self._partition_path),
+            'delta': lambda: self._spark_session.read.format(self._schema['type']).schema(self._schema['columns']).option('header', True).load(self._path + self._partition_path)
+
         }
 
         try:
             df = read_functions.get(
-                self._schema['type'], read_functions['parquet'])()
+                self._schema['type'], read_functions['delta'])()
             df.head()  # Force to load first record of the data to check if it throws an error
         except Exception as e:
             if "Path does not exist:" in str(e):
@@ -401,7 +403,7 @@ class CustomDF:
             ValueError: If the DataFrame is empty or if the table name is not specified.
 
         Note:
-            - The DataFrame is written in the Parquet format.
+            - The DataFrame is written in the Delta format.
             - If a partition is specified, the DataFrame is written to that partition of the table.
             - If the table does not exist, it is created.
         """
@@ -421,7 +423,7 @@ class CustomDF:
                         'overwrite').csv(self._path)
                 else:
                     self._df.write.partitionBy(self._schema['partition_column']).mode(
-                        'overwrite').parquet(self._path)
+                        'overwrite').delta(self._path)
 
             else:
                 if self._schema['type'] == 'csv':
@@ -429,7 +431,7 @@ class CustomDF:
                         'overwrite').csv(self._path)
                 else:
                     self._df.coalesce(1).write.mode(
-                        'overwrite').parquet(self._path)
+                        'overwrite').delta(self._path)
         else:
             raise ValueError("Table format validation failed.")
 
