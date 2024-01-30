@@ -100,7 +100,7 @@ signalling_checks_dictionary = {
         {
             'check': 'values sum to 1',
             'columns': ['companies_id', 'benchmark'],
-            'sum_column': 'PCTR_share'
+            'sum_column': 'emission_profile_share'
         },
         # {
         #     'check':'values sum to 1',
@@ -145,7 +145,7 @@ signalling_checks_dictionary = {
     'emission_profile_product_raw': [
         {
             'check': 'values within list',
-            'columns': ['PCTR_risk_category'],
+            'columns': ['emission_profile'],
             'value_list': ['low', 'medium', 'high']
         },
         {
@@ -220,7 +220,7 @@ signalling_checks_dictionary = {
         },
         {
             'check': 'values within list',
-            'columns': ['ICTR_risk_category'],
+            'columns': ['emission_upstream_profile'],
             'value_list': ['low', 'medium', 'high']
         },
         {
@@ -303,7 +303,7 @@ signalling_checks_dictionary = {
         {
             'check': 'values sum to 1',
             'columns': ['companies_id', 'scenario', 'year'],
-            'sum_column': 'PSTR_share'
+            'sum_column': 'sector_profile_share'
         },
         # {
         #     'check':'values sum to 1',
@@ -415,7 +415,7 @@ signalling_checks_dictionary = {
         {
             'check': 'values sum to 1',
             'columns': ['companies_id', 'scenario', 'year'],
-            'sum_column': 'ISTR_share'
+            'sum_column': 'sector_profile_upstream_share'
         },
         # {
         #     'check':'values sum to 1',
@@ -429,7 +429,7 @@ signalling_checks_dictionary = {
         # },
         {
             'check': 'values within list',
-            'columns': ['ISTR_risk_category'],
+            'columns': ['sector_profile_upstream'],
             'value_list': ['low', 'medium', 'high']
         },
         {
@@ -475,7 +475,7 @@ signalling_checks_dictionary = {
         },
         {
             'check': 'values within list',
-            'columns': ['ISTR_risk_category'],
+            'columns': ['sector_profile_upstream'],
             'value_list': ['low', 'medium', 'high']
         },
         {
