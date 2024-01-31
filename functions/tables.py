@@ -352,35 +352,27 @@ def get_table_definition(table_name: str = '') -> dict:
             'partition_column': '',
             'quality_checks': [['unique', ['Activity UUID & Product UUID']]]
         },
-        'products_transformed': {
+        'ecoinvent_products_datamodel': {
             'columns':  StructType([
-                StructField('Product UUID', StringType(), False),
-                StructField('Product Group', StringType(), True),
-                StructField('Product Name', StringType(), True),
-                StructField('Reference Product Name', StringType(), True),
-                StructField('CPC Classification', StringType(), True),
+                StructField('Product_UUID', StringType(), False),
+                StructField('Reference_Product_Name', StringType(), True),
                 StructField('Unit', StringType(), True),
-                StructField('Product Information', StringType(), True),
-                StructField('CAS Number', StringType(), True),
                 StructField('from_date', DateType(), False),
                 StructField('to_date', DateType(), False),
                 StructField('tiltRecordID', StringType(), False),
             ]
             ),
-            'container': 'transform',
-            'location': 'products',
+            'container': 'datamodel',
+            'location': 'ecoinvent_products',
             'type': 'delta',
             'partition_column': '',
             'quality_checks': []
         },
-        'activities_transformed': {
+        'ecoinvent_activities_datamodel': {
             'columns':  StructType([
                 StructField('Activity_UUID', StringType(), False),
                 StructField('Activity_Name', StringType(), True),
                 StructField('Geography', StringType(), True),
-                StructField('Time_Period', StringType(), True),
-                StructField('Special_Activity_Type', StringType(), True),
-                StructField('Sector', StringType(), True),
                 StructField('ISIC_Classification', StringType(), True),
                 StructField('ISIC_Section', StringType(), True),
                 StructField('from_date', DateType(), False),
@@ -388,29 +380,28 @@ def get_table_definition(table_name: str = '') -> dict:
                 StructField('tiltRecordID', StringType(), False),
             ]
             ),
-            'container': 'transform',
-            'location': 'activities',
+            'container': 'datamodel',
+            'location': 'ecoinvent_activities',
             'type': 'delta',
             'partition_column': '',
-            'quality_checks': [['unique', ['Activity UUID']]]
+            'quality_checks': [['unique', ['Activity_UUID']]]
         },
-        'products_activities_transformed': {
+        'ecoinvent_cut_off_datamodel': {
             'columns':  StructType([
                 StructField('Activity_UUID_&_Product_UUID',
                             StringType(), False),
                 StructField('Activity_UUID', StringType(), False),
                 StructField('Product_UUID', StringType(), False),
-                StructField('EcoQuery_URL', StringType(), True),
                 StructField('from_date', DateType(), False),
                 StructField('to_date', DateType(), False),
                 StructField('tiltRecordID', StringType(), False),
             ]
             ),
-            'container': 'transform',
-            'location': 'products_activities',
+            'container': 'datamodel',
+            'location': 'ecoinvent_cut_off',
             'type': 'delta',
-            'partition_column': 'AO Method',
-            'quality_checks': [['unique', ['Activity UUID & Product UUID']]]
+            'partition_column': '',
+            'quality_checks': [['unique', ['Activity_UUID_&_Product_UUID']]]
         },
         'lcia_methods_landingzone': {
             'columns':  StructType([
@@ -935,7 +926,7 @@ def get_table_definition(table_name: str = '') -> dict:
             ),
             'container': 'landingzone',
             'location': 'wrapperOutput/emission_profile_company',
-            'type': 'delta',
+            'type': 'parquet',
             'partition_column': 'batch',
             'quality_checks': []
         },
@@ -995,7 +986,7 @@ def get_table_definition(table_name: str = '') -> dict:
             ),
             'container': 'landingzone',
             'location': 'wrapperOutput/emission_profile_product',
-            'type': 'delta',
+            'type': 'parquet',
             'partition_column': 'batch',
             'quality_checks': []
         },
@@ -1055,7 +1046,7 @@ def get_table_definition(table_name: str = '') -> dict:
             ),
             'container': 'landingzone',
             'location': 'wrapperOutput/emissions_profile_upstream_at_company_level',
-            'type': 'delta',
+            'type': 'parquet',
             'partition_column': 'batch',
             'quality_checks': []
         },
@@ -1116,7 +1107,7 @@ def get_table_definition(table_name: str = '') -> dict:
             ),
             'container': 'landingzone',
             'location': 'wrapperOutput/emissions_profile_upstream_at_product_level',
-            'type': 'delta',
+            'type': 'parquet',
             'partition_column': 'batch',
             'quality_checks': []
         },
@@ -1178,7 +1169,7 @@ def get_table_definition(table_name: str = '') -> dict:
             ),
             'container': 'landingzone',
             'location': 'wrapperOutput/sector_profile_at_company_level',
-            'type': 'delta',
+            'type': 'parquet',
             'partition_column': 'batch',
             'quality_checks': []
         },
@@ -1241,7 +1232,7 @@ def get_table_definition(table_name: str = '') -> dict:
             ),
             'container': 'landingzone',
             'location': 'wrapperOutput/sector_profile_at_product_level',
-            'type': 'delta',
+            'type': 'parquet',
             'partition_column': 'batch',
             'quality_checks': []
         },
@@ -1304,7 +1295,7 @@ def get_table_definition(table_name: str = '') -> dict:
             ),
             'container': 'landingzone',
             'location': 'wrapperOutput/sector_profile_upstream_at_company_level',
-            'type': 'delta',
+            'type': 'parquet',
             'partition_column': 'batch',
             'quality_checks': []
         },
@@ -1370,7 +1361,7 @@ def get_table_definition(table_name: str = '') -> dict:
             ),
             'container': 'landingzone',
             'location': 'wrapperOutput/sector_profile_upstream_at_product_level',
-            'type': 'delta',
+            'type': 'parquet',
             'partition_column': 'batch',
             'quality_checks': []
         },

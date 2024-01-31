@@ -47,14 +47,7 @@ signalling_checks_dictionary = {
             'value_list': ['l', 'metric ton*km', 'kWh', 'm', 'ha', 'guest night', 'm2*year', 'm3', 'MJ', 'km', 'km*year', 'hour', 'unit', 'kg', 'kg*day', 'person*km', 'm2', 'm*year']
         }
     ],
-    'activities_transformed': [
-        {
-            'check': 'values within list',
-            'columns': ['Special_Activity_Type'],
-            'value_list': ['market group', 'market activity', 'ordinary transforming activity']
-        }
-    ],
-    'products_transformed': [
+    'ecoinvent_products_datamodel': [
         {
             'check': 'values within list',
             'columns': ['Unit'],

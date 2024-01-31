@@ -98,7 +98,7 @@ class CustomDF:
         if self._partition_name != '':
             df = df.withColumn(
                 self._schema['partition_column'], F.lit(self._partition_name))
-        print(df.printSchema())
+
         if self._history == 'recent' and 'to_date' in df.columns:
             df = df.filter(F.col('to_date') == '2099-12-31')
 
@@ -116,8 +116,6 @@ class CustomDF:
                 new_col_name = re.sub(r'[\(\)]', '', new_col_name)
                 new_col_name = re.sub(r'\s+', '_', new_col_name)
                 df = df.withColumnRenamed(col, new_col_name)
-
-        print(df.columns)
 
         return df
 
@@ -420,8 +418,6 @@ class CustomDF:
         self._df = self.add_record_id()
 
         table_check = self.validate_table_format()
-
-        print(self._df.printSchema())
 
         self.create_catalog_table()
 
