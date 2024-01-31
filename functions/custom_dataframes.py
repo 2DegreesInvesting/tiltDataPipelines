@@ -351,7 +351,7 @@ class CustomDF:
 
         # Generate the monitoring values table to be written
         monitoring_values_df = calculate_signalling_issues(
-            self._spark_session, self._df, signalling_checks, dummy_signalling_df.data)
+            self._df, signalling_checks, dummy_signalling_df.data)
         monitoring_values_df = monitoring_values_df.withColumn(
             'table_name', F.lit(self._name))
 
