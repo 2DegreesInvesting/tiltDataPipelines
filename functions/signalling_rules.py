@@ -2,7 +2,7 @@ signalling_checks_dictionary = {
     'undefined_ao_raw': [
         {
             'check': 'values within list',
-            'columns': ['Special Activity Type'],
+            'columns': ['Special_Activity_Type'],
             'value_list': ['market group', 'market activity', 'ordinary transforming activity']
         },
         {
@@ -14,7 +14,7 @@ signalling_checks_dictionary = {
     'cut_off_ao_raw': [
         {
             'check': 'values within list',
-            'columns': ['Special Activity Type'],
+            'columns': ['Special_Activity_Type'],
             'value_list': ['market group', 'market activity', 'ordinary transforming activity']
         },
         {
@@ -26,7 +26,7 @@ signalling_checks_dictionary = {
     'en15804_ao_raw': [
         {
             'check': 'values within list',
-            'columns': ['Special Activity Type'],
+            'columns': ['Special_Activity_Type'],
             'value_list': ['market group', 'market activity', 'ordinary transforming activity']
         },
         {
@@ -38,7 +38,7 @@ signalling_checks_dictionary = {
     'consequential_ao_raw': [
         {
             'check': 'values within list',
-            'columns': ['Special Activity Type'],
+            'columns': ['Special_Activity_Type'],
             'value_list': ['market group', 'market activity', 'ordinary transforming activity']
         },
         {
@@ -50,7 +50,7 @@ signalling_checks_dictionary = {
     'activities_transformed': [
         {
             'check': 'values within list',
-            'columns': ['Special Activity Type'],
+            'columns': ['Special_Activity_Type'],
             'value_list': ['market group', 'market activity', 'ordinary transforming activity']
         }
     ],
@@ -71,14 +71,14 @@ signalling_checks_dictionary = {
     'intermediate_exchanges_raw': [
         {
             'check': 'values within list',
-            'columns': ['Unit Name'],
+            'columns': ['Unit_Name'],
             'value_list': ['l', 'metric ton*km', 'kWh', 'm', 'ha', 'guest night', 'm2*year', 'm3', 'MJ', 'km', 'km*year', 'hour', 'unit', 'kg', 'kg*day', 'person*km', 'm2', 'm*year']
         }
     ],
     'elementary_exchanges_raw': [
         {
             'check': 'values within list',
-            'columns': ['Unit Name'],
+            'columns': ['Unit_Name'],
             'value_list': ['l', 'metric ton*km', 'kWh', 'm', 'ha', 'guest night', 'm2*year', 'm3', 'MJ', 'km', 'km*year', 'hour', 'unit', 'kg', 'kg*day', 'person*km', 'm2', 'm*year']
         }
     ],

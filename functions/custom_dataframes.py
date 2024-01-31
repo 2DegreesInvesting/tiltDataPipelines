@@ -1,3 +1,5 @@
+import re
+
 from pyspark.sql import SparkSession, DataFrame
 from pyspark.sql import functions as F
 from pyspark.sql.window import Window
@@ -106,6 +108,16 @@ class CustomDF:
 
         if self._schema['container'] != 'landingzone' and self._name != 'dummy_quality_check':
             df = create_map_column(self._spark_session, df, self._name)
+
+        # This generically renames columns to remove special characters so that they can be written into managed storage
+        if self._schema['container'] == 'landingzone':
+            for col in df.columns:
+                new_col_name = re.sub(r"[-\\\/]", ' ', col)
+                new_col_name = re.sub(r'[\(\)]', '', new_col_name)
+                new_col_name = re.sub(r'\s+', '_', new_col_name)
+                df = df.withColumnRenamed(col, new_col_name)
+
+        print(df.columns)
 
         return df
 
