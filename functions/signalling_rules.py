@@ -250,7 +250,7 @@ signalling_checks_dictionary = {
         },
         {
             'check': 'values are unique',
-            'columns': ['companies_id', 'benchmark', 'emission_upstream_profile', 'matching_certainty_company_average', 'emission_upstream_profile_share']
+            'columns': ['companies_id', 'benchmark', 'emission_upstream_profile', 'matched_certainty_company_average', 'emission_upstream_profile_share']
         },
     ],
     'emission_upstream_profile_product_raw': [
@@ -286,7 +286,7 @@ signalling_checks_dictionary = {
         },
         {
             'check':'values are unique',
-            'columns':['companies_id', 'emission_upstream_profile', 'ep_product', 'benchmark', 'matched_activity_name', 'matched_certainty_company_average', 'input_tilt_sector', 'input_tilt_subsector', 'input_isic_4digit', 'activity_uuid_product_uuid', 'reduction_targets', 'main_activity', 'input_name', 'input_unit']
+            'columns':['companies_id', 'emission_upstream_profile', 'ep_product', 'benchmark', 'matched_activity_name', 'matching_certainty_company_average', 'input_tilt_sector', 'input_tilt_subsector', 'input_isic_4digit', 'activity_uuid_product_uuid', 'reduction_targets', 'main_activity', 'input_name', 'input_unit']
         },
     ],
     'sector_profile_company_raw': [
