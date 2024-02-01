@@ -1,5 +1,6 @@
 
 import os
+import yaml
 from pyspark.sql import SparkSession
 
 
@@ -27,7 +28,6 @@ def create_spark_session() -> SparkSession:
         # Create a spark session within Databricks
         spark_session = SparkSession.builder.getOrCreate()
     else:
-        import yaml
         with open(r'./settings.yaml') as file:
             settings = yaml.load(file, Loader=yaml.FullLoader)
         databricks_settings = settings['databricks']
