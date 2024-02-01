@@ -613,7 +613,7 @@ def get_table_definition(table_name: str = '') -> dict:
             ]
             ),
             'container': 'landingzone',
-            'location': 'countries_mapper',
+            'location': 'ecoInvent/Geographies.csv',
             'type': 'ecoInvent',
             'partition_column': '',
             'quality_checks': []
