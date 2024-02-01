@@ -199,7 +199,7 @@ def get_table_definition(table_name: str = '') -> dict:
             'columns': StructType([
                 StructField('business_type_id', StringType(), False),
                 StructField('business_type', StringType(), True),
-                StructField('ei_activity_name', StringType(), True),
+                StructField('ei_special_activity_type', StringType(), True),
                 StructField('from_date', DateType(), False),
                 StructField('to_date', DateType(), False),
                 StructField('tiltRecordID', StringType(), False)
