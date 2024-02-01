@@ -166,23 +166,23 @@ def get_table_definition(table_name: str = '') -> dict:
             'partition_column': '',
             'quality_checks': []
         },
-        'business_type_ecoinvent_mapper_landingzone': {
+        'main_activity_ecoinvent_mapper_landingzone': {
             'columns': StructType([
-                StructField('business_type_id', StringType(), False),
-                StructField('business_type', StringType(), True),
+                StructField('main_activity_id', StringType(), False),
+                StructField('main_activity', StringType(), True),
                 StructField('ei_activity_name', StringType(), True)
             ]
             ),
             'container': 'landingzone',
-            'location': 'mappers/business_type_ecoinvent_mapper.csv',
+            'location': 'mappers/main_activity_ecoinvent_mapper.csv',
             'type': 'csv',
             'partition_column': '',
             'quality_checks': []
         },
-        'business_type_ecoinvent_mapper_raw': {
+        'main_activity_ecoinvent_mapper_raw': {
             'columns': StructType([
-                StructField('business_type_id', StringType(), False),
-                StructField('business_type', StringType(), True),
+                StructField('main_activity_id', StringType(), False),
+                StructField('main_activity', StringType(), True),
                 StructField('ei_activity_name', StringType(), True),
                 StructField('from_date', DateType(), False),
                 StructField('to_date', DateType(), False),
@@ -190,7 +190,7 @@ def get_table_definition(table_name: str = '') -> dict:
             ]
             ),
             'container': 'raw',
-            'location': 'business_type_ecoinvent_mapper',
+            'location': 'main_activity_ecoinvent_mapper',
             'type': 'delta',
             'partition_column': '',
             'quality_checks': []
