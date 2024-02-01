@@ -1170,43 +1170,29 @@ def get_table_definition(table_name: str = '') -> dict:
             'partition_column': '',
             'quality_checks': [['unique', ['ID']]]
         },
-        'ecoinvent-v3.9.1_co2_data_landingzone': {
+        'cut-off_cumulative_LCI_v3.9.1_landingzone': {
             'columns':  StructType([
-                StructField('activity_uuid_product_uuid', StringType(), False),
-                StructField('activity_uuid', StringType(), True),
-                StructField('activity_name', StringType(), True),
-                StructField('geography', StringType(), True),
-                StructField('special_activity_type', StringType(), True),
-                StructField('sector', StringType(), True),
-                StructField('product_uuid', StringType(), True),
-                StructField('reference_product_name', StringType(), True),
-                StructField('cpc_classification', StringType(), True),
-                StructField('unit', StringType(), True),
-                StructField('method_category_indicator_product_information', StringType(), True),
-                StructField('product_inputs_tbc', StringType(), True),
+                StructField('Activity UUID_Product UUID', StringType(), False),
+                StructField('Activity Name', StringType(), True),
+                StructField('Geography', StringType(), True),
+                StructField('Reference Product Name', StringType(), True),
+                StructField('Reference Product Unit', StringType(), True),
                 StructField('ipcc_2021_climate_change_global_warming_potential_gwp100_kg_co2_eq', StringType(), True)
             ]
             ),
             'container': 'landingzone',
-            'location': 'ecoinvent/ecoinvent-v3.9.1_co2_data.csv',
+            'location': 'ecoinvent/cut-off_cumulative_LCI_v3.9.1.csv', #file that is created by extracting certain columns from the licensed data
             'type': 'csv',
             'partition_column': '',
-            'quality_checks': [['unique', ['activity_uuid_product_uuid']]]
+            'quality_checks': [['unique', ['Activity UUID_Product UUID']]]
         },
         'ecoinvent_co2_raw': {
             'columns':  StructType([
-                StructField('activity_uuid_product_uuid', StringType(), False),
-                StructField('activity_uuid', StringType(), True),
-                StructField('activity_name', StringType(), True),
-                StructField('geography', StringType(), True),
-                StructField('special_activity_type', StringType(), True),
-                StructField('sector', StringType(), True),
-                StructField('product_uuid', StringType(), True),
-                StructField('reference_product_name', StringType(), True),
-                StructField('cpc_classification', StringType(), True),
-                StructField('unit', StringType(), True),
-                StructField('method_category_indicator_product_information', StringType(), True),
-                StructField('product_inputs_tbc', StringType(), True),
+                StructField('Activity_UUID_Product_UUID', StringType(), False),
+                StructField('Activity_Name', StringType(), True),
+                StructField('Geography', StringType(), True),
+                StructField('Reference_Product_Name', StringType(), True),
+                StructField('Reference_Product_Unit', StringType(), True),
                 StructField('ipcc_2021_climate_change_global_warming_potential_gwp100_kg_co2_eq', ByteType(), True),
                 StructField('from_date', DateType(), False),
                 StructField('to_date', DateType(), False),
@@ -1214,10 +1200,10 @@ def get_table_definition(table_name: str = '') -> dict:
             ]
             ),
             'container': 'raw',
-            'location': 'ep_ei_matcher',
+            'location': 'ecoinvent_co2',
             'type': 'delta',
             'partition_column': '',
-            'quality_checks': [['unique', ['activity_uuid_product_uuid']]]
+            'quality_checks': [['unique', ['Activity_UUID_Product_UUID']]]
         },
         'ecoinvent_co2_datamodel': {
             'columns':  StructType([
@@ -1229,7 +1215,7 @@ def get_table_definition(table_name: str = '') -> dict:
             ]
             ),
             'container': 'raw',
-            'location': 'ep_ei_matcher_eurocaps',
+            'location': 'ecoinvent_co2',
             'type': 'delta',
             'partition_column': '',
             'quality_checks': [['unique', ['activity_uuid_product_uuid']]]
@@ -1252,7 +1238,7 @@ def get_table_definition(table_name: str = '') -> dict:
             ]
             ),
             'container': 'landingzone',
-            'location': 'ecoinvent/ecoinvent_input_data_relevant_columns.csv',
+            'location': 'ecoinvent/ecoinvent_input_data_relevant_columns.csv', # extract from Ecoinvent portal (licensed)
             'type': 'csv',
             'partition_column': '',
             'quality_checks': [['unique', ['activityLinkId']]]
@@ -1278,7 +1264,7 @@ def get_table_definition(table_name: str = '') -> dict:
             ]
             ),
             'container': 'raw',
-            'location': 'scenario_targets_IPR_NEW',
+            'location': 'ecoinvent_input_data',
             'type': 'delta',
             'partition_column': '',
             'quality_checks': [['unique', ['activityLinkId']]]
@@ -1301,7 +1287,7 @@ def get_table_definition(table_name: str = '') -> dict:
             ]
             ),
             'container': 'raw',
-            'location': 'scenario_targets_WEO_NEW',
+            'location': 'ecoinvent_input_data',
             'type': 'delta',
             'partition_column': '',
             'quality_checks': [['unique', ['activityLinkId']]]
@@ -1341,45 +1327,6 @@ def get_table_definition(table_name: str = '') -> dict:
             ),
             'container': 'raw',
             'location': 'scenario_tilt_mapper_2023-07-20',
-            'type': 'delta',
-            'partition_column': '',
-            'quality_checks': []
-        },
-        'ep_ei_matcher_eurocaps_landingzone': {
-            'columns':  StructType([
-                StructField('group_var', StringType(), False),
-                StructField('ep_id', StringType(), True),
-                StructField('ep_country', StringType(), True),
-                StructField('ep_main_act', StringType(), True),
-                StructField('ep_clustered', StringType(), True),
-                StructField('activity_uuid_product_uuid', StringType(), True),
-                StructField('multi_match', StringType(), True),
-                StructField('completion', StringType(), True)
-            ]
-            ),
-            'container': 'landingzone',
-            'location': 'tiltIndicatorBefore/20231213_eurocaps_mapper_ep_ei.csv',
-            'type': 'ecoInvent',
-            'partition_column': '',
-            'quality_checks': []
-        },
-        'ep_ei_matcher_eurocaps_raw': {
-            'columns':  StructType([
-                StructField('group_var', StringType(), False),
-                StructField('ep_id', StringType(), True),
-                StructField('ep_country', StringType(), False),
-                StructField('ep_main_act', StringType(), True),
-                StructField('ep_clustered', StringType(), True),
-                StructField('activity_uuid_product_uuid', StringType(), True),
-                StructField('multi_match', BooleanType(), True),
-                StructField('completion', StringType(), True),
-                StructField('from_date', DateType(), False),
-                StructField('to_date', DateType(), False),
-                StructField('tiltRecordID', StringType(), False),
-            ]
-            ),
-            'container': 'raw',
-            'location': 'tilt_isic_mapper_2023-07-20',
             'type': 'delta',
             'partition_column': '',
             'quality_checks': []
