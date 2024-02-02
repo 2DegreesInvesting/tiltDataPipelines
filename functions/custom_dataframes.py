@@ -406,7 +406,7 @@ class CustomDF:
             ValueError: If the DataFrame is empty or if the table name is not specified.
 
         Note:
-            - The DataFrame is written in the Parquet format.
+            - The DataFrame is written in the Delta format.
             - If a partition is specified, the DataFrame is written to that partition of the table.
             - If the table does not exist, it is created.
         """
