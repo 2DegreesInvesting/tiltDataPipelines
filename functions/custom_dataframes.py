@@ -4,7 +4,7 @@ from pyspark.sql import SparkSession, DataFrame
 from pyspark.sql import functions as F
 from pyspark.sql.window import Window
 
-from delta import *
+from delta.tables import DeltaTable
 
 from functions.dataframe_helpers import create_map_column, create_sha_values
 from functions.signalling_functions import calculate_signalling_issues
