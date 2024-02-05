@@ -32,7 +32,7 @@ def create_spark_session() -> SparkSession:
             settings = yaml.load(file, Loader=yaml.FullLoader)
         databricks_settings = settings['databricks']
         # Build the remote SparkSession using Databricks settings
-        spark_session = SparkSession.builder.remote(
+        spark_session = SparkSession.builder.appName('remote-spark-session').remote(
             f"{databricks_settings['workspace_name']}:443/;token={databricks_settings['access_token']};x-databricks-cluster-id={databricks_settings['cluster_id']};user_id=123123"
         ).getOrCreate()
 
