@@ -99,70 +99,48 @@ def generate_table(table_name: str) -> None:
             'consequential_ao_raw', spark_generate, initial_df=consequential_ao_landingzone.data)
         consequential_ao_raw.write_table()
 
-    # elif table_name == 'products_activities_transformed':
+    elif table_name == 'ecoinvent_products_datamodel':
 
-    #     undefined_ao_df = read_table(spark_generate, 'undefined_ao_raw')
-    #     cutoff_ao_df = read_table(spark_generate, 'cut_off_ao_raw')
-    #     en15804_ao_df = read_table(spark_generate, 'en15804_ao_raw')
-    #     consequential_ao_df = read_table(
-    #         spark_generate, 'consequential_ao_raw')
+        cut_off_ao_raw = CustomDF('cut_off_ao_raw', spark_generate)
 
-    #     undefined_ao_df = undefined_ao_df.withColumn(
-    #         'Reference Product Name', F.lit(None))
+        product_list = ['Product_UUID', 'Reference_Product_Name', 'Unit']
 
-    #     cutoff_ao_df = cutoff_ao_df.withColumn('Product Group', F.lit(None))
-    #     cutoff_ao_df = cutoff_ao_df.withColumn('Product Name', F.lit(None))
-    #     cutoff_ao_df = cutoff_ao_df.withColumn('AO Method', F.lit('CutOff'))
-    #     en15804_ao_df = en15804_ao_df.withColumn('Product Group', F.lit(None))
-    #     en15804_ao_df = en15804_ao_df.withColumn('Product Name', F.lit(None))
-    #     en15804_ao_df = en15804_ao_df.withColumn('AO Method', F.lit('EN15804'))
-    #     consequential_ao_df = consequential_ao_df.withColumn(
-    #         'Product Group', F.lit(None))
-    #     consequential_ao_df = consequential_ao_df.withColumn(
-    #         'Product Name', F.lit(None))
-    #     consequential_ao_df = consequential_ao_df.withColumn(
-    #         'AO Method', F.lit('Consequential'))
+        cut_off_ao_raw.data = cut_off_ao_raw.data.select(
+            product_list).distinct()
 
-    #     product_list = ['Product UUID', 'Product Group',
-    #                     'Product Name', 'Reference Product Name',
-    #                     'CPC Classification', 'Unit',
-    #                     'Product Information', 'CAS Number']
+        ecoinvent_products_datamodel = CustomDF(
+            'ecoinvent_products_datamodel', spark_generate, cut_off_ao_raw.data)
 
-    #     activity_list = ['Activity UUID', 'Activity Name',
-    #                      'Geography', 'Time Period', 'Special Activity Type',
-    #                      'Sector', 'ISIC Classification', 'ISIC Section']
+        ecoinvent_products_datamodel.write_table()
 
-    #     relational_list = ['Activity UUID & Product UUID',
-    #                        'Activity UUID', 'Product UUID', 'EcoQuery URL', 'AO Method']
+    elif table_name == 'ecoinvent_activities_datamodel':
 
-    #     cutoff_products = cutoff_ao_df.select(product_list)
-    #     cutoff_activities = cutoff_ao_df.select(activity_list)
-    #     cutoff_relations = cutoff_ao_df.select(relational_list)
+        cut_off_ao_raw = CustomDF('cut_off_ao_raw', spark_generate)
 
-    #     undefined_products = undefined_ao_df.select(product_list)
-    #     undefined_activities = undefined_ao_df.select(activity_list)
+        activity_list = ['Activity_UUID', 'Activity_Name',
+                         'Geography', 'ISIC_Classification', 'ISIC_Section']
 
-    #     en15804_products = en15804_ao_df.select(product_list)
-    #     en15804_activities = en15804_ao_df.select(activity_list)
-    #     en15804_relations = en15804_ao_df.select(relational_list)
+        cut_off_ao_raw.data = cut_off_ao_raw.data.select(
+            activity_list).distinct()
 
-    #     consequential_products = consequential_ao_df.select(product_list)
-    #     consequential_activities = consequential_ao_df.select(activity_list)
-    #     consequential_relations = consequential_ao_df.select(relational_list)
+        ecoinvent_activities_datamodel = CustomDF(
+            'ecoinvent_activities_datamodel', spark_generate, cut_off_ao_raw.data)
 
-    #     products_df = cutoff_products.union(undefined_products)\
-    #         .union(en15804_products).union(consequential_products).distinct()
+        ecoinvent_activities_datamodel.write_table()
 
-    #     activities_df = cutoff_activities.union(undefined_activities)\
-    #         .union(en15804_activities).union(consequential_activities).distinct()
+    elif table_name == 'ecoinvent_cut_off_datamodel':
 
-    #     relational_df = cutoff_relations.union(en15804_relations)\
-    #         .union(consequential_relations).distinct()
+        cut_off_ao_raw = CustomDF('cut_off_ao_raw', spark_generate)
 
-    #     write_table(spark_generate, products_df, 'products_transformed')
-    #     write_table(spark_generate, activities_df, 'activities_transformed')
-    #     write_table(spark_generate, relational_df,
-    #                 'products_activities_transformed', 'AO Method')
+        relational_list = ['Activity_UUID_&_Product_UUID',
+                           'Activity_UUID', 'Product_UUID']
+
+        cut_off_ao_raw.data = cut_off_ao_raw.data.select(relational_list)
+
+        ecoinvent_cutoff_datamodel = CustomDF(
+            'ecoinvent_cut_off_datamodel', spark_generate, cut_off_ao_raw.data)
+
+        ecoinvent_cutoff_datamodel.write_table()
 
     elif table_name == 'lcia_methods_raw':
 
