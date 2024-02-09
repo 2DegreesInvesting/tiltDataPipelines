@@ -323,7 +323,7 @@ signalling_checks_dictionary = {
         {
             'check': 'values within list',
             'columns': ['scenario'],
-            'value_list': ['WEO NZ 2050', 'IPR 1.5c RPS']
+            'value_list': ['NZ 2050', '1.5C RPS']
         },
         {
             'check': 'values within list',
@@ -374,7 +374,7 @@ signalling_checks_dictionary = {
         {
             'check': 'values within list',
             'columns': ['scenario'],
-            'value_list': ['WEO NZ 2050', 'IPR 1.5c RPS']
+            'value_list': ['NZ 2050', '1.5C RPS']
         },
         {
             'check': 'values within list',
@@ -435,7 +435,7 @@ signalling_checks_dictionary = {
         {
             'check': 'values within list',
             'columns': ['scenario'],
-            'value_list': ['WEO NZ 2050', 'IPR 1.5c RPS']
+            'value_list': ['NZ 2050', '1.5C RPS']
         },
         {
             'check': 'values within list',
@@ -481,7 +481,7 @@ signalling_checks_dictionary = {
         {
             'check': 'values within list',
             'columns': ['scenario'],
-            'value_list': ['WEO NZ 2050', 'IPR 1.5c RPS']
+            'value_list': ['NZ 2050', '1.5C RPS']
         },
         {
             'check': 'values within list',
