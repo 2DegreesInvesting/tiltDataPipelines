@@ -41,7 +41,10 @@ class CustomDF:
         self._partition_name = partition_name
         self._history = history
         self._env = 'develop'
-        self._path = f"abfss://{self._schema['container']}@storagetilt{self._env}.dfs.core.windows.net/{self._schema['location']}/"
+        if self._schema['container'] == 'landingzone' or self._name == 'dummy_quality_check':
+            self._path = f"abfss://{self._schema['container']}@storagetilt{self._env}.dfs.core.windows.net/{self._schema['location']}/"
+        else:
+            self._path = ""
         self._table_name = f"`{self._env}`.`{self._schema['container']}`.`{self._schema['location'].replace('.','')}`"
         if self._partition_name:
             self._partition_path = f"{self._schema['partition_column']}={self._partition_name}"
@@ -76,7 +79,8 @@ class CustomDF:
             'csv': lambda: self._spark_session.read.format('csv').schema(self._schema['columns']).option('header', True).option("quote", '"').option("multiline", 'True').load(self._path + self._partition_path),
             'ecoInvent': lambda: self._spark_session.read.format('csv').schema(self._schema['columns']).option('header', True).option("quote", '~').option('delimiter', ';').option("multiline", 'True').load(self._path + self._partition_path),
             'tiltData': lambda: self._spark_session.read.format('csv').schema(self._schema['columns']).option('header', True).option("quote", '~').option('delimiter', ';').option("multiline", 'True').load(self._path + self._partition_path),
-            'delta': lambda: DeltaTable.forName(self._spark_session, self._table_name).toDF(),
+            # DeltaTable.forName(self._spark_session, self._table_name).toDF(),
+            'delta': lambda: self._spark_session.read.format('delta').table(self._table_name),
             'parquet': lambda: self._spark_session.read.format(self._schema['type']).schema(self._schema['columns']).option('header', True).load(self._path + self._partition_path)
         }
 
@@ -143,7 +147,7 @@ class CustomDF:
         # Select the columns that contain values that should be compared
         value_columns = [F.col(col_name) for col_name in self._df.columns if col_name not in [
             'tiltRecordID', 'from_date', 'to_date']]
-
+        print(value_columns)
         # Read the already existing table
         old_df = CustomDF(self._name, self._spark_session,
                           None, self._partition_name, 'complete')
@@ -412,14 +416,14 @@ class CustomDF:
         """
         # Compare the newly created records with the existing tables
 
+        self.create_catalog_table()
+
         self._df = self.compare_tables()
 
         # Add the SHA value to create a unique ID within tilt
         self._df = self.add_record_id()
 
         table_check = self.validate_table_format()
-
-        self.create_catalog_table()
 
         if table_check:
             if self._schema['partition_column']:

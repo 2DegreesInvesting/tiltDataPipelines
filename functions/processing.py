@@ -28,7 +28,17 @@ def generate_table(table_name: str) -> None:
 
     spark_generate = create_spark_session()
 
-    if table_name == 'geographies_raw':
+    if table_name == 'test_table_raw':
+
+        test_table_landingzone = CustomDF(
+            'test_table_landingzone', spark_generate)
+
+        test_table_raw = CustomDF(
+            'test_table_raw', spark_generate, initial_df=test_table_landingzone.data)
+
+        test_table_raw.write_table()
+
+    elif table_name == 'geographies_raw':
 
         geographies_landingzone = CustomDF(
             'geographies_landingzone', spark_generate)
