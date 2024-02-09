@@ -3,16 +3,17 @@ import re
 from pyspark.sql import SparkSession, DataFrame
 from pyspark.sql import functions as F
 from pyspark.sql.window import Window
+from pyspark.sql.types import StructType, StructField, StringType, IntegerType, DateType
 
-from delta.tables import DeltaTable
 
-from functions.dataframe_helpers import create_map_column, create_sha_values
+from functions.dataframe_helpers import create_map_column, create_sha_values, create_table_path, create_table_name
 from functions.signalling_functions import calculate_signalling_issues
 from functions.signalling_rules import signalling_checks_dictionary
 from functions.tables import get_table_definition
+from functions.data_readers import DataReader
 
 
-class CustomDF:
+class CustomDF(DataReader):
     """
     A custom DataFrame class that wraps a PySpark DataFrame for additional functionality, like data tracing, quality checks and slowly changing dimensions.
 
@@ -41,87 +42,12 @@ class CustomDF:
         self._partition_name = partition_name
         self._history = history
         self._env = 'develop'
-        if self._schema['container'] == 'landingzone' or self._name == 'dummy_quality_check':
-            self._path = f"abfss://{self._schema['container']}@storagetilt{self._env}.dfs.core.windows.net/{self._schema['location']}/"
-        else:
-            self._path = ""
-        self._table_name = f"`{self._env}`.`{self._schema['container']}`.`{self._schema['location'].replace('.','')}`"
-        if self._partition_name:
-            self._partition_path = f"{self._schema['partition_column']}={self._partition_name}"
-        else:
-            self._partition_path = ''
+        DataReader.__init__(self, self._spark_session, self._env,
+                            self._schema, self._partition_name, self._history)
         if initial_df:
             self._df = initial_df
         else:
-            self._df = self.read_table()
-
-    def read_table(self):
-        """
-        Reads data from a table based on the schema type and applies various transformations.
-
-        This method first validates the history attribute and constructs the partition path based on the partition name attribute. It then builds the table location path and defines a dictionary of read functions for different schema types.
-
-        It attempts to read the data using the appropriate read function based on the schema type. If the table does not exist, it creates an empty dataframe with the same schema. If any other error occurs during reading, it raises the error.
-
-        If a partition name is provided, it adds a column with the partition name to the dataframe. If the history attribute is set to 'recent' and the dataframe has a 'to_date' column, it filters the dataframe to only include rows where 'to_date' is '2099-12-31'.
-
-        It then replaces any 'NA' or 'nan' values in the dataframe with None. Finally, it calls the 'create_map_column' function to create a map column in the dataframe and returns the transformed dataframe.
-
-        Returns:
-            DataFrame: The transformed dataframe.
-        """
-
-        if self._history not in ['recent', 'complete']:
-            raise ValueError(
-                f"Value {self._history} is not in valid arguments [recent,complete] for history argument")
-
-        read_functions = {
-            'csv': lambda: self._spark_session.read.format('csv').schema(self._schema['columns']).option('header', True).option("quote", '"').option("multiline", 'True').load(self._path + self._partition_path),
-            'ecoInvent': lambda: self._spark_session.read.format('csv').schema(self._schema['columns']).option('header', True).option("quote", '~').option('delimiter', ';').option("multiline", 'True').load(self._path + self._partition_path),
-            'tiltData': lambda: self._spark_session.read.format('csv').schema(self._schema['columns']).option('header', True).option("quote", '~').option('delimiter', ';').option("multiline", 'True').load(self._path + self._partition_path),
-            # DeltaTable.forName(self._spark_session, self._table_name).toDF(),
-            'delta': lambda: self._spark_session.read.format('delta').table(self._table_name),
-            'parquet': lambda: self._spark_session.read.format(self._schema['type']).schema(self._schema['columns']).option('header', True).load(self._path + self._partition_path)
-        }
-
-        try:
-            df = read_functions.get(
-                self._schema['type'], read_functions['delta'])()
-            if self._schema['type'] == 'delta' and self._partition_name != '':
-                df = df.where(
-                    F.col(self._schema['partition_column']) == self._partition_name)
-            df.head()  # Force to load first record of the data to check if it throws an error
-        except Exception as e:
-            if "Path does not exist:" in str(e) or f"`{self._schema['container']}`.`{self._schema['location']}` is not a Delta table" in str(e):
-                # If the table does not exist yet, return an empty data frame
-                df = self._spark_session.createDataFrame(
-                    [], self._schema['columns'])
-            else:
-                raise  # If we encounter any other error, raise as the error
-
-        if self._partition_name != '':
-            df = df.withColumn(
-                self._schema['partition_column'], F.lit(self._partition_name))
-
-        if self._history == 'recent' and 'to_date' in df.columns:
-            df = df.filter(F.col('to_date') == '2099-12-31')
-
-        # Replace empty values with None/null
-        replacement_dict = {'NA': None, 'nan': None}
-        df = df.replace(replacement_dict, subset=df.columns)
-
-        if self._schema['container'] != 'landingzone' and self._name != 'dummy_quality_check':
-            df = create_map_column(self._spark_session, df, self._name)
-
-        # This generically renames columns to remove special characters so that they can be written into managed storage
-        if self._schema['container'] == 'landingzone':
-            for col in df.columns:
-                new_col_name = re.sub(r"[-\\\/]", ' ', col)
-                new_col_name = re.sub(r'[\(\)]', '', new_col_name)
-                new_col_name = re.sub(r'\s+', '_', new_col_name)
-                df = df.withColumnRenamed(col, new_col_name)
-
-        return df
+            self._df = self.read_source()
 
     def compare_tables(self):
         """
@@ -147,7 +73,7 @@ class CustomDF:
         # Select the columns that contain values that should be compared
         value_columns = [F.col(col_name) for col_name in self._df.columns if col_name not in [
             'tiltRecordID', 'from_date', 'to_date']]
-        print(value_columns)
+
         # Read the already existing table
         old_df = CustomDF(self._name, self._spark_session,
                           None, self._partition_name, 'complete')
@@ -349,8 +275,6 @@ class CustomDF:
             - The specific checks performed depend on the definitions in the 'signalling_checks_dictionary'.
         """
 
-        dummy_signalling_df = CustomDF(
-            'dummy_quality_check', self._spark_session)
         signalling_checks = {}
         # Check if there are additional data quality monitoring checks to be executed
         if self._name in signalling_checks_dictionary.keys():
@@ -358,7 +282,7 @@ class CustomDF:
 
         # Generate the monitoring values table to be written
         monitoring_values_df = calculate_signalling_issues(
-            self._df, signalling_checks, dummy_signalling_df.data)
+            self._df, signalling_checks, self._spark_session)
         monitoring_values_df = monitoring_values_df.withColumn(
             'table_name', F.lit(self._name))
 

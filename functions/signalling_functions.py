@@ -1,6 +1,6 @@
-from pyspark.sql import DataFrame
+from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql.functions import col
-from pyspark.sql.types import IntegerType
+from pyspark.sql.types import StructType, StructField, StringType, IntegerType
 import pyspark.sql.functions as F
 
 
@@ -72,7 +72,8 @@ def calculate_filled_values(dataframe: DataFrame) -> DataFrame:
         - 'total_count': The total number of rows in the DataFrame.
         - 'valid_count': The count of non-null (filled) values for each column.
     """
-    df_cols = [col for col in dataframe.columns if ('map_' not in col) and (col not in ['from_date', 'to_date', 'tiltRecordID'])]
+    df_cols = [col for col in dataframe.columns if ('map_' not in col) and (
+        col not in ['from_date', 'to_date', 'tiltRecordID'])]
     total_count = dataframe.count()
     df = dataframe.select([(F.count(F.when(F.isnull(c), c)
                                     .when(F.col(c) == 'NA', None)
@@ -276,7 +277,7 @@ def column_sums_to_1(dataframe: DataFrame, groupby_columns: list, sum_column: st
     return valid_count
 
 
-def calculate_signalling_issues(dataframe: DataFrame, signalling_check_dict: dict, signalling_check_dummy: DataFrame) -> DataFrame:
+def calculate_signalling_issues(dataframe: DataFrame, signalling_check_dict: dict, spark_session: SparkSession) -> DataFrame:
     """
     Calculate signalling issues based on a set of predefined checks for a given DataFrame.
 
@@ -309,6 +310,16 @@ def calculate_signalling_issues(dataframe: DataFrame, signalling_check_dict: dic
 
     df = calculate_filled_values(dataframe)
     total_count = dataframe.count()
+
+    signalling_check_dummy = spark_session.createDataFrame([], StructType([
+        StructField('signalling_id', IntegerType(), False),
+        StructField('check_id', StringType(), False),
+        StructField('column_name', StringType(), True),
+        StructField('check_name', StringType(), True),
+        StructField('total_count', IntegerType(), True),
+        StructField('valid_count', IntegerType(), True)
+    ]
+    ))
 
     for signalling_check in signalling_check_dict:
         check_types = signalling_check.get('check')

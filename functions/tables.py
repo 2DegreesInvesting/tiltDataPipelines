@@ -21,7 +21,7 @@ Example:
         ]), 
         'container': 'container_name',
         'location': 'location_in_container',
-        'type': ['tiltData','ecoInvent','csv','delta'],
+        'type': ['ecoInvent','csv','delta','parquet'],
         'partition_column' : 'name_of_partition_column',
         'quality_checks': [['unique', ['string_column']],
                            ['format', 'string_column', r"[a-zA-Z\-]"]]
@@ -1417,22 +1417,6 @@ def get_table_definition(table_name: str = '') -> dict:
             'container': 'raw',
             'location': 'mapper_ep_ei',
             'type': 'delta',
-            'partition_column': '',
-            'quality_checks': []
-        },
-        'dummy_quality_check': {
-            'columns':  StructType([
-                StructField('signalling_id', StringType(), False),
-                StructField('check_id', StringType(), False),
-                StructField('column_name', StringType(), True),
-                StructField('check_name', StringType(), True),
-                StructField('total_count', IntegerType(), True),
-                StructField('valid_count', IntegerType(), True)
-            ]
-            ),
-            'container': 'monitoring',
-            'location': 'dummy_quality_check/dummy_check.csv',
-            'type': 'csv',
             'partition_column': '',
             'quality_checks': []
         },

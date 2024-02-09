@@ -19,7 +19,7 @@ def spark_session_fixture():
 @pytest.fixture(scope='session')
 def spark_schema_fixture():
     schema = StructType([
-        StructField('test_string1_column', StringType(), False),
+        StructField('test_string_column', StringType(), False),
         StructField('test_integer_column', IntegerType(), False),
         StructField('test_decimal_column', DoubleType(), True),
         StructField('test_date_column', DateType(), True),
@@ -31,7 +31,7 @@ def spark_schema_fixture():
 @pytest.fixture(scope='session')
 def spark_df_fixture(spark_session_fixture, spark_schema_fixture):
     data = [('test', 3, 4.25, date(2024, 1, 1),), ('test', 4, 4.25,
-                                                   date(2024, 1, 1),), ('test_string', 8, -12.25, date(2025, 1, 1),),]
+                                                   date(2024, 1, 1),), ('test', 8, -12.25, date(2025, 1, 1),),]
     df = spark_session_fixture.createDataFrame(
         data, spark_schema_fixture)
     return df
@@ -73,7 +73,7 @@ class Test_custom_df:
         assert custom_filled_df_fixture._spark_session is not None
         assert custom_filled_df_fixture._partition_name == ''
         assert custom_filled_df_fixture._history == 'recent'
-        assert custom_filled_df_fixture._path == ''
+        assert custom_filled_df_fixture._data_path == ''
         assert custom_filled_df_fixture._table_name == '`develop`.`test`.`test_table`'
         assert custom_filled_df_fixture.data.count() == 3
         assertDataFrameEqual(custom_filled_df_fixture.data, spark_df_fixture)
@@ -82,9 +82,9 @@ class Test_custom_df:
 
     @staticmethod
     def test_read_csv_table(custom_csv_df_fixture, spark_df_fixture):
-        assert custom_csv_df_fixture.read_table().count() == 3
+        assert custom_csv_df_fixture.read_source().count() == 3
         assertDataFrameEqual(custom_csv_df_fixture.data, spark_df_fixture)
 
     @staticmethod
     def test_read_delta_table(custom_delta_df_fixture):
-        assert custom_delta_df_fixture.read_table().count() == 3
+        assert custom_delta_df_fixture.read_source().count() == 3
