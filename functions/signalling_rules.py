@@ -108,7 +108,7 @@ signalling_checks_dictionary = {
         {
             'check': 'values within list',
             'columns': ['benchmark'],
-            'value_list': ['all', 'isic_sec', 'tilt_sec', 'unit', 'unit_isic_sec', 'unit_tilt_sec']
+            'value_list': ['all', 'isic_4digit', 'tilt_sec', 'unit', 'unit_tilt_sec', 'unit_isic_4digit']
         },
         {
             'check': 'values within list',
@@ -169,6 +169,11 @@ signalling_checks_dictionary = {
         },
         {
             'check': 'values within list',
+            'columns': ['benchmark'],
+            'value_list': ['all', 'isic_4digit', 'tilt_sec', 'unit', 'unit_tilt_sec', 'unit_isic_4digit']
+        },
+        {
+            'check': 'values within list',
             'columns': ['tilt_sector'],
             'value_list': ['industry', 'land use', 'metals', 'construction', 'non-metallic minerals', 'transport']
         },
@@ -219,7 +224,7 @@ signalling_checks_dictionary = {
         {
             'check': 'values within list',
             'columns': ['benchmark'],
-            'value_list': ['all', 'isic_sec', 'tilt_sec', 'unit', 'unit_isic_sec', 'unit_tilt_sec']
+            'value_list': ['all', 'input_isic_4digit', 'input_tilt_sec', 'input_unit', 'input_unit_tilt_sec', 'input_unit_isic_4digit']
         },
         {
             'check': 'values within list',
@@ -243,7 +248,7 @@ signalling_checks_dictionary = {
         },
         {
             'check': 'values are unique',
-            'columns': ['companies_id', 'benchmark', 'emission_upstream_profile', 'matched_certainty_company_average', 'emission_upstream_profile_share']
+            'columns': ['companies_id', 'benchmark', 'emission_upstream_profile', 'matching_certainty_company_average', 'emission_upstream_profile_share']
         },
     ],
     'emission_upstream_profile_product_raw': [
@@ -255,7 +260,7 @@ signalling_checks_dictionary = {
         {
             'check': 'values within list',
             'columns': ['benchmark'],
-            'value_list': ['all', 'isic_sec', 'tilt_sec', 'unit', 'unit_isic_sec', 'unit_tilt_sec']
+            'value_list': ['all', 'input_isic_4digit', 'input_tilt_sec', 'input_unit', 'input_unit_tilt_sec', 'input_unit_isic_4digit']
         },
         {
             'check': 'values within list',
@@ -457,7 +462,7 @@ signalling_checks_dictionary = {
         },
         {
             'check':'values are unique',
-            'columns':['companies_id', 'sector_profile', 'scenario', 'year', 'ep_product', 'activity_uuid_product_uuid', 'isic-4digit']
+            'columns':['companies_id', 'sector_profile_upstream', 'scenario', 'year']
         },
     ],
     'sector_upstream_profile_product_raw': [
