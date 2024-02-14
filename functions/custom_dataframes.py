@@ -3,10 +3,9 @@ import re
 from pyspark.sql import SparkSession, DataFrame
 from pyspark.sql import functions as F
 from pyspark.sql.window import Window
-from pyspark.sql.types import StructType, StructField, StringType, IntegerType, DateType
 
 
-from functions.dataframe_helpers import create_map_column, create_sha_values, create_table_path, create_table_name
+from functions.dataframe_helpers import create_map_column, create_sha_values, create_table_path, create_table_name, create_catalog_schema, create_catalog_table, create_catalog_table_owner
 from functions.signalling_functions import calculate_signalling_issues
 from functions.signalling_rules import signalling_checks_dictionary
 from functions.tables import get_table_definition
@@ -220,39 +219,16 @@ class CustomDF(DataReader):
 
     def create_catalog_table(self) -> bool:
         """
-        Create or replace an external Hive table in the specified Hive container.
-
-        This method generates and executes SQL statements to create or replace an external Hive table. It first drops
-        the table if it already exists and then creates the table based on the provided table definition. The table
-        definition is obtained using the 'get_table_definition' function.
-
-        The table is created with the specified columns, data types, and partitioning (if applicable). If the table 
-        already exists, it is dropped and recreated.
+        Creates a catalog table and schema in the specified environment using the provided table name.
+        Additionally, it also sets the owner of the table, so that every developer has the rights to change the structure of the table.
 
         Returns:
-            bool: True if the table creation was successful, False otherwise.
-
-        Note:
-            - The table is created as an external table.
-            - The table definition is obtained using the 'get_table_definition' function.
-            - The table is created with the specified columns, data types, and partitioning (if applicable).
-            - If the table already exists, it is dropped and recreated.
+            bool: True if the catalog table is successfully created, False otherwise.
         """
-        schema_string = f'CREATE SCHEMA IF NOT EXISTS {self._env}.{self._schema["container"]};'
 
-        # Build a SQL string to recreate the table in the most up to date format
-        create_string = f"CREATE TABLE IF NOT EXISTS {self._table_name} ("
-
-        for i in self._schema['columns']:
-            col_info = i.jsonValue()
-            col_string = f"`{col_info['name']}` {col_info['type']} {'NOT NULL' if not col_info['nullable'] else ''},"
-            create_string += col_string
-
-        create_string = create_string[:-1] + ")"
-        create_string += " USING DELTA "
-        if self._schema['partition_column']:
-            create_string += f" PARTITIONED BY (`{self._schema['partition_column']}` STRING)"
-        set_owner_string = f"ALTER TABLE {self._table_name} SET OWNER TO tiltDevelopers"
+        schema_string = create_catalog_schema(self._env, self._schema)
+        create_string = create_catalog_table(self._table_name, self._schema)
+        set_owner_string = create_catalog_table_owner(self._table_name)
 
         self._spark_session.sql(schema_string)
         self._spark_session.sql(create_string)

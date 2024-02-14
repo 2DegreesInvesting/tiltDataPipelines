@@ -71,8 +71,6 @@ class DataReader:
             'ecoInvent': self.read_ecoinvent_file()
         }
 
-        print(self._data_path)
-
         df = implemented_read_functions[self._schema['type']]
 
         try:

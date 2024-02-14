@@ -2,7 +2,6 @@ import pytest
 
 from pyspark.sql.types import StructType, StructField, StringType, IntegerType, DoubleType, DateType
 from pyspark.testing import assertDataFrameEqual, assertSchemaEqual
-from pyspark.sql import DataFrame
 
 from datetime import date
 
