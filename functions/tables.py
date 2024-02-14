@@ -27,7 +27,7 @@ Example:
                            ['format', 'string_column', r"[a-zA-Z\-]"]]
     }
 """
-from pyspark.sql.types import StringType, StructType, StructField, BooleanType, DoubleType, ShortType, IntegerType, DateType, ByteType, TimestampType
+from pyspark.sql.types import StringType, StructType, StructField, BooleanType, DoubleType, ShortType, IntegerType, DateType, ByteType, TimestampType, DecimalType
 
 
 def get_table_definition(table_name: str = '') -> dict:
@@ -78,9 +78,9 @@ def get_table_definition(table_name: str = '') -> dict:
             ),
             'container': 'landingzone',
             'location': 'tiltEp/companies_europages.csv',
-            'type': 'csv',
+            'type': 'tiltData',
             'partition_column': '',
-            'quality_checks': []
+            'quality_checks': [['unique', ['id']]]
         },
         'companies_europages_raw': {
             'columns': StructType([
@@ -102,7 +102,7 @@ def get_table_definition(table_name: str = '') -> dict:
                 StructField('verified_by_europages', BooleanType(), True),
                 StructField('year_established', IntegerType(), True),
                 StructField('websites', StringType(), True),
-                StructField('download_datetime', TimestampType(), True),
+                StructField('download_datetime', DateType(), True),
                 StructField('filename', StringType(), False),
                 StructField('from_date', DateType(), False),
                 StructField('to_date', DateType(), False),
@@ -113,7 +113,7 @@ def get_table_definition(table_name: str = '') -> dict:
             'location': 'companies_europages',
             'type': 'delta',
             'partition_column': '',
-            'quality_checks': []
+            'quality_checks': [['unique', ['id']]]
         },
         'companies_datamodel': {
             'columns': StructType([
@@ -214,7 +214,7 @@ def get_table_definition(table_name: str = '') -> dict:
         'sources_mapper_landingzone': {
             'columns': StructType([
                 StructField('source_id', StringType(), False),
-                StructField('source_name', StringType(), False)
+                StructField('source_name', StringType(), True)
             ]
             ),
             'container': 'landingzone',
@@ -226,7 +226,7 @@ def get_table_definition(table_name: str = '') -> dict:
         'sources_mapper_raw': {
             'columns': StructType([
                 StructField('source_id', StringType(), False),
-                StructField('source_name', StringType(), False),
+                StructField('source_name', StringType(), True),
                 StructField('from_date', DateType(), False),
                 StructField('to_date', DateType(), False),
                 StructField('tiltRecordID', StringType(), False)
@@ -256,7 +256,7 @@ def get_table_definition(table_name: str = '') -> dict:
         'countries_mapper_landingzone': {
             'columns': StructType([
                 StructField('country_un', StringType(), False),
-                StructField('country', StringType(), False)
+                StructField('country', StringType(), True)
             ]
             ),
             'container': 'landingzone',
@@ -268,7 +268,7 @@ def get_table_definition(table_name: str = '') -> dict:
         'countries_mapper_raw': {
             'columns': StructType([
                 StructField('country_un', StringType(), False),
-                StructField('country', StringType(), False),
+                StructField('country', StringType(), True),
                 StructField('from_date', DateType(), False),
                 StructField('to_date', DateType(), False),
                 StructField('tiltRecordID', StringType(), False)
@@ -295,17 +295,17 @@ def get_table_definition(table_name: str = '') -> dict:
             'partition_column': '',
             'quality_checks': []
         },
-        'geography_ecoinvent_mapper_landingzone': {
+        'geography_mapper_landingzone': {
             'columns': StructType([
                 StructField('geography_id', StringType(), False),
-                StructField('country_un', StringType(), False),
+                StructField('country_id', StringType(), False),
                 StructField('lca_geo', StringType(), False),
                 StructField('priority', StringType(), False),
                 StructField('input_priority', StringType(), False)
             ]
             ),
             'container': 'landingzone',
-            'location': 'mappers/geography_ecoinvent_mapper.csv',
+            'location': 'mappers/geography_mapper.csv',
             'type': 'csv',
             'partition_column': '',
             'quality_checks': []
@@ -313,7 +313,7 @@ def get_table_definition(table_name: str = '') -> dict:
         'geography_ecoinvent_mapper_raw': {
             'columns': StructType([
                 StructField('geography_id', StringType(), False),
-                StructField('country_un', StringType(), False),
+                StructField('country_id', StringType(), False),
                 StructField('lca_geo', StringType(), False),
                 StructField('priority', ByteType(), False),
                 StructField('input_priority', ByteType(), False),
@@ -332,7 +332,7 @@ def get_table_definition(table_name: str = '') -> dict:
             'columns': StructType([
                 StructField('geography_id', StringType(), False),
                 StructField('country_un', StringType(), False),
-                StructField('lca_geo', StringType(), False),
+                StructField('ecoinvent_geography', StringType(), False),
                 StructField('priority', ByteType(), False),
                 StructField('input_priority', ByteType(), False),
                 StructField('from_date', DateType(), False),
@@ -358,7 +358,7 @@ def get_table_definition(table_name: str = '') -> dict:
             ),
             'container': 'landingzone',
             'location': 'mappers/tilt_isic_mapper_2023-07-20.csv',
-            'type': 'ecoInvent',
+            'type': 'csv',
             'partition_column': '',
             'quality_checks': []
         },
@@ -442,12 +442,12 @@ def get_table_definition(table_name: str = '') -> dict:
         },
         'scenario_tilt_mapper_2023-07-20_landingzone': {
             'columns': StructType([
-                StructField('tilt_sector', StringType(), False),
-                StructField('tilt_subsector', StringType(), False),
-                StructField('weo_product', StringType(), False),
-                StructField('weo_flow', StringType(), False),
-                StructField('ipr_sector', StringType(), False),
-                StructField('ipr_subsector', StringType(), False)
+                StructField('tilt_sector', StringType(), True),
+                StructField('tilt_subsector', StringType(), True),
+                StructField('weo_product', StringType(), True),
+                StructField('weo_flow', StringType(), True),
+                StructField('ipr_sector', StringType(), True),
+                StructField('ipr_subsector', StringType(), True)
             ]
             ),
             'container': 'landingzone',
@@ -458,12 +458,12 @@ def get_table_definition(table_name: str = '') -> dict:
         },
         'tilt_scenario_mapper_raw': {
             'columns': StructType([
-                StructField('tilt_sector', StringType(), False),
-                StructField('tilt_subsector', StringType(), False),
-                StructField('weo_product', StringType(), False),
-                StructField('weo_flow', StringType(), False),
-                StructField('ipr_sector', StringType(), False),
-                StructField('ipr_subsector', StringType(), False),
+                StructField('tilt_sector', StringType(), True),
+                StructField('tilt_subsector', StringType(), True),
+                StructField('weo_product', StringType(), True),
+                StructField('weo_flow', StringType(), True),
+                StructField('ipr_sector', StringType(), True),
+                StructField('ipr_subsector', StringType(), True),
                 StructField('from_date', DateType(), False),
                 StructField('to_date', DateType(), False),
                 StructField('tiltRecordID', StringType(), False)
@@ -510,7 +510,7 @@ def get_table_definition(table_name: str = '') -> dict:
             ),
             'container': 'landingzone',
             'location': 'mappers/scenario_targets_IPR_NEW.csv',
-            'type': 'ecoInvent',
+            'type': 'csv',
             'partition_column': '',
             'quality_checks': []
         },
@@ -518,10 +518,10 @@ def get_table_definition(table_name: str = '') -> dict:
             'columns':  StructType([
                 StructField('Scenario', StringType(), False),
                 StructField('Region', StringType(), True),
-                StructField('VariableClass', StringType(), True),
-                StructField('SubVariableClass', StringType(), True),
+                StructField('Variable_Class', StringType(), True),
+                StructField('Sub_Variable_Class', StringType(), True),
                 StructField('Sector', StringType(), True),
-                StructField('SubSector', StringType(), True),
+                StructField('Sub_Sector', StringType(), True),
                 StructField('Units', StringType(), True),
                 StructField('Year', ShortType(), False),
                 StructField('Value', DoubleType(), False),
@@ -546,14 +546,14 @@ def get_table_definition(table_name: str = '') -> dict:
                 StructField('FLOW', StringType(), True),
                 StructField('UNIT', StringType(), True),
                 StructField('REGION', StringType(), True),
-                StructField('YEAR', StringType(), False),
+                StructField('YEAR', StringType(), True),
                 StructField('VALUE', StringType(), False),
                 StructField('REDUCTIONS', StringType(), False)
             ]
             ),
             'container': 'landingzone',
             'location': 'mappers/scenario_targets_WEO_NEW.csv',
-            'type': 'ecoInvent',
+            'type': 'csv',
             'partition_column': '',
             'quality_checks': []
         },
@@ -566,7 +566,7 @@ def get_table_definition(table_name: str = '') -> dict:
                 StructField('FLOW', StringType(), True),
                 StructField('UNIT', StringType(), True),
                 StructField('REGION', StringType(), True),
-                StructField('YEAR', ShortType(), False),
+                StructField('YEAR', ShortType(), True),
                 StructField('VALUE', DoubleType(), False),
                 StructField('REDUCTIONS', DoubleType(), False),
                 StructField('from_date', DateType(), False),
@@ -772,7 +772,7 @@ def get_table_definition(table_name: str = '') -> dict:
                 StructField('Unit', StringType(), True),
                 StructField('Product_Information', StringType(), True),
                 StructField('CAS_Number', StringType(), True),
-                StructField('Cut-Off_Classification', StringType(), True),
+                StructField('Cut_Off_Classification', StringType(), True),
                 StructField('from_date', DateType(), False),
                 StructField('to_date', DateType(), False),
                 StructField('tiltRecordID', StringType(), False)
@@ -789,8 +789,6 @@ def get_table_definition(table_name: str = '') -> dict:
                 StructField('activity_uuid_product_uuid', StringType(), False),
                 StructField('activity_uuid', StringType(), False),
                 StructField('product_uuid', StringType(), False),
-                StructField('isic_4digit', StringType(), True),
-                StructField('geography', StringType(), True),
                 StructField('from_date', DateType(), False),
                 StructField('to_date', DateType(), False),
                 StructField('tiltRecordID', StringType(), False)
@@ -822,6 +820,9 @@ def get_table_definition(table_name: str = '') -> dict:
             'columns':  StructType([
                 StructField('activity_uuid', StringType(), False),
                 StructField('activity_name', StringType(), True),
+                StructField('geography', StringType(), True),
+                StructField('isic_classification', StringType(), True),
+                StructField('isic_section', StringType(), True),
                 StructField('from_date', DateType(), False),
                 StructField('to_date', DateType(), False),
                 StructField('tiltRecordID', StringType(), False)
@@ -1129,6 +1130,22 @@ def get_table_definition(table_name: str = '') -> dict:
             'partition_column': '',
             'quality_checks': [['unique', ['ID']]]
         },
+        'intermediate_exchanges_datamodel': {
+            'columns':  StructType([
+                StructField('exchange_id', StringType(), False),
+                StructField('exchange_name', StringType(), True),
+                StructField('unit_name', StringType(), True),
+                StructField('from_date', DateType(), False),
+                StructField('to_date', DateType(), False),
+                StructField('tiltRecordID', StringType(), False)
+            ]
+            ),
+            'container': 'datamodel',
+            'location': 'intermediate_exchanges',
+            'type': 'delta',
+            'partition_column': '',
+            'quality_checks': [['unique', ['exchange_id']]]
+        },
         'elementary_exchanges_landingzone': {
             'columns':  StructType([
                 StructField('ID', StringType(), False),
@@ -1170,19 +1187,19 @@ def get_table_definition(table_name: str = '') -> dict:
             'partition_column': '',
             'quality_checks': [['unique', ['ID']]]
         },
-        'cut-off_cumulative_LCI_v3.9.1_landingzone': {
+        'cut-off_cumulative_LCIA_v3.9.1_landingzone': {
             'columns':  StructType([
                 StructField('Activity UUID_Product UUID', StringType(), False),
                 StructField('Activity Name', StringType(), True),
                 StructField('Geography', StringType(), True),
                 StructField('Reference Product Name', StringType(), True),
                 StructField('Reference Product Unit', StringType(), True),
-                StructField('ipcc_2021_climate_change_global_warming_potential_gwp100_kg_co2_eq', StringType(), True)
+                StructField('IPCC 2021 climate change global warming potential (GWP100) kg CO2-Eq', StringType(), True)
             ]
             ),
             'container': 'landingzone',
-            'location': 'ecoinvent/cut-off_cumulative_LCI_v3.9.1.csv', #file that is created by extracting certain columns from the licensed data
-            'type': 'csv',
+            'location': 'ecoInvent/cut-off_cumulative_LCIA_v3.9.1.csv', #file that is created by extracting certain columns from the licensed data
+            'type': 'ecoInvent',
             'partition_column': '',
             'quality_checks': [['unique', ['Activity UUID_Product UUID']]]
         },
@@ -1193,7 +1210,7 @@ def get_table_definition(table_name: str = '') -> dict:
                 StructField('Geography', StringType(), True),
                 StructField('Reference_Product_Name', StringType(), True),
                 StructField('Reference_Product_Unit', StringType(), True),
-                StructField('ipcc_2021_climate_change_global_warming_potential_gwp100_kg_co2_eq', ByteType(), True),
+                StructField('IPCC_2021_climate_change_global_warming_potential_GWP100_kg_CO2_Eq', DecimalType(), True),
                 StructField('from_date', DateType(), False),
                 StructField('to_date', DateType(), False),
                 StructField('tiltRecordID', StringType(), False)
@@ -1238,26 +1255,26 @@ def get_table_definition(table_name: str = '') -> dict:
             ]
             ),
             'container': 'landingzone',
-            'location': 'ecoinvent/ecoinvent_input_data_relevant_columns.csv', # extract from Ecoinvent portal (licensed)
+            'location': 'ecoInvent/ecoinvent_input_data_relevant_columns.csv', # extract from Ecoinvent portal (licensed)
             'type': 'csv',
             'partition_column': '',
-            'quality_checks': [['unique', ['activityLinkId']]]
+            'quality_checks': [['unique', ['activityLinkId', 'activityId', 'activityLink_activityName', 'activityLink_geography']]]
         },
         'ecoinvent_input_data_raw': {
             'columns':  StructType([
                 StructField('activityId', StringType(), True),
                 StructField('activityName', StringType(), True),
                 StructField('geography', StringType(), True),
-                StructField('referenceproduct', StringType(), True),
+                StructField('reference_product', StringType(), True),
                 StructField('group', StringType(), True),
-                StructField('exchangename', StringType(), True),
+                StructField('exchange_name', StringType(), True),
                 StructField('activityLinkId', StringType(), False),
                 StructField('activityLink_activityName', StringType(), True),
                 StructField('activityLink_geography', StringType(), True),
-                StructField('exchangeunitName', StringType(), True),
-                StructField('exchangeamount', ByteType(), True),
+                StructField('exchange_unitName', StringType(), True),
+                StructField('exchange_amount', ByteType(), True),
                 StructField('CPC_classificationValue', StringType(), True),
-                StructField('Byproductclassification_classificationValue', StringType(), True),
+                StructField('By_product_classification_classificationValue', StringType(), True),
                 StructField('from_date', DateType(), False),
                 StructField('to_date', DateType(), False),
                 StructField('tiltRecordID', StringType(), False)
@@ -1267,20 +1284,20 @@ def get_table_definition(table_name: str = '') -> dict:
             'location': 'ecoinvent_input_data',
             'type': 'delta',
             'partition_column': '',
-            'quality_checks': [['unique', ['activityLinkId']]]
+            'quality_checks': []
         },
         'ecoinvent_input_data_datamodel': {
             'columns':  StructType([
                 StructField('activityId', StringType(), True),
                 StructField('activityName', StringType(), True),
                 StructField('geography', StringType(), True),
-                StructField('reference product', StringType(), True),
+                StructField('reference_product', StringType(), True),
                 StructField('group', StringType(), True),
-                StructField('exchange name', StringType(), True),
+                StructField('exchange_name', StringType(), True),
                 StructField('activityLinkId', StringType(), False),
                 StructField('activityLink_activityName', StringType(), True),
                 StructField('activityLink_geography', StringType(), True),
-                StructField('exchange unitName', StringType(), True),
+                StructField('exchange_unitName', StringType(), True),
                 StructField('from_date', DateType(), False),
                 StructField('to_date', DateType(), False),
                 StructField('tiltRecordID', StringType(), False)
@@ -1290,7 +1307,7 @@ def get_table_definition(table_name: str = '') -> dict:
             'location': 'ecoinvent_input_data',
             'type': 'delta',
             'partition_column': '',
-            'quality_checks': [['unique', ['activityLinkId']]]
+            'quality_checks': []
         },
         'ep_ei_matcher_landingzone': {
             'columns':  StructType([

@@ -17,25 +17,41 @@ Note:
     - The module uses the 'CustomDF' class to handle DataFrames.
     - The module writes the generated tables to disk using the 'write_table' method of the 'CustomDF' class.
 """
-from functions.processing import generate_table
+from functions.processing import generate_table as generate_table_raw
+from functions.processing_datamodel import generate_table as generate_table_datamodel
 
 if __name__ == '__main__':
 
-    generate_table('geographies_raw')
+    # generate_table('geographies_raw')
 
-    generate_table('undefined_ao_raw')
-    generate_table('cut_off_ao_raw')
-    generate_table('en15804_ao_raw')
-    generate_table('consequential_ao_raw')
+    # generate_table('undefined_ao_raw')
+    # generate_table_raw('cut_off_ao_raw')
+    # generate_table('en15804_ao_raw')
+    # generate_table('consequential_ao_raw')
 
-    generate_table('ecoinvent_products_datamodel')
-    generate_table('ecoinvent_activities_datamodel')
-    generate_table('ecoinvent_cut_off_datamodel')
+    # generate_table('ecoinvent_products_datamodel')
+    # generate_table('ecoinvent_activities_datamodel')
+    # generate_table('ecoinvent_cut_off_datamodel')
 
-    generate_table('lcia_methods_raw')
+    # generate_table('lcia_methods_raw')
 
-    generate_table('impact_categories_raw')
+    # generate_table('impact_categories_raw')
 
-    generate_table('intermediate_exchanges_raw')
+    # generate_table_raw('intermediate_exchanges_raw')
 
-    generate_table('elementary_exchanges_raw')
+    # generate_table('elementary_exchanges_raw')
+
+    # generate_table_raw('ecoinvent_co2_raw')
+
+    generate_table_raw('ecoinvent_input_data_raw')
+
+    # datamodel layer
+
+    # generate_table_datamodel('intermediate_exchanges_datamodel')
+
+    # generate_table_datamodel('ecoinvent_co2_datamodel')
+
+    # generate_table_datamodel('ecoinvent_cut_off_datamodel')
+    # generate_table_datamodel('ecoinvent_product_datamodel')
+    # generate_table_datamodel('ecoinvent_activity_datamodel')
+    # generate_table_datamodel('ecoinvent_input_data_datamodel')

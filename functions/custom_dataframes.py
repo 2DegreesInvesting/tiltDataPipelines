@@ -4,7 +4,7 @@ from pyspark.sql import SparkSession, DataFrame
 from pyspark.sql import functions as F
 from pyspark.sql.window import Window
 
-from delta import *
+from delta.tables import DeltaTable
 
 from functions.dataframe_helpers import create_map_column, create_sha_values
 from functions.signalling_functions import calculate_signalling_issues
@@ -76,7 +76,7 @@ class CustomDF:
             'csv': lambda: self._spark_session.read.format('csv').schema(self._schema['columns']).option('header', True).option("quote", '"').option("multiline", 'True').load(self._path + self._partition_path),
             'ecoInvent': lambda: self._spark_session.read.format('csv').schema(self._schema['columns']).option('header', True).option("quote", '~').option('delimiter', ';').option("multiline", 'True').load(self._path + self._partition_path),
             'tiltData': lambda: self._spark_session.read.format('csv').schema(self._schema['columns']).option('header', True).option("quote", '~').option('delimiter', ';').option("multiline", 'True').load(self._path + self._partition_path),
-            'delta': lambda: DeltaTable.forName(self._spark_session, self._table_name).toDF(),
+            'delta': lambda: self._spark_session.read.format('delta').table(self._table_name),
             'parquet': lambda: self._spark_session.read.format(self._schema['type']).schema(self._schema['columns']).option('header', True).load(self._path + self._partition_path)
         }
 
@@ -118,6 +118,12 @@ class CustomDF:
                 df = df.withColumnRenamed(col, new_col_name)
 
         return df
+    
+    def rename_columns(self, rename_dict):
+  
+        # Rename columns using withColumnRenamed()
+        for old_col, new_col in rename_dict.items():
+            self._df = self._df.withColumnRenamed(old_col, new_col)
 
     def compare_tables(self):
         """
@@ -410,16 +416,15 @@ class CustomDF:
             - If a partition is specified, the DataFrame is written to that partition of the table.
             - If the table does not exist, it is created.
         """
-        # Compare the newly created records with the existing tables
 
+        self.create_catalog_table()
+        # Compare the newly created records with the existing tables
         self._df = self.compare_tables()
 
         # Add the SHA value to create a unique ID within tilt
         self._df = self.add_record_id()
 
         table_check = self.validate_table_format()
-
-        self.create_catalog_table()
 
         if table_check:
             if self._schema['partition_column']:
