@@ -75,9 +75,7 @@ def calculate_filled_values(dataframe: DataFrame) -> DataFrame:
     df_cols = [col for col in dataframe.columns if ('map_' not in col) and (
         col not in ['from_date', 'to_date', 'tiltRecordID'])]
     total_count = dataframe.count()
-    df = dataframe.select([(F.count(F.when(F.isnull(c), c)
-                                    .when(F.col(c) == 'NA', None)
-                                    .when(F.col(c) == 'nan', None))).alias(c) for c in df_cols]) \
+    df = dataframe.select([F.count(F.when((F.isnull(c)) | (F.col(c) == 'NA') | (F.col(c) == 'nan'), False)).alias(c) for c in df_cols]) \
         .withColumn('invalid_count_column', F.lit('invalid_count'))
     df = TransposeDF(df, df_cols, 'invalid_count_column')
     df = df.withColumn('total_count', F.lit(total_count).cast(IntegerType())) \
