@@ -63,7 +63,7 @@ def generate_table(table_name: str) -> None:
 
         countries_mapper_landingzone = CustomDF(
             'countries_mapper_landingzone', spark_generate)
-        
+        print(countries_mapper_landingzone.data.count())
         countries_mapper_raw = CustomDF(
             'countries_mapper_raw', spark_generate, initial_df=countries_mapper_landingzone.data)
 

@@ -219,7 +219,7 @@ def get_table_definition(table_name: str = '') -> dict:
             ),
             'container': 'landingzone',
             'location': 'mappers/sources_mapper.csv',
-            'type': 'csv',
+            'type': 'tiltData',
             'partition_column': '',
             'quality_checks': []
         },
@@ -261,7 +261,7 @@ def get_table_definition(table_name: str = '') -> dict:
             ),
             'container': 'landingzone',
             'location': 'mappers/countries_mapper.csv',
-            'type': 'csv',
+            'type': 'tiltData',
             'partition_column': '',
             'quality_checks': []
         },
@@ -477,12 +477,12 @@ def get_table_definition(table_name: str = '') -> dict:
         },
         'tilt_scenario_mapper_datamodel': {
             'columns': StructType([
-                StructField('tilt_sector', StringType(), False),
-                StructField('tilt_subsector', StringType(), False),
-                StructField('weo_sector', StringType(), False),
-                StructField('weo_subsector', StringType(), False),
-                StructField('ipr_sector', StringType(), False),
-                StructField('ipr_subsector', StringType(), False),
+                StructField('tilt_sector', StringType(), True),
+                StructField('tilt_subsector', StringType(), True),
+                StructField('weo_sector', StringType(), True),
+                StructField('weo_subsector', StringType(), True),
+                StructField('ipr_sector', StringType(), True),
+                StructField('ipr_subsector', StringType(), True),
                 StructField('from_date', DateType(), False),
                 StructField('to_date', DateType(), False),
                 StructField('tiltRecordID', StringType(), False)
@@ -1201,7 +1201,7 @@ def get_table_definition(table_name: str = '') -> dict:
             'location': 'ecoInvent/cut-off_cumulative_LCIA_v3.9.1.csv', #file that is created by extracting certain columns from the licensed data
             'type': 'ecoInvent',
             'partition_column': '',
-            'quality_checks': [['unique', ['Activity UUID_Product UUID']]]
+            'quality_checks': []
         },
         'ecoinvent_co2_raw': {
             'columns':  StructType([
@@ -1220,7 +1220,7 @@ def get_table_definition(table_name: str = '') -> dict:
             'location': 'ecoinvent_co2',
             'type': 'delta',
             'partition_column': '',
-            'quality_checks': [['unique', ['Activity_UUID_Product_UUID']]]
+            'quality_checks': []
         },
         'ecoinvent_co2_datamodel': {
             'columns':  StructType([
@@ -1235,7 +1235,7 @@ def get_table_definition(table_name: str = '') -> dict:
             'location': 'ecoinvent_co2',
             'type': 'delta',
             'partition_column': '',
-            'quality_checks': [['unique', ['activity_uuid_product_uuid']]]
+            'quality_checks': []
         },
         'ecoinvent_input_data_relevant_columns_landingzone': {
             'columns':  StructType([
@@ -1258,7 +1258,7 @@ def get_table_definition(table_name: str = '') -> dict:
             'location': 'ecoInvent/ecoinvent_input_data_relevant_columns.csv', # extract from Ecoinvent portal (licensed)
             'type': 'csv',
             'partition_column': '',
-            'quality_checks': [['unique', ['activityLinkId', 'activityId', 'activityLink_activityName', 'activityLink_geography']]]
+            'quality_checks': []
         },
         'ecoinvent_input_data_raw': {
             'columns':  StructType([

@@ -43,40 +43,36 @@ def generate_table(table_name: str) -> None:
 
         intermediate_exchanges_datamodel.write_table()
 
-    # elif table_name == 'ecoinvent_co2_datamodel':
+    elif table_name == 'ecoinvent_co2_datamodel':
 
-    #     ecoinvent_co2_raw = CustomDF('ecoinvent_co2_raw', spark_generate)
+        ecoinvent_co2_raw = CustomDF('ecoinvent_co2_raw', spark_generate)
         
-    #     ecoinvent_co2_datamodel = CustomDF(
-    #         'ecoinvent_co2_datamodel', spark_generate, initial_df=ecoinvent_co2_raw.data
-    #         .select('Activity_UUID_Product_UUID', 'IPCC_2021_climate_change_global_warming_potential_GWP100_kg_CO2_Eq'))
+        ecoinvent_co2_datamodel = CustomDF(
+            'ecoinvent_co2_datamodel', spark_generate, initial_df=ecoinvent_co2_raw.data
+            .select('Activity_UUID_Product_UUID', 'IPCC_2021_climate_change_global_warming_potential_GWP100_kg_CO2_Eq'))
         
-    #     rename_dict = {"Activity_UUID_Product_UUID": "activity_uuid_product_uuid",
-    #                    "IPCC_2021_climate_change_global_warming_potential_GWP100_kg_CO2_Eq": "co2_footprint"}
+        rename_dict = {"Activity_UUID_Product_UUID": "activity_uuid_product_uuid",
+                       "IPCC_2021_climate_change_global_warming_potential_GWP100_kg_CO2_Eq": "co2_footprint"}
 
-        # ecoinvent_co2_datamodel.rename_columns(rename_dict)
+        ecoinvent_co2_datamodel.rename_columns(rename_dict)
 
-        # ecoinvent_co2_datamodel.write_table()
+        ecoinvent_co2_datamodel.write_table()
 
-    # elif table_name == 'ecoinvent_cut_off_datamodel':
+    elif table_name == 'ecoinvent_cut_off_datamodel':
 
-    #     cut_off_ao_raw = CustomDF('cut_off_ao_raw', spark_generate)
+        cut_off_ao_raw = CustomDF('cut_off_ao_raw', spark_generate)
 
-    #     relational_list = ['Activity_UUID_&_Product_UUID',
-    #                        'Activity_UUID', 'Product_UUID']
-
-    #     cut_off_ao_raw.data = cut_off_ao_raw.data.select(relational_list)
-
-    #     ecoinvent_cutoff_datamodel = CustomDF(
-    #         'ecoinvent_cut_off_datamodel', spark_generate, cut_off_ao_raw.data)
+        ecoinvent_cut_off_datamodel = CustomDF(
+            'ecoinvent_cut_off_datamodel', spark_generate, initial_df=cut_off_ao_raw.data
+            .select('Activity_UUID_&_Product_UUID', 'Activity_UUID', 'Product_UUID'))
         
-    #     rename_dict = {"Activity_UUID_&_Product_UUID": "activity_uuid_product_uuid",
-    #                    "Activity_UUID": "activity_uuid",
-    #                    "Product_UUID": "product_uuid"}
+        rename_dict = {"Activity_UUID_&_Product_UUID": "activity_uuid_product_uuid",
+                       "Activity_UUID": "activity_uuid",
+                       "Product_UUID": "product_uuid"}
 
-    #     ecoinvent_cutoff_datamodel.rename_columns(rename_dict)
+        ecoinvent_cut_off_datamodel.rename_columns(rename_dict)
 
-    #     ecoinvent_cutoff_datamodel.write_table()
+        ecoinvent_cut_off_datamodel.write_table()
 
     elif table_name == 'ecoinvent_product_datamodel':
 
@@ -107,16 +103,50 @@ def generate_table(table_name: str) -> None:
 
         ecoinvent_activity_datamodel.write_table()
 
-    # elif table_name == 'ecoinvent_input_data_datamodel':
+    elif table_name == 'ecoinvent_input_data_datamodel':
 
-    #     ecoinvent_input_data_raw = CustomDF('ecoinvent_input_data_raw', spark_generate)
+        ecoinvent_input_data_raw = CustomDF('ecoinvent_input_data_raw', spark_generate)
 
-    #     ecoinvent_input_data_datamodel = CustomDF(
-    #         'ecoinvent_input_data_datamodel', spark_generate, initial_df=ecoinvent_input_data_raw.data
-    #         .select('activityId', 'activityName', 'geography', 'reference_product', 'group', 'exchange_name',
-    #                'activityLinkId', 'activityLink_activityName', 'activityLink_geography', 'exchange_unitName'))
+        ecoinvent_input_data_datamodel = CustomDF(
+            'ecoinvent_input_data_datamodel', spark_generate, initial_df=ecoinvent_input_data_raw.data
+            .select('activityId', 'activityName', 'geography', 'reference_product', 'group', 'exchange_name',
+                   'activityLinkId', 'activityLink_activityName', 'activityLink_geography', 'exchange_unitName'))
     
-    #     ecoinvent_input_data_datamodel.write_table()
+        ecoinvent_input_data_datamodel.write_table()
+        
+    # Mappers data
+        
+    elif table_name == 'sources_mapper_datamodel':
+
+        sources_mapper_raw = CustomDF('sources_mapper_raw', spark_generate)
+        # sources_mapper_raw.data = sources_mapper_raw.data.withColumnRenamed("map_sources_mapper_raw", "map_sources_mapper_datamodel")
+        sources_mapper_datamodel = CustomDF(
+            'sources_mapper_datamodel', spark_generate, initial_df=sources_mapper_raw.data)
+        
+        sources_mapper_datamodel.write_table()
+        
+    elif table_name == 'tilt_sector_isic_mapper_datamodel':
+
+        tilt_sector_isic_mapper_raw = CustomDF('tilt_sector_isic_mapper_raw', spark_generate)
+
+        tilt_sector_isic_mapper_datamodel = CustomDF(
+            'tilt_sector_isic_mapper_datamodel', spark_generate, initial_df=tilt_sector_isic_mapper_raw.data
+            .select('tilt_sector', 'tilt_subsector', 'isic_4digit', 'isic_section'))
+        
+        tilt_sector_isic_mapper_datamodel.write_table()
+
+    elif table_name == 'tilt_scenario_mapper_datamodel':
+
+        tilt_scenario_mapper_raw = CustomDF('tilt_scenario_mapper_raw', spark_generate)
+
+        tilt_scenario_mapper_datamodel = CustomDF(
+            'tilt_scenario_mapper_datamodel', spark_generate, initial_df=tilt_scenario_mapper_raw.data)
+
+        rename_dict = {"weo_product": "weo_sector", "weo_flow": "weo_subsector"}
+        
+        tilt_scenario_mapper_datamodel.rename_columns(rename_dict)
+        
+        tilt_scenario_mapper_datamodel.write_table()
 
     else:
         raise ValueError(

@@ -106,8 +106,8 @@ class CustomDF:
         replacement_dict = {'NA': None, 'nan': None}
         df = df.replace(replacement_dict, subset=df.columns)
 
-        if self._schema['container'] != 'landingzone' and self._name != 'dummy_quality_check':
-            df = create_map_column(self._spark_session, df, self._name)
+        # if self._schema['container'] != 'landingzone' and self._name != 'dummy_quality_check':
+        #     df = create_map_column(self._spark_session, df, self._name)
 
         # This generically renames columns to remove special characters so that they can be written into managed storage
         if self._schema['container'] == 'landingzone':
