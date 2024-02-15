@@ -1,6 +1,6 @@
 from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql.functions import col
-from pyspark.sql.types import StructType, StructField, StringType, IntegerType
+from pyspark.sql.types import StructType, StructField, StringType, IntegerType, Row
 import pyspark.sql.functions as F
 
 
@@ -309,22 +309,10 @@ def calculate_signalling_issues(dataframe: DataFrame, signalling_check_dict: dic
     df = calculate_filled_values(dataframe)
     total_count = dataframe.count()
 
-    signalling_check_dummy = spark_session.createDataFrame([], StructType([
-        StructField('signalling_id', IntegerType(), False),
-        StructField('check_id', StringType(), False),
-        StructField('column_name', StringType(), True),
-        StructField('check_name', StringType(), True),
-        StructField('total_count', IntegerType(), True),
-        StructField('valid_count', IntegerType(), True)
-    ]
-    ))
-
     for signalling_check in signalling_check_dict:
         check_types = signalling_check.get('check')
         column_name = signalling_check.get('columns')
 
-        signalling_check_df = signalling_check_dummy.withColumn('column_name', F.lit(','.join(column_name)))\
-            .withColumn('total_count', F.lit(total_count).cast(IntegerType()))
         if check_types == 'values within list':
 
             value_list = signalling_check.get('value_list')
@@ -394,12 +382,21 @@ def calculate_signalling_issues(dataframe: DataFrame, signalling_check_dict: dic
             description_string = f'{count_expected} distinct values occur in column {input_list}'
             check_id = 'tilt_9'
 
-        signalling_check_df = signalling_check_df.withColumn('valid_count', F.lit(valid_count).cast(IntegerType()))\
-            .withColumn('check_id', F.lit(check_id))\
-            .withColumn('check_name', F.lit(description_string))\
-            .withColumn('signalling_id', F.lit(None))
+        df_row = [Row(signalling_id=1, check_id=check_id, column_name=','.join(
+            column_name), check_name=description_string, total_count=total_count, valid_count=valid_count)]
+        signalling_check_df = spark_session.createDataFrame(df_row, StructType([
+            StructField('signalling_id', IntegerType(), False),
+            StructField('check_id', StringType(), False),
+            StructField('column_name', StringType(), True),
+            StructField('check_name', StringType(), True),
+            StructField('total_count', IntegerType(), True),
+            StructField('valid_count', IntegerType(), True)
+        ]
+        )).withColumn('signalling_id', F.lit(None))
 
         df = df.union(signalling_check_df).select(
             ['signalling_id', 'check_id', 'column_name', 'check_name', 'total_count', 'valid_count'])
+
+        print(df.show())
 
     return df
