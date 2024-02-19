@@ -175,12 +175,12 @@ signalling_checks_dictionary = {
         {
             'check': 'values within list',
             'columns': ['tilt_sector'],
-            'value_list': ['industry', 'land use', 'metals', 'construction', 'non-metallic minerals', 'transport']
+            'value_list': ['industry', 'land use', 'metals', 'construction', 'non-metallic minerals', 'transport', 'no_match']
         },
         {
             'check': 'values within list',
             'columns': ['tilt_subsector'],
-            'value_list': ['other non-metallic minerals', 'agriculture & livestock', 'construction buildings', 'food related products', 'fishing & forestry', 'bioenergy & waste power', 'other industry', 'cement', 'bioenergy & waste energy', 'automotive ldv', 'renewable energy', 'iron & steel', 'aviation', 'oil energy', 'other metals', 'machinery & equipment', 'other transport', 'coal energy', 'construction residential', 'total power', 'chemicals', 'shipping', 'gas energy', 'total energy', 'automotive hdv']
+            'value_list': ['other non-metallic minerals', 'agriculture & livestock', 'construction buildings', 'food related products', 'fishing & forestry', 'bioenergy & waste power', 'other industry', 'cement', 'bioenergy & waste energy', 'automotive ldv', 'renewable energy', 'iron & steel', 'aviation', 'oil energy', 'other metals', 'machinery & equipment', 'other transport', 'coal energy', 'construction residential', 'total power', 'chemicals', 'shipping', 'gas energy', 'total energy', 'automotive hdv', 'no_match']
         },
         {
             'check': 'distinct values occur as expected',
