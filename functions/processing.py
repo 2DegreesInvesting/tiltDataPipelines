@@ -33,16 +33,16 @@ def generate_table(table_name: str) -> None:
         companies_europages_landingzone = CustomDF(
             'companies_europages_landingzone', spark_generate)
         
-        column_names = ["min_headcount", "max_headcount", "year_established"]
+        # column_names = ["min_headcount", "max_headcount", "year_established"]
 
-        companies_europages_landingzone.convert_data_types(
-            column_names, IntegerType())
+        # companies_europages_landingzone.convert_data_types(
+        #     column_names, IntegerType())
         
-        companies_europages_landingzone.convert_data_types(
-            ['verified_by_europages'], BooleanType())
+        # companies_europages_landingzone.convert_data_types(
+        #     ['verified_by_europages'], BooleanType())
 
-        companies_europages_landingzone.convert_data_types(
-            ['download_datetime'], DateType())
+        # companies_europages_landingzone.convert_data_types(
+        #     ['download_datetime'], DateType())
 
         companies_europages_raw = CustomDF(
             'companies_europages_raw', spark_generate, initial_df=companies_europages_landingzone.data)
@@ -68,6 +68,21 @@ def generate_table(table_name: str) -> None:
             'countries_mapper_raw', spark_generate, initial_df=countries_mapper_landingzone.data)
 
         countries_mapper_raw.write_table()
+
+    elif table_name == 'geography_ecoinvent_mapper_raw':
+
+        geography_mapper_landingzone = CustomDF(
+            'geography_mapper_landingzone', spark_generate)
+        
+        column_names = ["priority", "input_priority"]
+
+        geography_mapper_landingzone.convert_data_types(
+            column_names, ByteType())
+        
+        geography_ecoinvent_mapper_raw = CustomDF(
+            'geography_ecoinvent_mapper_raw', spark_generate, initial_df=geography_mapper_landingzone.data)
+
+        geography_ecoinvent_mapper_raw.write_table()
 
     elif table_name == 'tilt_sector_isic_mapper_raw':
 
@@ -107,13 +122,11 @@ def generate_table(table_name: str) -> None:
         scenario_targets_IPR_NEW_landingzone.convert_data_types(
             ['Year'], ShortType())
 
-        column_names = ["Value", "Reductions"]
-
         scenario_targets_IPR_NEW_landingzone.convert_data_types(
-            column_names, DoubleType())
+            ['Value'], DoubleType())
 
         scenario_targets_IPR_raw = CustomDF(
-            'scenario_targets_IPR_raw', spark_generate, initial_df=scenario_targets_IPR_NEW_landingzone.data)
+            'scenario_targets_IPR_raw', spark_generate, initial_df=scenario_targets_IPR_NEW_landingzone.data.drop('Reductions'))
 
         scenario_targets_IPR_raw.write_table()
 
@@ -125,25 +138,23 @@ def generate_table(table_name: str) -> None:
         scenario_targets_WEO_NEW_landingzone.convert_data_types(
             ['YEAR'], ShortType())
 
-        column_names = ["VALUE", "REDUCTIONS"]
-
         scenario_targets_WEO_NEW_landingzone.convert_data_types(
-            column_names, DoubleType())
+            ['VALUE'], DoubleType())
 
         scenario_targets_WEO_raw = CustomDF(
-            'scenario_targets_WEO_raw', spark_generate, initial_df=scenario_targets_WEO_NEW_landingzone.data)
+            'scenario_targets_WEO_raw', spark_generate, initial_df=scenario_targets_WEO_NEW_landingzone.data.drop('REDUCTIONS'))
 
         scenario_targets_WEO_raw.write_table()
 
-    elif table_name == 'geography_mapper_raw':
+    # elif table_name == 'geography_mapper_raw':
 
-        geography_mapper_landingzone = CustomDF(
-            'geography_mapper_landingzone', spark_generate)
+    #     geography_mapper_landingzone = CustomDF(
+    #         'geography_mapper_landingzone', spark_generate)
 
-        geography_mapper_raw = CustomDF(
-            'geography_mapper_raw', spark_generate, initial_df=geography_mapper_landingzone.data)
+    #     geography_mapper_raw = CustomDF(
+    #         'geography_mapper_raw', spark_generate, initial_df=geography_mapper_landingzone.data)
 
-        geography_mapper_raw.write_table()
+    #     geography_mapper_raw.write_table()
 
     elif table_name == 'geographies_raw':
 
@@ -257,8 +268,11 @@ def generate_table(table_name: str) -> None:
         ecoinvent_co2_landingzone = CustomDF(
             'cut-off_cumulative_LCIA_v3.9.1_landingzone', spark_generate)
         
+        ecoinvent_co2_landingzone.data = ecoinvent_co2_landingzone.data.withColumn('IPCC_2021_climate_change_global_warming_potential_GWP100_kg_CO2_Eq', F.regexp_replace(
+            'IPCC_2021_climate_change_global_warming_potential_GWP100_kg_CO2_Eq', '[,]', '.'))
+
         ecoinvent_co2_landingzone.convert_data_types(
-            ['IPCC_2021_climate_change_global_warming_potential_GWP100_kg_CO2_Eq'], DecimalType())
+            ['IPCC_2021_climate_change_global_warming_potential_GWP100_kg_CO2_Eq'], DecimalType(15, 10))
 
         ecoinvent_co2_raw = CustomDF(
             'ecoinvent_co2_raw', spark_generate, initial_df=ecoinvent_co2_landingzone.data)

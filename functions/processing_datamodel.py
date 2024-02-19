@@ -124,6 +124,19 @@ def generate_table(table_name: str) -> None:
             'sources_mapper_datamodel', spark_generate, initial_df=sources_mapper_raw.data)
         
         sources_mapper_datamodel.write_table()
+
+    elif table_name == 'geography_ecoinvent_mapper_datamodel':
+
+        geography_ecoinvent_mapper_raw = CustomDF('geography_ecoinvent_mapper_raw', spark_generate)
+
+        geography_ecoinvent_mapper_datamodel = CustomDF(
+            'geography_ecoinvent_mapper_datamodel', spark_generate, initial_df=geography_ecoinvent_mapper_raw.data)
+        
+        rename_dict = {"country_id": "country_un", "lca_geo": "ecoinvent_geography"}
+        
+        geography_ecoinvent_mapper_datamodel.rename_columns(rename_dict)
+        
+        geography_ecoinvent_mapper_datamodel.write_table()
         
     elif table_name == 'tilt_sector_isic_mapper_datamodel':
 

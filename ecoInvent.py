@@ -35,7 +35,7 @@ if __name__ == '__main__':
     generate_table_raw('intermediate_exchanges_raw')
     generate_table_raw('elementary_exchanges_raw')
 
-    # generate_table_raw('ecoinvent_co2_raw') error with duplicated rows although there are none
+    generate_table_raw('ecoinvent_co2_raw') 
 
     # generate_table_raw('ecoinvent_input_data_raw') error with not all rows are unique
 
@@ -48,6 +48,6 @@ if __name__ == '__main__':
 
     generate_table_datamodel('intermediate_exchanges_datamodel')
 
-    # generate_table_datamodel('ecoinvent_co2_datamodel') not generated because of raw
+    # generate_table_datamodel('ecoinvent_co2_datamodel') error coming from monitoring table
   
-    # generate_table_datamodel('ecoinvent_input_data_datamodel') not generated because of row
+    # generate_table_datamodel('ecoinvent_input_data_datamodel') not generated because of raw

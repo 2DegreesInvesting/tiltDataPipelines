@@ -77,8 +77,8 @@ def get_table_definition(table_name: str = '') -> dict:
             ]
             ),
             'container': 'landingzone',
-            'location': 'tiltEp/companies_europages.csv',
-            'type': 'tiltData',
+            'location': 'tiltEp/',
+            'type': 'tiltEP',
             'partition_column': '',
             'quality_checks': [['unique', ['id']]]
         },
@@ -255,7 +255,7 @@ def get_table_definition(table_name: str = '') -> dict:
         },
         'countries_mapper_landingzone': {
             'columns': StructType([
-                StructField('country_un', StringType(), False),
+                StructField('country_un', StringType(), True),
                 StructField('country', StringType(), True)
             ]
             ),
@@ -267,7 +267,7 @@ def get_table_definition(table_name: str = '') -> dict:
         },
         'countries_mapper_raw': {
             'columns': StructType([
-                StructField('country_un', StringType(), False),
+                StructField('country_un', StringType(), True),
                 StructField('country', StringType(), True),
                 StructField('from_date', DateType(), False),
                 StructField('to_date', DateType(), False),
@@ -525,7 +525,6 @@ def get_table_definition(table_name: str = '') -> dict:
                 StructField('Units', StringType(), True),
                 StructField('Year', ShortType(), False),
                 StructField('Value', DoubleType(), False),
-                StructField('Reductions', DoubleType(), False),
                 StructField('from_date', DateType(), False),
                 StructField('to_date', DateType(), False),
                 StructField('tiltRecordID', StringType(), False)
@@ -568,7 +567,6 @@ def get_table_definition(table_name: str = '') -> dict:
                 StructField('REGION', StringType(), True),
                 StructField('YEAR', ShortType(), True),
                 StructField('VALUE', DoubleType(), False),
-                StructField('REDUCTIONS', DoubleType(), False),
                 StructField('from_date', DateType(), False),
                 StructField('to_date', DateType(), False),
                 StructField('tiltRecordID', StringType(), False)
@@ -590,7 +588,6 @@ def get_table_definition(table_name: str = '') -> dict:
                 StructField('tilt_subsector', StringType(), True),
                 StructField('year', ShortType(), False),
                 StructField('value', DoubleType(), False),
-                StructField('reductions', DoubleType(), False),
                 StructField('from_date', DateType(), False),
                 StructField('to_date', DateType(), False),
                 StructField('tiltRecordID', StringType(), False)
@@ -986,23 +983,6 @@ def get_table_definition(table_name: str = '') -> dict:
             'partition_column': '',
             'quality_checks': [['unique', ['Activity_UUID']]]
         },
-        'ecoinvent_cut_off_datamodel': {
-            'columns':  StructType([
-                StructField('Activity_UUID_&_Product_UUID',
-                            StringType(), False),
-                StructField('Activity_UUID', StringType(), False),
-                StructField('Product_UUID', StringType(), False),
-                StructField('from_date', DateType(), False),
-                StructField('to_date', DateType(), False),
-                StructField('tiltRecordID', StringType(), False)
-            ]
-            ),
-            'container': 'datamodel',
-            'location': 'ecoinvent_cut_off',
-            'type': 'delta',
-            'partition_column': '',
-            'quality_checks': [['unique', ['Activity_UUID_&_Product_UUID']]]
-        },
         'lcia_methods_landingzone': {
             'columns':  StructType([
                 StructField('Method Name', StringType(), True),
@@ -1348,39 +1328,39 @@ def get_table_definition(table_name: str = '') -> dict:
             'partition_column': '',
             'quality_checks': []
         },
-        'geography_mapper_landingzone': {
-            'columns':  StructType([
-                StructField('geography_id', StringType(), False),
-                StructField('country_id', StringType(), True),
-                StructField('lca_geo', StringType(), True),
-                StructField('priority', StringType(), True),
-                StructField('input_priority', StringType(), True)
-            ]
-            ),
-            'container': 'landingzone',
-            'location': 'tiltIndicatorBefore/geography_mapper.csv',
-            'type': 'ecoInvent',
-            'partition_column': '',
-            'quality_checks': []
-        },
-        'geography_mapper_raw': {
-            'columns':  StructType([
-                StructField('geography_id', StringType(), False),
-                StructField('country_id', StringType(), True),
-                StructField('lca_geo', StringType(), True),
-                StructField('priority', StringType(), True),
-                StructField('input_priority', StringType(), True),
-                StructField('from_date', DateType(), False),
-                StructField('to_date', DateType(), False),
-                StructField('tiltRecordID', StringType(), False),
-            ]
-            ),
-            'container': 'raw',
-            'location': 'geography_mapper',
-            'type': 'delta',
-            'partition_column': '',
-            'quality_checks': []
-        },
+        # 'geography_mapper_landingzone': {
+        #     'columns':  StructType([
+        #         StructField('geography_id', StringType(), False),
+        #         StructField('country_id', StringType(), True),
+        #         StructField('lca_geo', StringType(), True),
+        #         StructField('priority', StringType(), True),
+        #         StructField('input_priority', StringType(), True)
+        #     ]
+        #     ),
+        #     'container': 'landingzone',
+        #     'location': 'tiltIndicatorBefore/geography_mapper.csv',
+        #     'type': 'ecoInvent',
+        #     'partition_column': '',
+        #     'quality_checks': []
+        # },
+        # 'geography_mapper_raw': {
+        #     'columns':  StructType([
+        #         StructField('geography_id', StringType(), False),
+        #         StructField('country_id', StringType(), True),
+        #         StructField('lca_geo', StringType(), True),
+        #         StructField('priority', StringType(), True),
+        #         StructField('input_priority', StringType(), True),
+        #         StructField('from_date', DateType(), False),
+        #         StructField('to_date', DateType(), False),
+        #         StructField('tiltRecordID', StringType(), False),
+        #     ]
+        #     ),
+        #     'container': 'raw',
+        #     'location': 'geography_mapper',
+        #     'type': 'delta',
+        #     'partition_column': '',
+        #     'quality_checks': []
+        # },
         'mapper_ep_ei_landingzone': {
             'columns':  StructType([
                 StructField('country', StringType(), True),
