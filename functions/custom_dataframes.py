@@ -5,7 +5,7 @@ from pyspark.sql import functions as F
 from pyspark.sql.window import Window
 
 
-from functions.dataframe_helpers import create_map_column, create_sha_values, create_table_path, create_table_name, create_catalog_schema, create_catalog_table, create_catalog_table_owner
+from functions.dataframe_helpers import create_map_column, create_sha_values, create_table_path, create_table_name, create_catalog_schema, create_catalog_table, create_catalog_table_owner, apply_scd_type_2
 from functions.signalling_functions import calculate_signalling_issues
 from functions.signalling_rules import signalling_checks_dictionary
 from functions.tables import get_table_definition
@@ -64,72 +64,12 @@ class CustomDF(DataReader):
         Returns:
             DataFrame: A DataFrame containing records that are new, identical, or closed compared to the existing table.
         """
-        # Determine the processing date
-        processing_date = F.current_date()
-        future_date = F.lit('2099-12-31')
-        from_to_list = [F.col('from_date'), F.col('to_date')]
-
-        # Select the columns that contain values that should be compared
-        value_columns = [F.col(col_name) for col_name in self._df.columns if col_name not in [
-            'tiltRecordID', 'from_date', 'to_date']]
 
         # Read the already existing table
         old_df = CustomDF(self._name, self._spark_session,
                           None, self._partition_name, 'complete')
-        old_closed_records = old_df.data.filter(
-            F.col('to_date') != future_date).select(value_columns + from_to_list)
-        old_df = old_df.data.filter(F.col('to_date') == future_date).select(
-            value_columns + from_to_list)
 
-        # Add the SHA representation of the old records and rename to unique name
-        old_df = create_sha_values(self._spark_session, old_df, value_columns)
-        old_df = old_df.withColumnRenamed('shaValue', 'shaValueOld')
-
-        # Add the SHA representation of the incoming records and rename to unique name
-        new_data_frame = create_sha_values(
-            self._spark_session, self._df, value_columns)
-        new_data_frame = new_data_frame.withColumn(
-            'from_date', processing_date).withColumn('to_date', F.to_date(future_date))
-        new_data_frame = new_data_frame.withColumnRenamed(
-            'shaValue', 'shaValueNew')
-
-        # Join the SHA values of both tables together
-        combined_df = new_data_frame.select(F.col('shaValueNew')).join(old_df.select(
-            'shaValueOld'), on=old_df.shaValueOld == new_data_frame.shaValueNew, how='full')
-
-        # Set the base of all records to the already expired/ closed records
-        all_records = old_closed_records
-        # Records that did not change are taken from the existing set of data
-        identical_records = combined_df.filter(
-            (F.col('shaValueOld').isNotNull()) & (F.col('shaValueNew').isNotNull()))
-        if identical_records.count() > 0:
-            identical_records = combined_df.filter((F.col('shaValueOld').isNotNull()) & (
-                F.col('shaValueNew').isNotNull())).join(old_df, on='shaValueOld', how='inner')
-            identical_records = identical_records.select(
-                value_columns + from_to_list)
-            all_records = all_records.union(identical_records)
-
-        # Records that do not exist anymore are taken from the existing set of data
-        # Records are closed by filling the to_date column with the current date
-        closed_records = combined_df.filter(
-            (F.col('shaValueOld').isNotNull()) & (F.col('shaValueNew').isNull()))
-        if closed_records.count() > 0:
-            closed_records = combined_df.filter((F.col('shaValueOld').isNotNull()) & (
-                F.col('shaValueNew').isNull())).join(old_df, on='shaValueOld', how='inner')
-            closed_records = closed_records.select(
-                value_columns + from_to_list)
-            closed_records = closed_records.withColumn(
-                'to_date', processing_date)
-            all_records = all_records.union(closed_records)
-
-        # Records that are new are taken from the new set of data
-        new_records = combined_df.filter(
-            (F.col('shaValueOld').isNull()) & (F.col('shaValueNew').isNotNull()))
-        if new_records.count() > 0:
-            new_records = combined_df.filter((F.col('shaValueOld').isNull()) & (F.col(
-                'shaValueNew').isNotNull())).join(new_data_frame, on='shaValueNew', how='inner')
-            new_records = new_records.select(value_columns + from_to_list)
-            all_records = all_records.union(new_records)
+        all_records = apply_scd_type_2(self._df, old_df.data)
 
         return all_records
 
@@ -201,8 +141,7 @@ class CustomDF(DataReader):
             'tiltRecordID', 'to_date']]
 
         # Create the SHA256 record ID by concatenating all relevant columns
-        data_frame = create_sha_values(
-            self._spark_session, self._df, sha_columns)
+        data_frame = create_sha_values(self._df, sha_columns)
         data_frame = data_frame.withColumnRenamed('shaValue', 'tiltRecordID')
 
         # Reorder the columns, to make sure the partition column is the most right column in the data frame

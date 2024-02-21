@@ -153,7 +153,7 @@ def create_catalog_schema(environment: str, schema: dict) -> str:
         str: The SQL string for creating the catalog schema.
     """
 
-    create_catalog_schema_string = f'CREATE SCHEMA IF NOT EXISTS {environment}.{schema["container"]};'
+    create_catalog_schema_string = f'CREATE SCHEMA IF NOT EXISTS {environment}.{schema["container"]}; ALTER SCHEMA {environment}.{schema["container"]} SET OWNER TO tiltDevelopers;'
 
     return create_catalog_schema_string
 
@@ -172,3 +172,82 @@ def create_catalog_table_owner(table_name: str) -> str:
     create_catalog_table_owner_string = f"ALTER TABLE {table_name} SET OWNER TO tiltDevelopers"
 
     return create_catalog_table_owner_string
+
+
+def apply_scd_type_2(new_table: DataFrame, existing_table: DataFrame) -> DataFrame:
+    """
+    Applies Slowly Changing Dimension (SCD) Type 2 logic to merge new and existing dataframes.
+
+    Args:
+        new_table (DataFrame): The new dataframe containing the updated records.
+        existing_table (DataFrame): The existing dataframe containing the current records.
+
+    Returns:
+        DataFrame: The merged dataframe with updated records based on SCD Type 2 logic.
+    """
+
+    # Determine the processing date
+    processing_date = F.current_date()
+    future_date = F.lit('2099-12-31')
+    from_to_list = [F.col('from_date'), F.col('to_date')]
+
+    # Select the columns that contain values that should be compared
+    value_columns = [F.col(col_name) for col_name in new_table.columns if col_name not in [
+        'tiltRecordID', 'from_date', 'to_date']]
+
+    old_closed_records = existing_table.filter(
+        F.col('to_date') != future_date).select(value_columns + from_to_list)
+    old_df = existing_table.filter(F.col('to_date') == future_date).select(
+        value_columns + from_to_list)
+
+    # Add the SHA representation of the old records and rename to unique name
+    old_df = create_sha_values(old_df, value_columns)
+    old_df = old_df.withColumnRenamed('shaValue', 'shaValueOld')
+
+    # Add the SHA representation of the incoming records and rename to unique name
+    new_data_frame = create_sha_values(
+        new_table, value_columns)
+    new_data_frame = new_data_frame.withColumn(
+        'from_date', processing_date).withColumn('to_date', F.to_date(future_date))
+    new_data_frame = new_data_frame.withColumnRenamed(
+        'shaValue', 'shaValueNew')
+
+    # Join the SHA values of both tables together
+    combined_df = new_data_frame.select(F.col('shaValueNew')).join(old_df.select(
+        'shaValueOld'), on=old_df.shaValueOld == new_data_frame.shaValueNew, how='full')
+
+    # Set the base of all records to the already expired/ closed records
+    all_records = old_closed_records
+    # Records that did not change are taken from the existing set of data
+    identical_records = combined_df.filter(
+        (F.col('shaValueOld').isNotNull()) & (F.col('shaValueNew').isNotNull()))
+    if identical_records.count() > 0:
+        identical_records = combined_df.filter((F.col('shaValueOld').isNotNull()) & (
+            F.col('shaValueNew').isNotNull())).join(old_df, on='shaValueOld', how='inner')
+        identical_records = identical_records.select(
+            value_columns + from_to_list)
+        all_records = all_records.union(identical_records)
+
+    # Records that do not exist anymore are taken from the existing set of data
+    # Records are closed by filling the to_date column with the current date
+    closed_records = combined_df.filter(
+        (F.col('shaValueOld').isNotNull()) & (F.col('shaValueNew').isNull()))
+    if closed_records.count() > 0:
+        closed_records = combined_df.filter((F.col('shaValueOld').isNotNull()) & (
+            F.col('shaValueNew').isNull())).join(old_df, on='shaValueOld', how='inner')
+        closed_records = closed_records.select(
+            value_columns + from_to_list)
+        closed_records = closed_records.withColumn(
+            'to_date', processing_date)
+        all_records = all_records.union(closed_records)
+
+    # Records that are new are taken from the new set of data
+    new_records = combined_df.filter(
+        (F.col('shaValueOld').isNull()) & (F.col('shaValueNew').isNotNull()))
+    if new_records.count() > 0:
+        new_records = combined_df.filter((F.col('shaValueOld').isNull()) & (F.col(
+            'shaValueNew').isNotNull())).join(new_data_frame, on='shaValueNew', how='inner')
+        new_records = new_records.select(value_columns + from_to_list)
+        all_records = all_records.union(new_records)
+
+    return all_records

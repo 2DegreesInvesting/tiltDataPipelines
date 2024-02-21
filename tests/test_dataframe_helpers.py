@@ -1,6 +1,7 @@
 import pytest
-from functions.dataframe_helpers import create_catalog_table, create_catalog_schema, create_catalog_table_owner, clean_column_names, create_sha_values, create_map_column, create_table_path
+from functions.dataframe_helpers import create_catalog_table, create_catalog_schema, create_catalog_table_owner, clean_column_names, create_sha_values, create_map_column, create_table_path, apply_scd_type_2
 import pyspark.sql.types as T
+import pyspark.sql.functions as F
 
 from pyspark.testing import assertDataFrameEqual, assertSchemaEqual
 from functions.spark_session import create_spark_session
@@ -305,7 +306,7 @@ class Test_create_catalog_schema:
         sql_string = create_catalog_schema(environment, schema)
 
         # Define the expected SQL string
-        expected_sql_string = "CREATE SCHEMA IF NOT EXISTS dev.my_schema;"
+        expected_sql_string = "CREATE SCHEMA IF NOT EXISTS dev.my_schema; ALTER SCHEMA dev.my_schema SET OWNER TO tiltDevelopers;"
 
         # Assert that the generated SQL string matches the expected SQL string
         assert sql_string == expected_sql_string
@@ -349,6 +350,88 @@ class Test_clean_column_names:
         test_df = clean_column_names(spark_unclean_df_fixture)
 
         assertDataFrameEqual(test_df, spark_df_fixture)
+
+
+class Test_apply_scd_type_2:
+    """
+    Unit tests for the apply_scd_type_2 function.
+    """
+
+    @staticmethod
+    def test_table_no_updates(spark_session_fixture):
+        """
+        Test case for apply_scd_type_2 when there are no updates in the target table.
+
+        Args:
+            spark_session_fixture: PySpark fixture for the Spark session.
+
+        Returns:
+            None
+        """
+
+        initial_schema = T.StructType([
+            T.StructField('id', T.StringType(), False),
+            T.StructField('name', T.StringType(), False),
+            T.StructField('value', T.DoubleType(), False)
+        ])
+        target_schema = T.StructType([
+            T.StructField('id', T.StringType(), False),
+            T.StructField('name', T.StringType(), False),
+            T.StructField('value', T.DoubleType(), False),
+            T.StructField('from_date', T.DateType(), False),
+            T.StructField('to_date', T.DateType(), False),
+        ])
+        new_table = spark_session_fixture.createDataFrame(
+            [(1, 'test', 1.0,)], initial_schema)
+
+        existing_table = spark_session_fixture.createDataFrame(
+            [(1, 'test', 1.0, date(2024, 1, 1),  date(2099, 12, 31),)], target_schema)
+
+        resulting_table = spark_session_fixture.createDataFrame(
+            [(1, 'test', 1.0, date(2024, 1, 1),  date(2099, 12, 31),)], target_schema)
+
+        test_table = apply_scd_type_2(new_table, existing_table)
+
+        assertDataFrameEqual(test_table, resulting_table)
+
+    @staticmethod
+    def test_table_single_update(spark_session_fixture):
+        """
+        Test case for apply_scd_type_2 when there is a single update in the target table.
+
+        Args:
+            spark_session_fixture: PySpark fixture for the Spark session.
+
+        Returns:
+            None
+        """
+
+        processing_date = date.today()
+        initial_schema = T.StructType([
+            T.StructField('id', T.StringType(), False),
+            T.StructField('name', T.StringType(), False),
+            T.StructField('value', T.DoubleType(), False)
+        ])
+        target_schema = T.StructType([
+            T.StructField('id', T.StringType(), False),
+            T.StructField('name', T.StringType(), False),
+            T.StructField('value', T.DoubleType(), False),
+            T.StructField('from_date', T.DateType(), False),
+            T.StructField('to_date', T.DateType(), False),
+        ])
+
+        new_table = spark_session_fixture.createDataFrame(
+            [(1, 'test', 2.0,)], initial_schema)
+
+        existing_table = spark_session_fixture.createDataFrame(
+            [(1, 'test', 1.0, date(2024, 1, 1),  date(2099, 12, 31),)], target_schema)
+
+        resulting_table = spark_session_fixture.createDataFrame(
+            [(1, 'test', 1.0, date(2024, 1, 1),  processing_date,), ('1', 'test', 2.0, processing_date, date(2099, 12, 31),)], target_schema)
+
+        test_table = apply_scd_type_2(new_table, existing_table)
+
+        assertDataFrameEqual(test_table, resulting_table)
 
 
 if __name__ == "__main__":
