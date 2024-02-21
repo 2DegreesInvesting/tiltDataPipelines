@@ -1,5 +1,5 @@
 import pytest
-from functions.dataframe_helpers import create_catalog_table, create_catalog_schema, create_catalog_table_owner, clean_column_names, create_sha_values, create_map_column, create_table_path, apply_scd_type_2
+from functions.dataframe_helpers import create_catalog_table, create_catalog_schema, create_catalog_table_owner, clean_column_names, create_sha_values, create_map_column, create_table_path, apply_scd_type_2, assign_signalling_id
 import pyspark.sql.types as T
 import pyspark.sql.functions as F
 
@@ -432,6 +432,72 @@ class Test_apply_scd_type_2:
         test_table = apply_scd_type_2(new_table, existing_table)
 
         assertDataFrameEqual(test_table, resulting_table)
+
+
+class Test_assign_signalling_id:
+
+    @staticmethod
+    def test_assgn_single_signalling_id(spark_session_fixture):
+        """
+        This test case focuses on the case that the compare table has a signalling id specified more than once.
+        Before fixing this error, it would duplicate the record in the source table.
+
+        Args:
+            spark_session_fixture: Spark session fixture for testing.
+
+        Returns:
+            None
+        """
+
+        processing_date = date.today()
+
+        monitoring_source_schema = T.StructType([
+            T.StructField('signalling_id', T.IntegerType(), False),
+            T.StructField('check_id', T.StringType(), False),
+            T.StructField('column_name', T.StringType(), True),
+            T.StructField('check_name', T.StringType(), True),
+            T.StructField('total_count', T.IntegerType(), True),
+            T.StructField('valid_count', T.IntegerType(), True),
+            T.StructField('table_name', T.StringType(), False),
+        ])
+        monitoring_compare_schema = T.StructType([
+            T.StructField('signalling_id', T.IntegerType(), False),
+            T.StructField('check_id', T.StringType(), False),
+            T.StructField('column_name', T.StringType(), True),
+            T.StructField('check_name', T.StringType(), True),
+            T.StructField('total_count', T.IntegerType(), True),
+            T.StructField('valid_count', T.IntegerType(), True),
+            T.StructField('from_date', T.DateType(), False),
+            T.StructField('to_date', T.DateType(), False),
+            T.StructField('tiltRecordID', T.StringType(), False),
+            T.StructField('table_name', T.StringType(), False),
+        ])
+        monitoring_target_schema = T.StructType([
+            T.StructField('signalling_id', T.IntegerType(), False),
+            T.StructField('check_id', T.StringType(), False),
+            T.StructField('column_name', T.StringType(), True),
+            T.StructField('check_name', T.StringType(), True),
+            T.StructField('total_count', T.IntegerType(), True),
+            T.StructField('valid_count', T.IntegerType(), True),
+            T.StructField('table_name', T.StringType(), False),
+        ])
+
+        monitoring_source_table = spark_session_fixture.createDataFrame(
+            [(1, 'tilt_1', 'test_column', 'check if values are filled', 60, 60, 'test_table',)], monitoring_source_schema)
+        monitoring_source_table = monitoring_source_table.withColumn(
+            'signalling_id', F.lit(None))
+
+        monitoring_compare_table = spark_session_fixture.createDataFrame(
+            [(1, 'tilt_1', 'test_column', 'check if values are filled', 25, 25, date(2024, 1, 1),  date(2024, 2, 1), 'recordID', 'test_table',),
+             (1, 'tilt_1', 'test_column', 'check if values are filled', 50, 50, date(2024, 2, 1),  date(2099, 12, 31), 'recordID', 'test_table',)], monitoring_compare_schema)
+
+        monitoring_result_df = spark_session_fixture.createDataFrame(
+            [(1, 'tilt_1', 'test_column', 'check if values are filled', 60, 60, 'test_table',)], monitoring_target_schema)
+
+        test_table = assign_signalling_id(
+            monitoring_source_table, monitoring_compare_table)
+
+        assertDataFrameEqual(test_table, monitoring_result_df)
 
 
 if __name__ == "__main__":

@@ -2,10 +2,9 @@ import re
 
 from pyspark.sql import SparkSession, DataFrame
 from pyspark.sql import functions as F
-from pyspark.sql.window import Window
 
 
-from functions.dataframe_helpers import create_map_column, create_sha_values, create_table_path, create_table_name, create_catalog_schema, create_catalog_table, create_catalog_table_owner, apply_scd_type_2
+from functions.dataframe_helpers import create_map_column, create_sha_values, create_table_path, create_table_name, create_catalog_schema, create_catalog_table, create_catalog_table_owner, apply_scd_type_2, assign_signalling_id
 from functions.signalling_functions import calculate_signalling_issues
 from functions.signalling_rules import signalling_checks_dictionary
 from functions.tables import get_table_definition
@@ -203,33 +202,9 @@ class CustomDF(DataReader):
 
         existing_monitoring_df = CustomDF(
             'monitoring_values', self._spark_session, partition_name=self._name, history='complete')
-        max_issue = existing_monitoring_df.data.fillna(0, subset='signalling_id') \
-            .select(F.max(F.col('signalling_id')).alias('max_signalling_id')).collect()[0]['max_signalling_id']
-        if not max_issue:
-            max_issue = 0
-        existing_monitoring_df = existing_monitoring_df.data.select([F.col(c).alias(c+'_old') for c in existing_monitoring_df.data.columns])\
-            .select(['signalling_id_old', 'column_name_old', 'check_name_old', 'table_name_old', 'check_id_old'])
-        w = Window().partitionBy('table_name').orderBy(F.col('check_id'))
-        join_conditions = [monitoring_values_df.table_name == existing_monitoring_df.table_name_old,
-                           monitoring_values_df.column_name == existing_monitoring_df.column_name_old,
-                           monitoring_values_df.check_name == existing_monitoring_df.check_name_old,
-                           monitoring_values_df.check_id == existing_monitoring_df.check_id_old]
-        monitoring_values_intermediate = monitoring_values_df.join(
-            existing_monitoring_df, on=join_conditions, how='left')
 
-        existing_signalling_id = monitoring_values_intermediate.where(
-            F.col('signalling_id_old').isNotNull())
-        non_existing_signalling_id = monitoring_values_intermediate.where(
-            F.col('signalling_id_old').isNull())
-        non_existing_signalling_id = non_existing_signalling_id.withColumn(
-            'signalling_id', F.row_number().over(w)+F.lit(max_issue))
-
-        monitoring_values_intermediate = existing_signalling_id.union(
-            non_existing_signalling_id)
-        monitoring_values_intermediate = monitoring_values_intermediate.withColumn(
-            'signalling_id', F.coalesce(F.col('signalling_id_old'), F.col('signalling_id')))
-        monitoring_values_df = monitoring_values_intermediate.select(
-            ['signalling_id', 'check_id', 'column_name', 'check_name', 'total_count', 'valid_count', 'table_name'])
+        monitoring_values_df = assign_signalling_id(
+            monitoring_values_df, existing_monitoring_df.data)
 
         # Write the table to the location
         complete_monitoring_partition_df = CustomDF(
