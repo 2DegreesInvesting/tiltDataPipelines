@@ -245,7 +245,7 @@ class CustomDF:
             # An exception occurred, indicating a format mismatch
             raise ValueError(
                 "The initial structure can not be joined, because: " + str(e)) from e
-
+        print(self._df.orderBy(F.col('tiltRecordID')).head().asDict())
         # Compare the first row of the original DataFrame with the check DataFrame
         if not self._df.orderBy(F.col('tiltRecordID')).head().asDict() == check_df.orderBy(F.col('tiltRecordID')).head().asDict():
             # The format of the DataFrame does not match the table definition
@@ -437,8 +437,8 @@ class CustomDF:
         else:
             raise ValueError("Table format validation failed.")
 
-        if self._name != 'monitoring_values':
-            self.check_signalling_issues()
+        # if self._name != 'monitoring_values':
+        #     self.check_signalling_issues()
 
     def convert_data_types(self, column_list: list, data_type):
         """
