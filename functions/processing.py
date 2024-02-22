@@ -32,12 +32,12 @@ def generate_table(table_name: str) -> None:
 
         companies_europages_landingzone = CustomDF(
             'companies_europages_landingzone', spark_generate)
-        
+
         # column_names = ["min_headcount", "max_headcount", "year_established"]
 
         # companies_europages_landingzone.convert_data_types(
         #     column_names, IntegerType())
-        
+
         # companies_europages_landingzone.convert_data_types(
         #     ['verified_by_europages'], BooleanType())
 
@@ -53,7 +53,7 @@ def generate_table(table_name: str) -> None:
 
         sources_mapper_landingzone = CustomDF(
             'sources_mapper_landingzone', spark_generate)
-        
+
         sources_mapper_raw = CustomDF(
             'sources_mapper_raw', spark_generate, initial_df=sources_mapper_landingzone.data)
 
@@ -63,7 +63,7 @@ def generate_table(table_name: str) -> None:
 
         countries_mapper_landingzone = CustomDF(
             'countries_mapper_landingzone', spark_generate)
-        print(countries_mapper_landingzone.data.count())
+
         countries_mapper_raw = CustomDF(
             'countries_mapper_raw', spark_generate, initial_df=countries_mapper_landingzone.data)
 
@@ -73,12 +73,12 @@ def generate_table(table_name: str) -> None:
 
         geography_mapper_landingzone = CustomDF(
             'geography_mapper_landingzone', spark_generate)
-        
+
         column_names = ["priority", "input_priority"]
 
         geography_mapper_landingzone.convert_data_types(
             column_names, ByteType())
-        
+
         geography_ecoinvent_mapper_raw = CustomDF(
             'geography_ecoinvent_mapper_raw', spark_generate, initial_df=geography_mapper_landingzone.data)
 
@@ -93,16 +93,6 @@ def generate_table(table_name: str) -> None:
             'tilt_sector_isic_mapper_raw', spark_generate, initial_df=tilt_isic_mapper_landingzone.data)
 
         tilt_sector_isic_mapper_raw.write_table()
-
-    elif table_name == 'isic_mapper_raw':
-
-        isic_mapper_landingzone = CustomDF(
-            'isic_mapper_landingzone', spark_generate)
-
-        isic_mapper_raw = CustomDF(
-            'isic_mapper_raw', spark_generate, initial_df=isic_mapper_landingzone.data)
-
-        isic_mapper_raw.write_table()
 
     elif table_name == 'tilt_scenario_mapper_raw':
 
@@ -267,7 +257,7 @@ def generate_table(table_name: str) -> None:
 
         ecoinvent_co2_landingzone = CustomDF(
             'cut-off_cumulative_LCIA_v3.9.1_landingzone', spark_generate)
-        
+
         ecoinvent_co2_landingzone.data = ecoinvent_co2_landingzone.data.withColumn('IPCC_2021_climate_change_global_warming_potential_GWP100_kg_CO2_Eq', F.regexp_replace(
             'IPCC_2021_climate_change_global_warming_potential_GWP100_kg_CO2_Eq', '[,]', '.'))
 
@@ -282,7 +272,7 @@ def generate_table(table_name: str) -> None:
 
         ecoinvent_input_data_relevant_columns_landingzone = CustomDF(
             'ecoinvent_input_data_relevant_columns_landingzone', spark_generate)
-        
+
         ecoinvent_input_data_relevant_columns_landingzone.convert_data_types(
             ['exchange_unitName'], ByteType())
 
@@ -509,6 +499,15 @@ def generate_table(table_name: str) -> None:
         sector_upstream_profile_product_raw = CustomDF(
             'sector_upstream_profile_product_raw', spark_generate, initial_df=sector_upstream_profile_product_landingzone.data)
         sector_upstream_profile_product_raw.write_table()
+
+    elif table_name == 'isic_mapper_raw':
+
+        isic_4_digit_codes_landingzone = CustomDF(
+            'isic_4_digit_codes_landingzone', spark_generate)
+
+        isic_mapper_raw = CustomDF(
+            'isic_mapper_raw', spark_generate, initial_df=isic_4_digit_codes_landingzone.data)
+        isic_mapper_raw.write_table()
 
     else:
         raise ValueError(
