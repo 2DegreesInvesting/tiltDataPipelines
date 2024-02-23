@@ -365,7 +365,7 @@ class CustomDF:
         if not max_issue:
             max_issue = 0
         existing_monitoring_df = existing_monitoring_df.data.select([F.col(c).alias(c+'_old') for c in existing_monitoring_df.data.columns])\
-            .select(['signalling_id_old', 'column_name_old', 'check_name_old', 'table_name_old', 'check_id_old'])
+            .select(['signalling_id_old', 'column_name_old', 'check_name_old', 'table_name_old', 'check_id_old']).distinct()
         w = Window().partitionBy('table_name').orderBy(F.col('check_id'))
         join_conditions = [monitoring_values_df.table_name == existing_monitoring_df.table_name_old,
                            monitoring_values_df.column_name == existing_monitoring_df.column_name_old,
