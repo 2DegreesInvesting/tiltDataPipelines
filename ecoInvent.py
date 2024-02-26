@@ -37,7 +37,8 @@ if __name__ == '__main__':
 
     generate_table_raw('ecoinvent_co2_raw') 
 
-    # generate_table_raw('ecoinvent_input_data_raw') error with not all rows are unique
+    generate_table_raw('ecoinvent_input_data_raw') 
+
 
 # datamodel layer
     
@@ -48,6 +49,7 @@ if __name__ == '__main__':
 
     generate_table_datamodel('intermediate_exchanges_datamodel')
 
-    # generate_table_datamodel('ecoinvent_co2_datamodel') error coming from monitoring table
-  
-    # generate_table_datamodel('ecoinvent_input_data_datamodel') not generated because of raw
+    generate_table_datamodel('ecoinvent_co2_datamodel') 
+
+    generate_table_datamodel('ecoinvent_input_data_datamodel') 
+

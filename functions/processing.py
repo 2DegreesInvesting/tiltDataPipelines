@@ -33,21 +33,33 @@ def generate_table(table_name: str) -> None:
         companies_europages_landingzone = CustomDF(
             'companies_europages_landingzone', spark_generate)
         
-        # column_names = ["min_headcount", "max_headcount", "year_established"]
+        column_names = ["min_headcount", "max_headcount", "year_established"]
 
-        # companies_europages_landingzone.convert_data_types(
-        #     column_names, IntegerType())
+        companies_europages_landingzone.convert_data_types(
+            column_names, IntegerType())
         
-        # companies_europages_landingzone.convert_data_types(
-        #     ['verified_by_europages'], BooleanType())
+        companies_europages_landingzone.convert_data_types(
+            ['verified_by_europages'], BooleanType())
 
-        # companies_europages_landingzone.convert_data_types(
-        #     ['download_datetime'], DateType())
+        companies_europages_landingzone.convert_data_types(
+            ['download_datetime'], DateType())
+    
+        companies_europages_landingzone.data = companies_europages_landingzone.data.filter(F.col('id')!='na_00000004265865-001')
 
         companies_europages_raw = CustomDF(
             'companies_europages_raw', spark_generate, initial_df=companies_europages_landingzone.data)
 
         companies_europages_raw.write_table()
+
+    elif table_name == 'country_raw':
+
+        country_landingzone = CustomDF(
+            'country_landingzone', spark_generate)
+        
+        country_raw = CustomDF(
+            'country_raw', spark_generate, initial_df=country_landingzone.data)
+
+        country_raw.write_table()
 
     elif table_name == 'sources_mapper_raw':
 
@@ -63,7 +75,10 @@ def generate_table(table_name: str) -> None:
 
         countries_mapper_landingzone = CustomDF(
             'countries_mapper_landingzone', spark_generate)
-        print(countries_mapper_landingzone.data.count())
+        
+        countries_mapper_landingzone.data = countries_mapper_landingzone.data.withColumn('country_un',
+                           F.when(countries_mapper_landingzone.data['country'] == 'Namibia', 'NA').otherwise(countries_mapper_landingzone.data['country_un']))
+
         countries_mapper_raw = CustomDF(
             'countries_mapper_raw', spark_generate, initial_df=countries_mapper_landingzone.data)
 
@@ -83,6 +98,16 @@ def generate_table(table_name: str) -> None:
             'geography_ecoinvent_mapper_raw', spark_generate, initial_df=geography_mapper_landingzone.data)
 
         geography_ecoinvent_mapper_raw.write_table()
+
+    elif table_name == 'EP_tilt_sector_unmatched_mapper_raw':
+
+        EP_tilt_sector_mapper_landingzone = CustomDF(
+            'EP_tilt_sector_mapper_landingzone', spark_generate)
+             
+        EP_tilt_sector_unmatched_mapper_raw = CustomDF(
+            'EP_tilt_sector_unmatched_mapper_raw', spark_generate, initial_df=EP_tilt_sector_mapper_landingzone.data)
+
+        EP_tilt_sector_unmatched_mapper_raw.write_table()
 
     elif table_name == 'tilt_sector_isic_mapper_raw':
 
@@ -104,15 +129,15 @@ def generate_table(table_name: str) -> None:
 
         isic_mapper_raw.write_table()
 
-    elif table_name == 'tilt_scenario_mapper_raw':
+    elif table_name == 'tilt_sector_scenario_mapper_raw':
 
         tilt_scenario_mapper_landingzone = CustomDF(
             'scenario_tilt_mapper_2023-07-20_landingzone', spark_generate)
 
-        tilt_scenario_mapper_raw = CustomDF(
-            'tilt_scenario_mapper_raw', spark_generate, initial_df=tilt_scenario_mapper_landingzone.data)
+        tilt_sector_scenario_mapper_raw = CustomDF(
+            'tilt_sector_scenario_mapper_raw', spark_generate, initial_df=tilt_scenario_mapper_landingzone.data)
 
-        tilt_scenario_mapper_raw.write_table()
+        tilt_sector_scenario_mapper_raw.write_table()
 
     elif table_name == 'scenario_targets_IPR_raw':
 
@@ -124,7 +149,7 @@ def generate_table(table_name: str) -> None:
 
         scenario_targets_IPR_NEW_landingzone.convert_data_types(
             ['Value'], DoubleType())
-
+# Removing reductions in this step, because the column is incorrect and not used anymore
         scenario_targets_IPR_raw = CustomDF(
             'scenario_targets_IPR_raw', spark_generate, initial_df=scenario_targets_IPR_NEW_landingzone.data.drop('Reductions'))
 
@@ -140,7 +165,7 @@ def generate_table(table_name: str) -> None:
 
         scenario_targets_WEO_NEW_landingzone.convert_data_types(
             ['VALUE'], DoubleType())
-
+# Removing reductions in this step, because the column is incorrect and not used anymore
         scenario_targets_WEO_raw = CustomDF(
             'scenario_targets_WEO_raw', spark_generate, initial_df=scenario_targets_WEO_NEW_landingzone.data.drop('REDUCTIONS'))
 
@@ -284,10 +309,10 @@ def generate_table(table_name: str) -> None:
             'ecoinvent_input_data_relevant_columns_landingzone', spark_generate)
         
         ecoinvent_input_data_relevant_columns_landingzone.convert_data_types(
-            ['exchange_unitName'], ByteType())
+            ['exchange_amount'], DecimalType(25,10))
 
         ecoinvent_input_data_raw = CustomDF(
-            'ecoinvent_input_data_raw', spark_generate, initial_df=ecoinvent_input_data_relevant_columns_landingzone.data)
+            'ecoinvent_input_data_raw', spark_generate, initial_df=ecoinvent_input_data_relevant_columns_landingzone.data.distinct())
         ecoinvent_input_data_raw.write_table()
 
     elif table_name == 'ep_ei_matcher_raw':

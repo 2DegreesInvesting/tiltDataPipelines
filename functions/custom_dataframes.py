@@ -126,6 +126,8 @@ class CustomDF:
         for old_col, new_col in rename_dict.items():
             self._df = self._df.withColumnRenamed(old_col, new_col)
 
+        return self._df
+
     def compare_tables(self):
         """
         Compare an incoming DataFrame with an existing table, identifying new, identical, and closed records.
@@ -248,12 +250,14 @@ class CustomDF:
             raise ValueError(
                 "The initial structure can not be joined, because: " + str(e)) from e
         print(self._df.orderBy(F.col('tiltRecordID')).head().asDict())
+        print(check_df.orderBy(F.col('tiltRecordID')).head().asDict())
         # Compare the first row of the original DataFrame with the check DataFrame
         if not self._df.orderBy(F.col('tiltRecordID')).head().asDict() == check_df.orderBy(F.col('tiltRecordID')).head().asDict():
             # The format of the DataFrame does not match the table definition
             raise ValueError("The head of the table does not match.")
 
         # Check if all of the rows are unique in the table
+
         if self._df.count() != self._df.distinct().count():
             # The format of the DataFrame does not match the table definition
             raise ValueError("Not all rows in the table are unqiue")
