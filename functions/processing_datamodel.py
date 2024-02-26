@@ -337,6 +337,21 @@ def generate_table(table_name: str) -> None:
         
         scenario_targets_WEO_datamodel.write_table()
 
+    elif table_name == 'isic_mapper_datamodel':
+
+        isic_4_digit_codes_landingzone = CustomDF(
+            'isic_mapper_raw', spark_generate)
+
+        isic_4_digit_codes_landingzone.data = isic_4_digit_codes_landingzone.data.select('Code','ISIC_Rev_4_label')
+
+        rename_dict = {'Code':'isic_4digit','ISIC_Rev_4_label':'isic_4digit_name'}
+
+        isic_4_digit_codes_landingzone.rename_columns(rename_dict)
+
+        isic_mapper_datamodel = CustomDF(
+            'isic_mapper_datamodel', spark_generate, initial_df=isic_4_digit_codes_landingzone.data)
+        isic_mapper_datamodel.write_table()
+
     else:
         raise ValueError(
             f'The table: {table_name} is not specified in the processing functions')
