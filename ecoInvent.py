@@ -17,7 +17,7 @@ Note:
     - The module uses the 'CustomDF' class to handle DataFrames.
     - The module writes the generated tables to disk using the 'write_table' method of the 'CustomDF' class.
 """
-from functions.processing import generate_table as generate_table_raw
+from functions.processing_raw import generate_table as generate_table_raw
 from functions.processing_datamodel import generate_table as generate_table_datamodel
 
 if __name__ == '__main__':

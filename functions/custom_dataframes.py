@@ -76,7 +76,6 @@ class CustomDF:
             'csv': lambda: self._spark_session.read.format('csv').schema(self._schema['columns']).option('header', True).option("quote", '"').option("multiline", 'True').load(self._path + self._partition_path),
             'ecoInvent': lambda: self._spark_session.read.format('csv').schema(self._schema['columns']).option('header', True).option("quote", '~').option('delimiter', ';').option("multiline", 'True').load(self._path + self._partition_path),
             'tiltData': lambda: self._spark_session.read.format('csv').schema(self._schema['columns']).option('header', True).option("quote", '~').option('delimiter', ';').option("multiline", 'True').load(self._path + self._partition_path),
-            'tiltEP': lambda: self._spark_session.read.format('csv').schema(self._schema['columns']).option('header', True).option('delimiter', ';').load(self._path + self._partition_path),
             'delta': lambda: self._spark_session.read.format('delta').table(self._table_name),
             'parquet': lambda: self._spark_session.read.format(self._schema['type']).schema(self._schema['columns']).option('header', True).load(self._path + self._partition_path)
         }
@@ -121,12 +120,14 @@ class CustomDF:
         return df
 
     def rename_columns(self, rename_dict):
+        for name in rename_dict:
+            if name in self._df.columns:
+                pass
+            else:
+                raise ValueError(
+                    f"Value {name} does not exist in the specified schema")
+        self._df = self._df.withColumnsRenamed(rename_dict)
 
-        # Rename columns using withColumnRenamed()
-        for old_col, new_col in rename_dict.items():
-            self._df = self._df.withColumnRenamed(old_col, new_col)
-
-        return self._df
 
     def compare_tables(self):
         """
@@ -210,8 +211,6 @@ class CustomDF:
                 'shaValueNew').isNotNull())).join(new_data_frame, on='shaValueNew', how='inner')
             new_records = new_records.select(value_columns + from_to_list)
             all_records = all_records.union(new_records)
-
-        print(all_records.show(vertical=True))
 
         return all_records
 
@@ -443,8 +442,8 @@ class CustomDF:
         else:
             raise ValueError("Table format validation failed.")
 
-        # if self._name != 'monitoring_values':
-        #     self.check_signalling_issues()
+        if self._name != 'monitoring_values':
+            self.check_signalling_issues()
 
     def convert_data_types(self, column_list: list, data_type):
         """
