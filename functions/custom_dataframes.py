@@ -47,6 +47,15 @@ class CustomDF(DataReader):
         else:
             self._df = self.read_source()
 
+    def rename_columns(self, rename_dict):
+        for name in rename_dict:
+            if name in self._df.columns:
+                pass
+            else:
+                raise ValueError(
+                    f"Value {name} does not exist in the specified schema")
+        self._df = self._df.withColumnsRenamed(rename_dict)
+
     def compare_tables(self):
         """
         Compare an incoming DataFrame with an existing table, identifying new, identical, and closed records.
@@ -113,6 +122,7 @@ class CustomDF(DataReader):
             raise ValueError("The head of the table does not match.")
 
         # Check if all of the rows are unique in the table
+
         if self._df.count() != self._df.distinct().count():
             # The format of the DataFrame does not match the table definition
             raise ValueError("Not all rows in the table are unqiue")
@@ -228,10 +238,9 @@ class CustomDF(DataReader):
             - If a partition is specified, the DataFrame is written to that partition of the table.
             - If the table does not exist, it is created.
         """
-        # Compare the newly created records with the existing tables
 
         self.create_catalog_table()
-
+        # Compare the newly created records with the existing tables
         self._df = self.compare_tables()
 
         # Add the SHA value to create a unique ID within tilt
