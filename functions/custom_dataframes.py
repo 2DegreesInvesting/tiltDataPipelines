@@ -4,7 +4,7 @@ from pyspark.sql import SparkSession, DataFrame
 from pyspark.sql import functions as F
 from pyspark.sql.window import Window
 
-from delta import *
+from delta.tables import DeltaTable
 
 from functions.dataframe_helpers import create_map_column, create_sha_values
 from functions.signalling_functions import calculate_signalling_issues
@@ -76,7 +76,7 @@ class CustomDF:
             'csv': lambda: self._spark_session.read.format('csv').schema(self._schema['columns']).option('header', True).option("quote", '"').option("multiline", 'True').load(self._path + self._partition_path),
             'ecoInvent': lambda: self._spark_session.read.format('csv').schema(self._schema['columns']).option('header', True).option("quote", '~').option('delimiter', ';').option("multiline", 'True').load(self._path + self._partition_path),
             'tiltData': lambda: self._spark_session.read.format('csv').schema(self._schema['columns']).option('header', True).option("quote", '~').option('delimiter', ';').option("multiline", 'True').load(self._path + self._partition_path),
-            'delta': lambda: DeltaTable.forName(self._spark_session, self._table_name).toDF(),
+            'delta': lambda: self._spark_session.read.format('delta').table(self._table_name),
             'parquet': lambda: self._spark_session.read.format(self._schema['type']).schema(self._schema['columns']).option('header', True).load(self._path + self._partition_path)
         }
 
@@ -106,8 +106,8 @@ class CustomDF:
         replacement_dict = {'NA': None, 'nan': None}
         df = df.replace(replacement_dict, subset=df.columns)
 
-        if self._schema['container'] != 'landingzone' and self._name != 'dummy_quality_check':
-            df = create_map_column(self._spark_session, df, self._name)
+        # if self._schema['container'] != 'landingzone' and self._name != 'dummy_quality_check':
+        #     df = create_map_column(self._spark_session, df, self._name)
 
         # This generically renames columns to remove special characters so that they can be written into managed storage
         if self._schema['container'] == 'landingzone':
@@ -118,6 +118,16 @@ class CustomDF:
                 df = df.withColumnRenamed(col, new_col_name)
 
         return df
+
+    def rename_columns(self, rename_dict):
+        for name in rename_dict:
+            if name in self._df.columns:
+                pass
+            else:
+                raise ValueError(
+                    f"Value {name} does not exist in the specified schema")
+        self._df = self._df.withColumnsRenamed(rename_dict)
+
 
     def compare_tables(self):
         """
@@ -245,6 +255,7 @@ class CustomDF:
             raise ValueError("The head of the table does not match.")
 
         # Check if all of the rows are unique in the table
+
         if self._df.count() != self._df.distinct().count():
             # The format of the DataFrame does not match the table definition
             raise ValueError("Not all rows in the table are unqiue")
@@ -365,7 +376,8 @@ class CustomDF:
         if not max_issue:
             max_issue = 0
         existing_monitoring_df = existing_monitoring_df.data.select([F.col(c).alias(c+'_old') for c in existing_monitoring_df.data.columns])\
-            .select(['signalling_id_old', 'column_name_old', 'check_name_old', 'table_name_old', 'check_id_old'])
+            .select(['signalling_id_old', 'column_name_old', 'check_name_old', 'table_name_old', 'check_id_old']).distinct()
+
         w = Window().partitionBy('table_name').orderBy(F.col('check_id'))
         join_conditions = [monitoring_values_df.table_name == existing_monitoring_df.table_name_old,
                            monitoring_values_df.column_name == existing_monitoring_df.column_name_old,
@@ -410,16 +422,15 @@ class CustomDF:
             - If a partition is specified, the DataFrame is written to that partition of the table.
             - If the table does not exist, it is created.
         """
-        # Compare the newly created records with the existing tables
 
+        self.create_catalog_table()
+        # Compare the newly created records with the existing tables
         self._df = self.compare_tables()
 
         # Add the SHA value to create a unique ID within tilt
         self._df = self.add_record_id()
 
         table_check = self.validate_table_format()
-
-        self.create_catalog_table()
 
         if table_check:
             if self._schema['partition_column']:
