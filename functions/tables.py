@@ -21,7 +21,7 @@ Example:
         ]), 
         'container': 'container_name',
         'location': 'location_in_container',
-        'type': ['ecoInvent','csv','delta','parquet'],
+        'type': ['multiline','csv','delta','parquet'],
         'partition_column' : 'name_of_partition_column',
         'quality_checks': [['unique', ['string_column']],
                            ['format', 'string_column', r"[a-zA-Z\-]"]]
@@ -730,7 +730,7 @@ def get_table_definition(table_name: str = '') -> dict:
             ),
             'container': 'landingzone',
             'location': 'ecoInvent/Geographies.csv',
-            'type': 'ecoInvent',
+            'type': 'multiline',
             'partition_column': '',
             'quality_checks': []
         },
@@ -808,7 +808,7 @@ def get_table_definition(table_name: str = '') -> dict:
             ),
             'container': 'landingzone',
             'location': 'ecoInvent/Undefined AO.csv',
-            'type': 'ecoInvent',
+            'type': 'multiline',
             'partition_column': '',
             'quality_checks': []
         },
@@ -865,7 +865,7 @@ def get_table_definition(table_name: str = '') -> dict:
             ),
             'container': 'landingzone',
             'location': 'ecoInvent/Cut-OFF AO.csv',
-            'type': 'ecoInvent',
+            'type': 'multiline',
             'partition_column': '',
             'quality_checks': []
         },
@@ -973,7 +973,7 @@ def get_table_definition(table_name: str = '') -> dict:
             ),
             'container': 'landingzone',
             'location': 'ecoInvent/EN15804 AO.csv',
-            'type': 'ecoInvent',
+            'type': 'multiline',
             'partition_column': '',
             'quality_checks': []
         },
@@ -1032,7 +1032,7 @@ def get_table_definition(table_name: str = '') -> dict:
             ),
             'container': 'landingzone',
             'location': 'ecoInvent/Consequential AO.csv',
-            'type': 'ecoInvent',
+            'type': 'multiline',
             'partition_column': '',
             'quality_checks': []
         },
@@ -1079,7 +1079,7 @@ def get_table_definition(table_name: str = '') -> dict:
             ),
             'container': 'landingzone',
             'location': 'ecoInvent/LCIA Methods.csv',
-            'type': 'ecoInvent',
+            'type': 'multiline',
             'partition_column': '',
             'quality_checks': []
         },
@@ -1122,7 +1122,7 @@ def get_table_definition(table_name: str = '') -> dict:
             ),
             'container': 'landingzone',
             'location': 'ecoInvent/Impact Categories.csv',
-            'type': 'ecoInvent',
+            'type': 'multiline',
             'partition_column': '',
             'quality_checks': []
         },
@@ -1168,7 +1168,7 @@ def get_table_definition(table_name: str = '') -> dict:
             ),
             'container': 'landingzone',
             'location': 'ecoInvent/Intermediate Exchanges.csv',
-            'type': 'ecoInvent',
+            'type': 'multiline',
             'partition_column': '',
             'quality_checks': []
         },
@@ -1225,7 +1225,7 @@ def get_table_definition(table_name: str = '') -> dict:
             ),
             'container': 'landingzone',
             'location': 'ecoInvent/Elementary Exchanges.csv',
-            'type': 'ecoInvent',
+            'type': 'multiline',
             'partition_column': '',
             'quality_checks': []
         },
@@ -1265,7 +1265,7 @@ def get_table_definition(table_name: str = '') -> dict:
             'container': 'landingzone',
             # file that is created by extracting certain columns from the licensed data
             'location': 'ecoInvent/cut-off_cumulative_LCIA_v3.9.1.csv',
-            'type': 'ecoInvent',
+            'type': 'multiline',
             'partition_column': '',
             'quality_checks': []
         },
@@ -1325,7 +1325,7 @@ def get_table_definition(table_name: str = '') -> dict:
             'container': 'landingzone',
             # extract from Ecoinvent portal (licensed)
             'location': 'ecoInvent/ecoinvent_input_data_relevant_columns.csv',
-            'type': 'ecoInvent',
+            'type': 'multiline',
             'partition_column': '',
             'quality_checks': []
         },
@@ -1393,7 +1393,7 @@ def get_table_definition(table_name: str = '') -> dict:
             ),
             'container': 'landingzone',
             'location': 'tiltIndicatorBefore/ep_ei_matcher.csv',
-            'type': 'ecoInvent',
+            'type': 'multiline',
             'partition_column': '',
             'quality_checks': []
         },
@@ -1429,7 +1429,7 @@ def get_table_definition(table_name: str = '') -> dict:
         #     ),
         #     'container': 'landingzone',
         #     'location': 'tiltIndicatorBefore/geography_mapper.csv',
-        #     'type': 'ecoInvent',
+        #     'type': 'multiline',
         #     'partition_column': '',
         #     'quality_checks': []
         # },
@@ -2014,7 +2014,7 @@ def get_table_definition(table_name: str = '') -> dict:
             ),
             'container': 'landingzone',
             'location': 'activityCodes/ISIC4DigitCodes.csv',
-            'type': 'ecoInvent',
+            'type': 'multiline',
             'partition_column': '',
             'quality_checks': []
         },

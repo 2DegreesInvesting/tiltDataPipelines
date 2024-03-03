@@ -33,8 +33,8 @@ class DataReader:
         Determines which file type to read and how to read it.
     read_csv_file() -> DataFrame:
         Reads a CSV file and returns a DataFrame.
-    read_ecoinvent_file() -> DataFrame:
-        Reads an ecoinvent file and returns a DataFrame.
+    read_multiline_file() -> DataFrame:
+        Reads an multiline file and returns a DataFrame.
     read_parquet_file() -> DataFrame:
         Reads a Parquet file and returns a DataFrame.
     read_delta_table() -> DataFrame:
@@ -58,17 +58,21 @@ class DataReader:
         """
 
         implemented_file_types = ['csv', 'parquet',
-                                  'delta', 'ecoInvent']
+                                  'delta', 'multiline']
 
         if self._schema['type'] not in implemented_file_types:
             raise NotImplementedError(
                 f"The file type {self._schema['type']} is not implemented yet.")
 
+        if self._history not in ['recent', 'complete']:
+            raise ValueError(
+                f"{self._history} is not a valid argument for the history of a table, use 'recent' or 'complete'")
+
         implemented_read_functions = {
             'csv': self.read_csv_file(),
             'parquet': self.read_parquet_file(),
             'delta':  self.read_delta_table(),
-            'ecoInvent': self.read_ecoinvent_file()
+            'multiline': self.read_multiline_file()
         }
 
         df = implemented_read_functions[self._schema['type']]
@@ -96,8 +100,6 @@ class DataReader:
 
         df = clean_column_names(df)
 
-        print(df.show(5))
-
         return df
 
     def read_csv_file(self):
@@ -107,7 +109,7 @@ class DataReader:
 
         return df
 
-    def read_ecoinvent_file(self):
+    def read_multiline_file(self):
 
         df = self._spark_session.read.format('csv').schema(self._schema['columns']).option(
             'header', True).option("quote", '~').option('delimiter', ';').option("multiline", 'True').load(self._data_path)

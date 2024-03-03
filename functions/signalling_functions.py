@@ -397,6 +397,4 @@ def calculate_signalling_issues(dataframe: DataFrame, signalling_check_dict: dic
         df = df.union(signalling_check_df).select(
             ['signalling_id', 'check_id', 'column_name', 'check_name', 'total_count', 'valid_count'])
 
-        print(df.show())
-
     return df

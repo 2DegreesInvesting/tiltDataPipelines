@@ -1,6 +1,6 @@
 import pytest
 
-from functions.processing import generate_table
+from functions.processing_raw import generate_table
 
 
 class Test_valid_setup:
