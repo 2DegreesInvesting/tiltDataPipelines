@@ -1,6 +1,6 @@
-from pyspark.sql import DataFrame
+from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql.functions import col
-from pyspark.sql.types import IntegerType
+from pyspark.sql.types import StructType, StructField, StringType, IntegerType, Row
 import pyspark.sql.functions as F
 
 
@@ -72,11 +72,10 @@ def calculate_filled_values(dataframe: DataFrame) -> DataFrame:
         - 'total_count': The total number of rows in the DataFrame.
         - 'valid_count': The count of non-null (filled) values for each column.
     """
-    df_cols = [col for col in dataframe.columns if ('map_' not in col) and (col not in ['from_date', 'to_date', 'tiltRecordID'])]
+    df_cols = [col for col in dataframe.columns if ('map_' not in col) and (
+        col not in ['from_date', 'to_date', 'tiltRecordID'])]
     total_count = dataframe.count()
-    df = dataframe.select([(F.count(F.when(F.isnull(c), c)
-                                    .when(F.col(c) == 'NA', None)
-                                    .when(F.col(c) == 'nan', None))).alias(c) for c in df_cols]) \
+    df = dataframe.select([F.count(F.when((F.isnull(c)) | (F.col(c) == 'NA') | (F.col(c) == 'nan'), False)).alias(c) for c in df_cols]) \
         .withColumn('invalid_count_column', F.lit('invalid_count'))
     df = TransposeDF(df, df_cols, 'invalid_count_column')
     df = df.withColumn('total_count', F.lit(total_count).cast(IntegerType())) \
@@ -276,7 +275,7 @@ def column_sums_to_1(dataframe: DataFrame, groupby_columns: list, sum_column: st
     return valid_count
 
 
-def calculate_signalling_issues(dataframe: DataFrame, signalling_check_dict: dict, signalling_check_dummy: DataFrame) -> DataFrame:
+def calculate_signalling_issues(dataframe: DataFrame, signalling_check_dict: dict, spark_session: SparkSession) -> DataFrame:
     """
     Calculate signalling issues based on a set of predefined checks for a given DataFrame.
 
@@ -314,8 +313,6 @@ def calculate_signalling_issues(dataframe: DataFrame, signalling_check_dict: dic
         check_types = signalling_check.get('check')
         column_name = signalling_check.get('columns')
 
-        signalling_check_df = signalling_check_dummy.withColumn('column_name', F.lit(','.join(column_name)))\
-            .withColumn('total_count', F.lit(total_count).cast(IntegerType()))
         if check_types == 'values within list':
 
             value_list = signalling_check.get('value_list')
@@ -385,10 +382,17 @@ def calculate_signalling_issues(dataframe: DataFrame, signalling_check_dict: dic
             description_string = f'{count_expected} distinct values occur in column {input_list}'
             check_id = 'tilt_9'
 
-        signalling_check_df = signalling_check_df.withColumn('valid_count', F.lit(valid_count).cast(IntegerType()))\
-            .withColumn('check_id', F.lit(check_id))\
-            .withColumn('check_name', F.lit(description_string))\
-            .withColumn('signalling_id', F.lit(None))
+        df_row = [Row(signalling_id=1, check_id=check_id, column_name=','.join(
+            column_name), check_name=description_string, total_count=total_count, valid_count=valid_count)]
+        signalling_check_df = spark_session.createDataFrame(df_row, StructType([
+            StructField('signalling_id', IntegerType(), False),
+            StructField('check_id', StringType(), False),
+            StructField('column_name', StringType(), True),
+            StructField('check_name', StringType(), True),
+            StructField('total_count', IntegerType(), True),
+            StructField('valid_count', IntegerType(), True)
+        ]
+        )).withColumn('signalling_id', F.lit(None))
 
         df = df.union(signalling_check_df).select(
             ['signalling_id', 'check_id', 'column_name', 'check_name', 'total_count', 'valid_count'])

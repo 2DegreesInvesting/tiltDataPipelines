@@ -21,7 +21,7 @@ Example:
         ]), 
         'container': 'container_name',
         'location': 'location_in_container',
-        'type': ['tiltData','ecoInvent','csv','delta'],
+        'type': ['multiline','csv','delta','parquet'],
         'partition_column' : 'name_of_partition_column',
         'quality_checks': [['unique', ['string_column']],
                            ['format', 'string_column', r"[a-zA-Z\-]"]]
@@ -52,6 +52,37 @@ def get_table_definition(table_name: str = '') -> dict:
     """
 
     table_dict = {
+        'test_table_landingzone': {
+            'columns': StructType([
+                StructField('test_string_column', StringType(), False),
+                StructField('test_integer_column', IntegerType(), False),
+                StructField('test_decimal_column', DoubleType(), True),
+                StructField('test_date_column', DateType(), True),
+            ]
+            ),
+            'container': 'landingzone',
+            'location': 'test/test_table.csv',
+            'type': 'csv',
+            'partition_column': '',
+            'quality_checks': []
+        },
+        'test_table_raw': {
+            'columns': StructType([
+                StructField('test_string_column', StringType(), False),
+                StructField('test_integer_column', IntegerType(), False),
+                StructField('test_decimal_column', DoubleType(), True),
+                StructField('test_date_column', DateType(), True),
+                StructField('from_date', DateType(), False),
+                StructField('to_date', DateType(), False),
+                StructField('tiltRecordID', StringType(), False)
+            ]
+            ),
+            'container': 'test',
+            'location': 'test_table',
+            'type': 'delta',
+            'partition_column': '',
+            'quality_checks': []
+        },
         'companies_europages_landingzone': {
             'columns': StructType([
                 StructField('company_name', StringType(), False),
@@ -69,6 +100,8 @@ def get_table_definition(table_name: str = '') -> dict:
                 StructField('max_headcount', StringType(), True),
                 StructField('type_of_building_for_registered_address',
                             StringType(), True),
+                StructField('type_of_building_for_registered_address',
+                            StringType(), True),
                 StructField('verified_by_europages', StringType(), True),
                 StructField('year_established', StringType(), True),
                 StructField('websites', StringType(), True),
@@ -79,7 +112,7 @@ def get_table_definition(table_name: str = '') -> dict:
             ),
             'container': 'landingzone',
             'location': 'tiltEP/',
-            'type': 'tiltData',
+            'type': 'multiline',
             'partition_column': '',
             'quality_checks': [['unique', ['id']]]
         },
@@ -231,7 +264,7 @@ def get_table_definition(table_name: str = '') -> dict:
             ),
             'container': 'landingzone',
             'location': 'mappers/sources_mapper.csv',
-            'type': 'tiltData',
+            'type': 'multiline',
             'partition_column': '',
             'quality_checks': []
         },
@@ -273,7 +306,7 @@ def get_table_definition(table_name: str = '') -> dict:
             ),
             'container': 'landingzone',
             'location': 'mappers/countries_mapper.csv',
-            'type': 'tiltData',
+            'type': 'multiline',
             'partition_column': '',
             'quality_checks': []
         },
@@ -697,7 +730,7 @@ def get_table_definition(table_name: str = '') -> dict:
             ),
             'container': 'landingzone',
             'location': 'ecoInvent/Geographies.csv',
-            'type': 'ecoInvent',
+            'type': 'multiline',
             'partition_column': '',
             'quality_checks': []
         },
@@ -775,7 +808,7 @@ def get_table_definition(table_name: str = '') -> dict:
             ),
             'container': 'landingzone',
             'location': 'ecoInvent/Undefined AO.csv',
-            'type': 'ecoInvent',
+            'type': 'multiline',
             'partition_column': '',
             'quality_checks': []
         },
@@ -832,7 +865,7 @@ def get_table_definition(table_name: str = '') -> dict:
             ),
             'container': 'landingzone',
             'location': 'ecoInvent/Cut-OFF AO.csv',
-            'type': 'ecoInvent',
+            'type': 'multiline',
             'partition_column': '',
             'quality_checks': []
         },
@@ -940,7 +973,7 @@ def get_table_definition(table_name: str = '') -> dict:
             ),
             'container': 'landingzone',
             'location': 'ecoInvent/EN15804 AO.csv',
-            'type': 'ecoInvent',
+            'type': 'multiline',
             'partition_column': '',
             'quality_checks': []
         },
@@ -999,7 +1032,7 @@ def get_table_definition(table_name: str = '') -> dict:
             ),
             'container': 'landingzone',
             'location': 'ecoInvent/Consequential AO.csv',
-            'type': 'ecoInvent',
+            'type': 'multiline',
             'partition_column': '',
             'quality_checks': []
         },
@@ -1046,7 +1079,7 @@ def get_table_definition(table_name: str = '') -> dict:
             ),
             'container': 'landingzone',
             'location': 'ecoInvent/LCIA Methods.csv',
-            'type': 'ecoInvent',
+            'type': 'multiline',
             'partition_column': '',
             'quality_checks': []
         },
@@ -1089,7 +1122,7 @@ def get_table_definition(table_name: str = '') -> dict:
             ),
             'container': 'landingzone',
             'location': 'ecoInvent/Impact Categories.csv',
-            'type': 'ecoInvent',
+            'type': 'multiline',
             'partition_column': '',
             'quality_checks': []
         },
@@ -1135,7 +1168,7 @@ def get_table_definition(table_name: str = '') -> dict:
             ),
             'container': 'landingzone',
             'location': 'ecoInvent/Intermediate Exchanges.csv',
-            'type': 'ecoInvent',
+            'type': 'multiline',
             'partition_column': '',
             'quality_checks': []
         },
@@ -1192,7 +1225,7 @@ def get_table_definition(table_name: str = '') -> dict:
             ),
             'container': 'landingzone',
             'location': 'ecoInvent/Elementary Exchanges.csv',
-            'type': 'ecoInvent',
+            'type': 'multiline',
             'partition_column': '',
             'quality_checks': []
         },
@@ -1232,7 +1265,7 @@ def get_table_definition(table_name: str = '') -> dict:
             'container': 'landingzone',
             # file that is created by extracting certain columns from the licensed data
             'location': 'ecoInvent/cut-off_cumulative_LCIA_v3.9.1.csv',
-            'type': 'ecoInvent',
+            'type': 'multiline',
             'partition_column': '',
             'quality_checks': []
         },
@@ -1244,7 +1277,7 @@ def get_table_definition(table_name: str = '') -> dict:
                 StructField('Reference_Product_Name', StringType(), True),
                 StructField('Reference_Product_Unit', StringType(), True),
                 StructField(
-                    'IPCC_2021_climate_change_global_warming_potential_GWP100_kg_CO2_Eq', DecimalType(15,10), True),
+                    'IPCC_2021_climate_change_global_warming_potential_GWP100_kg_CO2_Eq', DecimalType(15, 10), True),
                 StructField('from_date', DateType(), False),
                 StructField('to_date', DateType(), False),
                 StructField('tiltRecordID', StringType(), False)
@@ -1259,7 +1292,7 @@ def get_table_definition(table_name: str = '') -> dict:
         'ecoinvent_co2_datamodel': {
             'columns':  StructType([
                 StructField('activity_uuid_product_uuid', StringType(), False),
-                StructField('co2_footprint', DecimalType(15,10), True),
+                StructField('co2_footprint', DecimalType(15, 10), True),
                 StructField('from_date', DateType(), False),
                 StructField('to_date', DateType(), False),
                 StructField('tiltRecordID', StringType(), False)
@@ -1292,7 +1325,7 @@ def get_table_definition(table_name: str = '') -> dict:
             'container': 'landingzone',
             # extract from Ecoinvent portal (licensed)
             'location': 'ecoInvent/ecoinvent_input_data_relevant_columns.csv',
-            'type': 'ecoInvent',
+            'type': 'multiline',
             'partition_column': '',
             'quality_checks': []
         },
@@ -1308,7 +1341,7 @@ def get_table_definition(table_name: str = '') -> dict:
                 StructField('activityLink_activityName', StringType(), True),
                 StructField('activityLink_geography', StringType(), True),
                 StructField('exchange_unitName', StringType(), True),
-                StructField('exchange_amount', DecimalType(25,10), True),
+                StructField('exchange_amount', DecimalType(25, 10), True),
                 StructField('CPC_classificationValue', StringType(), True),
                 StructField(
                     'By_product_classification_classificationValue', StringType(), True),
@@ -1360,7 +1393,7 @@ def get_table_definition(table_name: str = '') -> dict:
             ),
             'container': 'landingzone',
             'location': 'tiltIndicatorBefore/ep_ei_matcher.csv',
-            'type': 'ecoInvent',
+            'type': 'multiline',
             'partition_column': '',
             'quality_checks': []
         },
@@ -1396,7 +1429,7 @@ def get_table_definition(table_name: str = '') -> dict:
         #     ),
         #     'container': 'landingzone',
         #     'location': 'tiltIndicatorBefore/geography_mapper.csv',
-        #     'type': 'ecoInvent',
+        #     'type': 'multiline',
         #     'partition_column': '',
         #     'quality_checks': []
         # },
@@ -1450,22 +1483,6 @@ def get_table_definition(table_name: str = '') -> dict:
             'container': 'raw',
             'location': 'mapper_ep_ei',
             'type': 'delta',
-            'partition_column': '',
-            'quality_checks': []
-        },
-        'dummy_quality_check': {
-            'columns':  StructType([
-                StructField('signalling_id', StringType(), False),
-                StructField('check_id', StringType(), False),
-                StructField('column_name', StringType(), True),
-                StructField('check_name', StringType(), True),
-                StructField('total_count', IntegerType(), True),
-                StructField('valid_count', IntegerType(), True)
-            ]
-            ),
-            'container': 'monitoring',
-            'location': 'dummy_quality_check/dummy_check.csv',
-            'type': 'csv',
             'partition_column': '',
             'quality_checks': []
         },
@@ -1997,7 +2014,7 @@ def get_table_definition(table_name: str = '') -> dict:
             ),
             'container': 'landingzone',
             'location': 'activityCodes/ISIC4DigitCodes.csv',
-            'type': 'ecoInvent',
+            'type': 'multiline',
             'partition_column': '',
             'quality_checks': []
         },
