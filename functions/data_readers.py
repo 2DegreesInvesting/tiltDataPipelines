@@ -34,7 +34,7 @@ class DataReader:
     read_csv_file() -> DataFrame:
         Reads a CSV file and returns a DataFrame.
     read_multiline_file() -> DataFrame:
-        Reads an multiline file and returns a DataFrame.
+        Reads a multiline file and returns a DataFrame.
     read_parquet_file() -> DataFrame:
         Reads a Parquet file and returns a DataFrame.
     read_delta_table() -> DataFrame:

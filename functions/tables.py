@@ -112,7 +112,7 @@ def get_table_definition(table_name: str = '') -> dict:
             ),
             'container': 'landingzone',
             'location': 'tiltEP/',
-            'type': 'tiltData',
+            'type': 'multiline',
             'partition_column': '',
             'quality_checks': [['unique', ['id']]]
         },
@@ -264,7 +264,7 @@ def get_table_definition(table_name: str = '') -> dict:
             ),
             'container': 'landingzone',
             'location': 'mappers/sources_mapper.csv',
-            'type': 'tiltData',
+            'type': 'multiline',
             'partition_column': '',
             'quality_checks': []
         },
@@ -306,7 +306,7 @@ def get_table_definition(table_name: str = '') -> dict:
             ),
             'container': 'landingzone',
             'location': 'mappers/countries_mapper.csv',
-            'type': 'tiltData',
+            'type': 'multiline',
             'partition_column': '',
             'quality_checks': []
         },
