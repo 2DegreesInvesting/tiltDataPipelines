@@ -100,8 +100,6 @@ def get_table_definition(table_name: str = '') -> dict:
                 StructField('max_headcount', StringType(), True),
                 StructField('type_of_building_for_registered_address',
                             StringType(), True),
-                StructField('type_of_building_for_registered_address',
-                            StringType(), True),
                 StructField('verified_by_europages', StringType(), True),
                 StructField('year_established', StringType(), True),
                 StructField('websites', StringType(), True),
