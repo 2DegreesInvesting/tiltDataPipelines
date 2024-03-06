@@ -80,7 +80,7 @@ class DataReader:
         try:
             df.head()  # Force to load first record of the data to check if it throws an error
         except Exception as e:
-            if "Path does not exist:" in str(e) or f"`{self._schema['container']}`.`{self._schema['location']}` is not a Delta table" in str(e):
+            if "Path does not exist:" in str(e) or f"`{self._schema['container']}`.`{self._schema['location']}` is not a Delta table" in str(e) or f"The table or view `{self._env}`.`{self._schema['container']}`.`{self._schema['location']}` cannot be found" in str(e):
                 # If the table does not exist yet, return an empty data frame
                 df = self._spark_session.createDataFrame(
                     [], self._schema['columns'])
