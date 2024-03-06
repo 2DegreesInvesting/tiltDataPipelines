@@ -1,8 +1,8 @@
 from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql.functions import col
-from pyspark.sql.types import IntegerType, StringType
+from pyspark.sql.types import StructType, StructField, StringType, IntegerType, Row
 import pyspark.sql.functions as F
-from functions.spark_session import read_table
+
 
 def TransposeDF(df: DataFrame, columns: list, pivotCol: str) -> DataFrame:
     """
@@ -22,7 +22,8 @@ def TransposeDF(df: DataFrame, columns: list, pivotCol: str) -> DataFrame:
       aggregated values from the specified `columns`.
 
     """
-    columnsValue = list(map(lambda x: str("'") + str(x) + str("',`")  + str(x) + str("`"), columns))
+    columnsValue = list(map(lambda x: str("'") + str(x) +
+                        str("',`") + str(x) + str("`"), columns))
     stackCols = ','.join(x for x in columnsValue)
     df_1 = df.selectExpr(pivotCol, "stack(" + str(len(columns)) + "," + stackCols + ")")\
              .select(pivotCol, "col0", "col1")
@@ -48,7 +49,8 @@ def check_value_within_list(dataframe: DataFrame, column_name: list, value_list:
     - valid_count (int): The count of rows in the DataFrame where the values in 'column_name' match any
       of the values in 'value_list'.
     """
-    valid_count = dataframe.filter(F.col(column_name[0]).isin(value_list)).count()
+    valid_count = dataframe.filter(
+        F.col(column_name[0]).isin(value_list)).count()
     return valid_count
 
 
@@ -70,20 +72,22 @@ def calculate_filled_values(dataframe: DataFrame) -> DataFrame:
         - 'total_count': The total number of rows in the DataFrame.
         - 'valid_count': The count of non-null (filled) values for each column.
     """
+    df_cols = [col for col in dataframe.columns if ('map_' not in col) and (
+        col not in ['from_date', 'to_date', 'tiltRecordID'])]
     total_count = dataframe.count()
-    df = dataframe.select([(F.count(F.when(F.isnull(c), c)\
-                                    .when(F.col(c) == 'NA', None)\
-                                    .when(F.col(c) == 'nan', None))).alias(c) for c in dataframe.columns]) \
-            .withColumn('invalid_count_column', F.lit('invalid_count'))
-    df = TransposeDF(df, dataframe.columns, 'invalid_count_column')
+    df = dataframe.select([F.count(F.when((F.isnull(c)) | (F.col(c) == 'NA') | (F.col(c) == 'nan'), False)).alias(c) for c in df_cols]) \
+        .withColumn('invalid_count_column', F.lit('invalid_count'))
+    df = TransposeDF(df, df_cols, 'invalid_count_column')
     df = df.withColumn('total_count', F.lit(total_count).cast(IntegerType())) \
-            .withColumn('valid_count', F.lit(total_count).cast(IntegerType()) - F.col('invalid_count').cast(IntegerType())) \
-            .withColumn('check_name', F.lit('Check if values are filled')) \
-            .withColumn('check_id', F.lit('tilt_1')) \
-            .withColumn('signalling_id', F.lit(None)) \
-            .withColumnRenamed('invalid_count_column', 'column_name')
-    col_order = ['signalling_id','check_id', 'column_name', 'check_name', 'total_count', 'valid_count']
-    df = df.select(col_order).filter(~F.col('column_name').isin(['from_date','to_date','tiltRecordID']))
+        .withColumn('valid_count', F.lit(total_count).cast(IntegerType()) - F.col('invalid_count').cast(IntegerType())) \
+        .withColumn('check_name', F.lit('Check if values are filled')) \
+        .withColumn('check_id', F.lit('tilt_1')) \
+        .withColumn('signalling_id', F.lit(None)) \
+        .withColumnRenamed('invalid_count_column', 'column_name')
+    col_order = ['signalling_id', 'check_id', 'column_name',
+                 'check_name', 'total_count', 'valid_count']
+    df = df.select(col_order).filter(~F.col('column_name').isin(
+        ['from_date', 'to_date', 'tiltRecordID']))
 
     return df
 
@@ -108,9 +112,11 @@ def check_values_in_range(dataframe: DataFrame, column_name: list, range_start: 
       the specified range.   
     """
 
-    valid_count = dataframe.filter(col(column_name[0]).between(range_start, range_end)).count()
+    valid_count = dataframe.filter(
+        col(column_name[0]).between(range_start, range_end)).count()
 
     return valid_count
+
 
 def check_values_unique(dataframe: DataFrame, column_name: list) -> int:
     """
@@ -126,11 +132,12 @@ def check_values_unique(dataframe: DataFrame, column_name: list) -> int:
     Returns:
     - valid_count (int): The count of unique values in the specified column.
     """
-    valid_count = dataframe.select(*[F.col(col) for col in column_name]).distinct().count()
+    valid_count = dataframe.select(*[F.col(col)
+                                   for col in column_name]).distinct().count()
     return valid_count
 
 
-def check_values_format(dataframe: DataFrame, column_name: list, format: str) -> int:
+def check_values_format(dataframe: DataFrame, column_name: list, row_format: str) -> int:
     """
     Check if values in a specified column of a Spark DataFrame match a given regular expression pattern,
     and return the count of matching values.
@@ -148,10 +155,12 @@ def check_values_format(dataframe: DataFrame, column_name: list, format: str) ->
     - valid_count (int): The count of rows in the DataFrame where the values in 'column_name' match the
       specified regular expression pattern.
     """
-    valid_count = dataframe.filter(F.col(column_name[0]).rlike(format)).count()
+    valid_count = dataframe.filter(
+        F.col(column_name[0]).rlike(row_format)).count()
     return valid_count
 
-def check_values_consistent(spark_session: SparkSession, dataframe: DataFrame, column_name: list, compare_df: DataFrame, join_columns: list) -> int:
+
+def check_values_consistent(dataframe: DataFrame, column_name: list, compare_df: DataFrame, join_columns: list) -> int:
     """
     Checks the consistency of values in a specified column between the input DataFrame and a comparison table.
 
@@ -171,14 +180,18 @@ def check_values_consistent(spark_session: SparkSession, dataframe: DataFrame, c
         - Rows where the values match are counted, and the count is returned as an integer.
 
     """
-    compare_df = compare_df.select(join_columns + [F.col(column_name[0]).alias('compare_' + column_name[0])])
+    compare_df = compare_df.select(
+        join_columns + [F.col(column_name[0]).alias('compare_' + column_name[0])])
 
-    joined_df = dataframe.select([column_name[0]] + join_columns).join(compare_df, on=join_columns, how='left')
-    valid_count = joined_df.filter(F.col(column_name[0]) == F.col('compare_' + column_name[0])).count()
+    joined_df = dataframe.select(
+        [column_name[0]] + join_columns).join(compare_df, on=join_columns, how='left')
+    valid_count = joined_df.filter(
+        F.col(column_name[0]) == F.col('compare_' + column_name[0])).count()
 
     return valid_count
 
-def check_expected_value_count(spark_session: SparkSession, dataframe: DataFrame, groupby_columns: list, expected_count: int) -> int:
+
+def check_expected_value_count(dataframe: DataFrame, groupby_columns: list, expected_count: int) -> int:
     """
     Check the count of rows in a DataFrame grouped by specific columns and compare it to an expected count.
 
@@ -196,12 +209,15 @@ def check_expected_value_count(spark_session: SparkSession, dataframe: DataFrame
 
     """
     groupby_columns_list = [F.col(column) for column in groupby_columns]
-    valid_rows = dataframe.groupby(groupby_columns_list).agg(F.count('tiltRecordID').alias('count')).filter(F.col('count')==expected_count).select(groupby_columns_list)
-    valid_count = dataframe.join(valid_rows,how='inner',on=groupby_columns).count()
+    valid_rows = dataframe.groupby(groupby_columns_list).agg(F.count('tiltRecordID').alias(
+        'count')).filter(F.col('count') == expected_count).select(groupby_columns_list)
+    valid_count = dataframe.join(
+        valid_rows, how='inner', on=groupby_columns).count()
 
     return valid_count
 
-def check_expected_distinct_value_count(spark_session: SparkSession, dataframe: DataFrame, groupby_columns: list, expected_count: int, distinct_columns: list) -> int:
+
+def check_expected_distinct_value_count(dataframe: DataFrame, groupby_columns: list, expected_count: int, distinct_columns: list) -> int:
     """
     Check the count of distinct values in specific columns of a DataFrame grouped by other columns
     and compare it to an expected count.
@@ -223,13 +239,15 @@ def check_expected_distinct_value_count(spark_session: SparkSession, dataframe: 
     """
     groupby_columns_list = [F.col(column) for column in groupby_columns]
     distinct_columns_list = [F.col(column) for column in distinct_columns]
-    valid_rows = dataframe.groupby(groupby_columns_list).agg(F.countDistinct(*distinct_columns_list).alias('count')).filter(F.col('count')==expected_count).select(groupby_columns_list)
-    valid_count = dataframe.join(valid_rows,how='inner',on=groupby_columns).count()
+    valid_rows = dataframe.groupby(groupby_columns_list).agg(F.countDistinct(
+        *distinct_columns_list).alias('count')).filter(F.col('count') == expected_count).select(groupby_columns_list)
+    valid_count = dataframe.join(
+        valid_rows, how='inner', on=groupby_columns).count()
 
     return valid_count
 
-    
-def column_sums_to_1(spark_session: SparkSession, dataframe: DataFrame, groupby_columns: list, sum_column: str) -> int:
+
+def column_sums_to_1(dataframe: DataFrame, groupby_columns: list, sum_column: str) -> int:
     """
     Check if the sum of values in a specific column of a DataFrame, grouped by other columns,
     equals 1 and return the count of rows that meet this condition.
@@ -247,14 +265,17 @@ def column_sums_to_1(spark_session: SparkSession, dataframe: DataFrame, groupby_
     - int: The count of rows in the DataFrame where the sum of values in the 'sum_column' equals 1 after grouping.
 
     """
-    
+
     groupby_columns_list = [F.col(column) for column in groupby_columns]
-    valid_rows = dataframe.groupby(groupby_columns_list).agg(F.sum(sum_column).alias('sum')).filter(F.col('sum').between(0.98,1.02)).select(groupby_columns_list)
-    valid_count = dataframe.join(valid_rows,how='inner',on=groupby_columns).count()
+    valid_rows = dataframe.groupby(groupby_columns_list).agg(F.sum(sum_column).alias(
+        'sum')).filter(F.col('sum').between(0.98, 1.02)).select(groupby_columns_list)
+    valid_count = dataframe.join(
+        valid_rows, how='inner', on=groupby_columns).count()
 
     return valid_count
 
-def calculate_signalling_issues(spark_session: SparkSession, dataframe: DataFrame, signalling_check_dict: dict, signalling_check_dummy: DataFrame) -> DataFrame:
+
+def calculate_signalling_issues(dataframe: DataFrame, signalling_check_dict: dict, spark_session: SparkSession) -> DataFrame:
     """
     Calculate signalling issues based on a set of predefined checks for a given DataFrame.
 
@@ -292,22 +313,21 @@ def calculate_signalling_issues(spark_session: SparkSession, dataframe: DataFram
         check_types = signalling_check.get('check')
         column_name = signalling_check.get('columns')
 
-        signalling_check_df = signalling_check_dummy.withColumn('column_name',F.lit(','.join(column_name)))\
-                    .withColumn('total_count',F.lit(total_count).cast(IntegerType()))
-
         if check_types == 'values within list':
 
             value_list = signalling_check.get('value_list')
-            valid_count = check_value_within_list(dataframe, column_name, value_list)
+            valid_count = check_value_within_list(
+                dataframe, column_name, value_list)
             input_list = '","'.join([str(val) for val in value_list])[:100]
             description_string = f'values within list of: "{input_list}"'
             check_id = 'tilt_2'
-            
+
         elif check_types == 'values in range':
 
             range_start = signalling_check.get('range_start')
             range_end = signalling_check.get('range_end')
-            valid_count = check_values_in_range(dataframe, column_name, range_start, range_end)
+            valid_count = check_values_in_range(
+                dataframe, column_name, range_start, range_end)
             description_string = f'values between {str(range_start)} and {str(range_end)}'
             check_id = 'tilt_3'
 
@@ -318,54 +338,63 @@ def calculate_signalling_issues(spark_session: SparkSession, dataframe: DataFram
             check_id = 'tilt_4'
 
         elif check_types == 'values have format':
-            
+
             check_format = signalling_check.get('format')
-            valid_count = check_values_format(dataframe, column_name, check_format)
+            valid_count = check_values_format(
+                dataframe, column_name, check_format)
             description_string = f'values have format {check_format}'
             check_id = 'tilt_5'
-            
-        elif check_types == 'values are consistent':
-            
-            table_to_compare = signalling_check.get('compare_table')
-            columns_to_join = signalling_check.get('join_columns')
-            df_to_compare = read_table(spark_session, table_to_compare)
-            valid_count = check_values_consistent(spark_session,dataframe, column_name, df_to_compare, columns_to_join)
-            input_list = '","'.join([str(val) for val in columns_to_join])[:100]
-            description_string = f'values are consistent with column(s) "{input_list}" from table {table_to_compare}'
-            check_id = 'tilt_6'
-            
+
+        # elif check_types == 'values are consistent':
+
+        #     table_to_compare = signalling_check.get('compare_table')
+        #     columns_to_join = signalling_check.get('join_columns')
+        #     df_to_compare = read_table(spark_session, table_to_compare)
+        #     valid_count = check_values_consistent(spark_session,dataframe, column_name, df_to_compare, columns_to_join)
+        #     input_list = '","'.join([str(val) for val in columns_to_join])[:100]
+        #     description_string = f'values are consistent with column(s) "{input_list}" from table {table_to_compare}'
+        #     check_id = 'tilt_6'
+
         elif check_types == 'values occur as expected':
-            
+
             count_expected = signalling_check.get('expected_count')
-            valid_count = check_expected_value_count(spark_session, dataframe, column_name, count_expected)
+            valid_count = check_expected_value_count(
+                dataframe, column_name, count_expected)
             description_string = f'values occur {count_expected} times'
             check_id = 'tilt_7'
 
         elif check_types == 'values sum to 1':
-            
+
             sum_col = signalling_check.get('sum_column')
-            valid_count = column_sums_to_1(spark_session, dataframe, column_name, sum_col)
+            valid_count = column_sums_to_1(
+                dataframe, column_name, sum_col)
             description_string = f'values in column "{sum_col}" sum to 1'
             check_id = 'tilt_8'
-                
+
         elif check_types == 'distinct values occur as expected':
-            
+
             count_expected = signalling_check.get('expected_count')
             distinct_columns = signalling_check.get('distinct_columns')
-            valid_count = check_expected_distinct_value_count(spark_session, dataframe, column_name, count_expected, distinct_columns)
-            input_list = '","'.join([str(val) for val in distinct_columns])[:100]
+            valid_count = check_expected_distinct_value_count(
+                dataframe, column_name, count_expected, distinct_columns)
+            input_list = '","'.join([str(val)
+                                    for val in distinct_columns])[:100]
             description_string = f'{count_expected} distinct values occur in column {input_list}'
             check_id = 'tilt_9'
 
+        df_row = [Row(signalling_id=1, check_id=check_id, column_name=','.join(
+            column_name), check_name=description_string, total_count=total_count, valid_count=valid_count)]
+        signalling_check_df = spark_session.createDataFrame(df_row, StructType([
+            StructField('signalling_id', IntegerType(), False),
+            StructField('check_id', StringType(), False),
+            StructField('column_name', StringType(), True),
+            StructField('check_name', StringType(), True),
+            StructField('total_count', IntegerType(), True),
+            StructField('valid_count', IntegerType(), True)
+        ]
+        )).withColumn('signalling_id', F.lit(None))
 
-        signalling_check_df = signalling_check_df.withColumn('valid_count', F.lit(valid_count).cast(IntegerType()))\
-                                .withColumn('check_id',F.lit(check_id))\
-                                .withColumn('check_name',F.lit(description_string))\
-                                .withColumn('signalling_id',F.lit(None))
-        
-        df = df.union(signalling_check_df).select(['signalling_id','check_id', 'column_name', 'check_name', 'total_count', 'valid_count'])
+        df = df.union(signalling_check_df).select(
+            ['signalling_id', 'check_id', 'column_name', 'check_name', 'total_count', 'valid_count'])
 
     return df
-
-
-
