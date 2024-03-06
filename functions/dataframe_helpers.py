@@ -154,9 +154,10 @@ def create_catalog_schema(environment: str, schema: dict) -> str:
         str: The SQL string for creating the catalog schema.
     """
 
-    create_catalog_schema_string = f'CREATE SCHEMA IF NOT EXISTS {environment}.{schema["container"]}; ALTER SCHEMA {environment}.{schema["container"]} SET OWNER TO tiltDevelopers;'
+    create_catalog_schema_string = f'CREATE SCHEMA IF NOT EXISTS {environment}.{schema["container"]};'
+    create_catalog_schema_owner = f'ALTER SCHEMA {environment}.{schema["container"]} SET OWNER TO tiltDevelopers;'
 
-    return create_catalog_schema_string
+    return create_catalog_schema_string, create_catalog_schema_owner
 
 
 def create_catalog_table_owner(table_name: str) -> str:
