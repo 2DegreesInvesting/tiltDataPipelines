@@ -95,8 +95,9 @@ class DataReader:
             df = df.filter(F.col('to_date') == '2099-12-31')
 
         # Replace empty values with None/null
-        replacement_dict = {'NA': None, 'nan': None}
-        df = df.replace(replacement_dict, subset=df.columns)
+        if self._schema['container'] == 'landingzone':
+            replacement_dict = {'NA': None, 'nan': None}
+            df = df.replace(replacement_dict, subset=df.columns)
 
         df = clean_column_names(df)
 
