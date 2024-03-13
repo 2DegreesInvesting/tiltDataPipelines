@@ -802,7 +802,7 @@ def get_table_definition(table_name: str = '') -> dict:
                 StructField('Time Period', StringType(), True),
                 StructField('Special Activity Type', StringType(), True),
                 StructField('Sector', StringType(), True),
-                StructField('c', StringType(), True),
+                StructField('ISIC Classification', StringType(), True),
                 StructField('ISIC Section', StringType(), True),
                 StructField('Product UUID', StringType(), True),
                 StructField('Reference Product Name', StringType(), True),
