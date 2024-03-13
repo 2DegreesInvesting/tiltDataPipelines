@@ -946,7 +946,7 @@ def get_table_definition(table_name: str = '') -> dict:
                 StructField('Unit', StringType(), True),
                 StructField('Product_Information', StringType(), True),
                 StructField('CAS_Number', StringType(), True),
-                StructField('Cut-Off_Classification', StringType(), True),
+                StructField('Cut_Off_Classification', StringType(), True),
                 StructField('from_date', DateType(), False),
                 StructField('to_date', DateType(), False),
                 StructField('tiltRecordID', StringType(), False)
