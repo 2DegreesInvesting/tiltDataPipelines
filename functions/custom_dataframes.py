@@ -116,6 +116,8 @@ class CustomDF(DataReader):
             raise ValueError(
                 "The initial structure can not be joined, because: " + str(e)) from e
 
+        print(self._df.orderBy(F.col('tiltRecordID')).head().asDict())
+        print(check_df.orderBy(F.col('tiltRecordID')).head().asDict())
         # Compare the first row of the original DataFrame with the check DataFrame
         if not self._df.orderBy(F.col('tiltRecordID')).head().asDict() == check_df.orderBy(F.col('tiltRecordID')).head().asDict():
             # The format of the DataFrame does not match the table definition
@@ -174,11 +176,13 @@ class CustomDF(DataReader):
             bool: True if the catalog table is successfully created, False otherwise.
         """
 
-        schema_string = create_catalog_schema(self._env, self._schema)
+        create_schema_string, set_owner_schema_string = create_catalog_schema(
+            self._env, self._schema)
         create_string = create_catalog_table(self._table_name, self._schema)
         set_owner_string = create_catalog_table_owner(self._table_name)
 
-        self._spark_session.sql(schema_string)
+        self._spark_session.sql(create_schema_string)
+        self._spark_session.sql(set_owner_schema_string)
         self._spark_session.sql(create_string)
         self._spark_session.sql(set_owner_string)
 

@@ -80,7 +80,7 @@ class DataReader:
         try:
             df.head()  # Force to load first record of the data to check if it throws an error
         except Exception as e:
-            if "Path does not exist:" in str(e) or f"`{self._schema['container']}`.`{self._schema['location']}` is not a Delta table" in str(e):
+            if "Path does not exist:" in str(e) or f"`{self._schema['container']}`.`{self._schema['location']}` is not a Delta table" in str(e) or f"The table or view `{self._env}`.`{self._schema['container']}`.`{self._schema['location']}` cannot be found" in str(e):
                 # If the table does not exist yet, return an empty data frame
                 df = self._spark_session.createDataFrame(
                     [], self._schema['columns'])
@@ -95,10 +95,13 @@ class DataReader:
             df = df.filter(F.col('to_date') == '2099-12-31')
 
         # Replace empty values with None/null
-        replacement_dict = {'NA': None, 'nan': None}
-        df = df.replace(replacement_dict, subset=df.columns)
+        if self._schema['container'] == 'landingzone':
+            replacement_dict = {'NA': None, 'nan': None}
+            df = df.replace(replacement_dict, subset=df.columns)
 
         df = clean_column_names(df)
+
+        print(f'read table {self._table_name} from {self._data_path}')
 
         return df
 
