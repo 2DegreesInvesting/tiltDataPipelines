@@ -116,6 +116,8 @@ class CustomDF(DataReader):
             raise ValueError(
                 "The initial structure can not be joined, because: " + str(e)) from e
 
+        print(self._df.orderBy(F.col('tiltRecordID')).head().asDict())
+        print(check_df.orderBy(F.col('tiltRecordID')).head().asDict())
         # Compare the first row of the original DataFrame with the check DataFrame
         if not self._df.orderBy(F.col('tiltRecordID')).head().asDict() == check_df.orderBy(F.col('tiltRecordID')).head().asDict():
             # The format of the DataFrame does not match the table definition
