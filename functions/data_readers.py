@@ -76,7 +76,6 @@ class DataReader:
         }
 
         df = implemented_read_functions[self._schema['type']]
-        df = df.limit(1)
 
         try:
             df.head()  # Force to load first record of the data to check if it throws an error
