@@ -101,8 +101,6 @@ class DataReader:
 
         df = clean_column_names(df)
 
-        print(f'read table {self._table_name} from {self._data_path}')
-
         return df
 
     def read_csv_file(self):
