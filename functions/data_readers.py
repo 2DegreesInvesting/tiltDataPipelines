@@ -76,6 +76,7 @@ class DataReader:
         }
 
         df = implemented_read_functions[self._schema['type']]
+        df = df.limit(1)
 
         try:
             df.head()  # Force to load first record of the data to check if it throws an error
@@ -100,8 +101,6 @@ class DataReader:
             df = df.replace(replacement_dict, subset=df.columns)
 
         df = clean_column_names(df)
-
-        print(f'read table {self._table_name} from {self._data_path}')
 
         return df
 
