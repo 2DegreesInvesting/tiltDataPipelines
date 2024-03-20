@@ -100,8 +100,6 @@ def get_table_definition(table_name: str = '') -> dict:
                 StructField('max_headcount', StringType(), True),
                 StructField('type_of_building_for_registered_address',
                             StringType(), True),
-                StructField('type_of_building_for_registered_address',
-                            StringType(), True),
                 StructField('verified_by_europages', StringType(), True),
                 StructField('year_established', StringType(), True),
                 StructField('websites', StringType(), True),
@@ -445,6 +443,54 @@ def get_table_definition(table_name: str = '') -> dict:
             'partition_column': '',
             'quality_checks': []
         },
+        'tilt_isic_mapper_2023-07-20_landingzone': {
+            'columns': StructType([
+                StructField('tilt_sector', StringType(), True),
+                StructField('tilt_subsector', StringType(), True),
+                StructField('isic_4digit', StringType(), True),
+                StructField('isic_section', StringType(), True)
+            ]
+            ),
+            'container': 'landingzone',
+            'location': 'mappers/tilt_isic_mapper_2023-07-20.csv',
+            'type': 'csv',
+            'partition_column': '',
+            'quality_checks': []
+        },
+        'tilt_sector_isic_mapper_raw': {
+            'columns': StructType([
+                StructField('tilt_sector', StringType(), True),
+                StructField('tilt_subsector', StringType(), True),
+                StructField('isic_4digit', StringType(), True),
+                StructField('isic_section', StringType(), True),
+                StructField('from_date', DateType(), False),
+                StructField('to_date', DateType(), False),
+                StructField('tiltRecordID', StringType(), False)
+            ]
+            ),
+            'container': 'raw',
+            'location': 'tilt_sector_isic_mapper',
+            'type': 'delta',
+            'partition_column': '',
+            'quality_checks': []
+        },
+        'tilt_sector_isic_mapper_datamodel': {
+            'columns': StructType([
+                StructField('tilt_sector', StringType(), True),
+                StructField('tilt_subsector', StringType(), True),
+                StructField('isic_4digit', StringType(), True),
+                StructField('isic_section', StringType(), True),
+                StructField('from_date', DateType(), False),
+                StructField('to_date', DateType(), False),
+                StructField('tiltRecordID', StringType(), False)
+            ]
+            ),
+            'container': 'datamodel',
+            'location': 'tilt_sector_isic_mapper',
+            'type': 'delta',
+            'partition_column': '',
+            'quality_checks': []
+        },
         'scenario_tilt_mapper_2023-07-20_landingzone': {
             'columns': StructType([
                 StructField('tilt_sector', StringType(), True),
@@ -756,7 +802,7 @@ def get_table_definition(table_name: str = '') -> dict:
                 StructField('Time Period', StringType(), True),
                 StructField('Special Activity Type', StringType(), True),
                 StructField('Sector', StringType(), True),
-                StructField('c', StringType(), True),
+                StructField('ISIC Classification', StringType(), True),
                 StructField('ISIC Section', StringType(), True),
                 StructField('Product UUID', StringType(), True),
                 StructField('Reference Product Name', StringType(), True),
@@ -900,7 +946,7 @@ def get_table_definition(table_name: str = '') -> dict:
                 StructField('Unit', StringType(), True),
                 StructField('Product_Information', StringType(), True),
                 StructField('CAS_Number', StringType(), True),
-                StructField('Cut-Off_Classification', StringType(), True),
+                StructField('Cut_Off_Classification', StringType(), True),
                 StructField('from_date', DateType(), False),
                 StructField('to_date', DateType(), False),
                 StructField('tiltRecordID', StringType(), False)

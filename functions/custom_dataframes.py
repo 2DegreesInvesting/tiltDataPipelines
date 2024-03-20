@@ -174,11 +174,13 @@ class CustomDF(DataReader):
             bool: True if the catalog table is successfully created, False otherwise.
         """
 
-        schema_string = create_catalog_schema(self._env, self._schema)
+        create_schema_string, set_owner_schema_string = create_catalog_schema(
+            self._env, self._schema)
         create_string = create_catalog_table(self._table_name, self._schema)
         set_owner_string = create_catalog_table_owner(self._table_name)
 
-        self._spark_session.sql(schema_string)
+        self._spark_session.sql(create_schema_string)
+        self._spark_session.sql(set_owner_schema_string)
         self._spark_session.sql(create_string)
         self._spark_session.sql(set_owner_string)
 
