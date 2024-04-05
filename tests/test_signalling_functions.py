@@ -7,7 +7,7 @@ from pyspark.testing import assertDataFrameEqual
 from datetime import date
 
 from functions.spark_session import create_spark_session
-from functions.signalling_functions import TransposeDF, check_value_within_list, calculate_filled_values, check_values_in_range, check_values_unique, check_values_format, check_expected_distinct_value_count, column_sums_to_1, calculate_signalling_issues, check_expected_value_count
+from functions.signalling_functions import TransposeDF, check_value_within_list, calculate_filled_values, check_values_in_range, check_values_unique, check_values_format, check_expected_distinct_value_count, column_sums_to_1, calculate_signalling_issues, check_expected_value_count, calculate_blocking_issues
 
 
 @pytest.fixture(scope='session')
@@ -503,3 +503,57 @@ class Test_calculate_signalling_issues:
         resulting_df = resulting_df.withColumn('signalling_id', F.lit(None))
 
         assertDataFrameEqual(df, resulting_df)
+
+    @staticmethod
+    def test_blocking_issues_with_values_unique(spark_general_df):
+
+        spark_unique_check = {
+            'quality_checks': [{
+                'check': 'values are unique',
+                'columns': ['group_column']
+            }]
+        }
+
+        with pytest.raises(ValueError) as error_info:
+            calculate_blocking_issues(
+                spark_general_df, spark_unique_check['quality_checks'])
+
+        assert str(
+            error_info.value) == 'Blocking issue violation detected: values are unique'
+
+    @staticmethod
+    def test_blocking_issues_with_values_format(spark_general_df):
+
+        spark_format_check = {
+            'quality_checks': [{
+                'check': 'values have format',
+                'columns': ['description_column'],
+                'format': 'valid description'
+            }]
+        }
+
+        with pytest.raises(ValueError) as error_info:
+            calculate_blocking_issues(
+                spark_general_df, spark_format_check['quality_checks'])
+
+        assert str(
+            error_info.value) == 'Blocking issue violation detected: values have format'
+
+    @staticmethod
+    def test_blocking_issue_with_values_in_range(spark_general_df):
+
+        spark_range_check = {
+            'quality_checks': [{
+                'check': 'values in range',
+                'columns': ['integer_column'],
+                'range_start': 6,
+                'range_end': 10
+            }]
+        }
+
+        with pytest.raises(ValueError) as error_info:
+            calculate_blocking_issues(
+                spark_general_df, spark_range_check['quality_checks'])
+
+        assert str(
+            error_info.value) == 'Blocking issue violation detected: values in range'
