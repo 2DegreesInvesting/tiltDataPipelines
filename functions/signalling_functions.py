@@ -32,7 +32,7 @@ def TransposeDF(df: DataFrame, columns: list, pivotCol: str) -> DataFrame:
     return final_df
 
 
-def check_value_within_list(dataframe: DataFrame, column_name: list, value_list: list) -> int:
+def check_value_within_list(dataframe: DataFrame, **kwargs: dict) -> int:
     """
     Filter a DataFrame based on a list of values within a specific column and return the count of valid rows.
 
@@ -49,6 +49,9 @@ def check_value_within_list(dataframe: DataFrame, column_name: list, value_list:
     - valid_count (int): The count of rows in the DataFrame where the values in 'column_name' match any
       of the values in 'value_list'.
     """
+    column_name = kwargs.get('columns')
+    value_list = kwargs.get('value_list')
+
     valid_count = dataframe.filter(
         F.col(column_name[0]).isin(value_list)).count()
     return valid_count
@@ -92,7 +95,7 @@ def calculate_filled_values(dataframe: DataFrame) -> DataFrame:
     return df
 
 
-def check_values_in_range(dataframe: DataFrame, column_name: list, range_start: int, range_end: int) -> int:
+def check_values_in_range(dataframe: DataFrame, **kwargs: dict) -> int:
     """
     Filter a Spark DataFrame to include rows where values in a specified column are within a given range,
     and return the count of valid rows.
@@ -112,49 +115,53 @@ def check_values_in_range(dataframe: DataFrame, column_name: list, range_start: 
       the specified range.   
     """
 
+    column_name = kwargs.get('columns')
+    range_start = kwargs.get('range_start')
+    range_end = kwargs.get('range_end')
+
     valid_count = dataframe.filter(
         col(column_name[0]).between(range_start, range_end)).count()
 
     return valid_count
 
 
-def check_values_unique(dataframe: DataFrame, column_name: list) -> int:
+def check_values_unique(dataframe: DataFrame, **kwargs: dict) -> int:
     """
-    Check the uniqueness of values in a specified column of a Spark DataFrame and return the count of unique values.
+    Check the uniqueness of values in a specified column of a DataFrame.
 
-    This function takes a Spark DataFrame and evaluates the uniqueness of values in the specified 'column_name'.
-    It returns the count of unique values in that column.
-
-    Parameters:
-    - dataframe (DataFrame): The input Spark DataFrame to analyze.
-    - column_name (list): A list containing the column in the DataFrame to check if it is unique.
+    Args:
+        dataframe (DataFrame): The DataFrame to check.
+        **kwargs: Additional keyword arguments.
+            column_name (str): The name of the column to check.
 
     Returns:
-    - valid_count (int): The count of unique values in the specified column.
+        int: The count of distinct values in the specified column.
     """
+
+    column_name = kwargs.get('columns')
+
     valid_count = dataframe.select(*[F.col(col)
                                    for col in column_name]).distinct().count()
     return valid_count
 
 
-def check_values_format(dataframe: DataFrame, column_name: list, row_format: str) -> int:
+def check_values_format(dataframe: DataFrame, **kwargs: dict) -> int:
     """
-    Check if values in a specified column of a Spark DataFrame match a given regular expression pattern,
-    and return the count of matching values.
+    Checks the format of values in a specified column of a DataFrame.
 
-    This function takes a Spark DataFrame and filters it to include only rows where the values in the specified
-    'column_name' match the regular expression pattern provided in 'format'. It then returns the count of rows
-    that meet this criterion.
-
-    Parameters:
-    - dataframe (DataFrame): The input Spark DataFrame to filter.
-    - column_name (list): A list containing the column in the DataFrame to check for format compliance.
-    - format (str): The regular expression pattern to match against the values in the specified column.
+    Args:
+        dataframe (DataFrame): The DataFrame to be checked.
+        **kwargs: Additional keyword arguments.
+            columns (list of str): The name(s) of the column(s) to check.
+            format (str): The regular expression pattern to match against the values.
 
     Returns:
-    - valid_count (int): The count of rows in the DataFrame where the values in 'column_name' match the
-      specified regular expression pattern.
+        int: The count of values in the specified column(s) that match the given format.
     """
+
+    column_name = kwargs.get('columns')
+    row_format = kwargs.get('format')
+
     valid_count = dataframe.filter(
         F.col(column_name[0]).rlike(row_format)).count()
     return valid_count
@@ -191,7 +198,7 @@ def check_values_consistent(dataframe: DataFrame, column_name: list, compare_df:
     return valid_count
 
 
-def check_expected_value_count(dataframe: DataFrame, groupby_columns: list, expected_count: int) -> int:
+def check_expected_value_count(dataframe: DataFrame, **kwargs: dict) -> int:
     """
     Check the count of rows in a DataFrame grouped by specific columns and compare it to an expected count.
 
@@ -208,6 +215,9 @@ def check_expected_value_count(dataframe: DataFrame, groupby_columns: list, expe
     - int: The count of rows in the DataFrame that match the expected count after grouping.
 
     """
+    groupby_columns = kwargs.get('columns')
+    expected_count = kwargs.get('expected_count')
+
     groupby_columns_list = [F.col(column) for column in groupby_columns]
     valid_rows = dataframe.groupby(groupby_columns_list).agg(F.count('tiltRecordID').alias(
         'count')).filter(F.col('count') == expected_count).select(groupby_columns_list)
@@ -217,7 +227,7 @@ def check_expected_value_count(dataframe: DataFrame, groupby_columns: list, expe
     return valid_count
 
 
-def check_expected_distinct_value_count(dataframe: DataFrame, groupby_columns: list, expected_count: int, distinct_columns: list) -> int:
+def check_expected_distinct_value_count(dataframe: DataFrame, **kwargs) -> int:
     """
     Check the count of distinct values in specific columns of a DataFrame grouped by other columns
     and compare it to an expected count.
@@ -237,6 +247,11 @@ def check_expected_distinct_value_count(dataframe: DataFrame, groupby_columns: l
     - int: The count of rows in the DataFrame that match the expected count of distinct values after grouping.
 
     """
+
+    groupby_columns = kwargs.get('columns')
+    expected_count = kwargs.get('expected_count')
+    distinct_columns = kwargs.get('distinct_columns')
+
     groupby_columns_list = [F.col(column) for column in groupby_columns]
     distinct_columns_list = [F.col(column) for column in distinct_columns]
     valid_rows = dataframe.groupby(groupby_columns_list).agg(F.countDistinct(
@@ -247,7 +262,7 @@ def check_expected_distinct_value_count(dataframe: DataFrame, groupby_columns: l
     return valid_count
 
 
-def column_sums_to_1(dataframe: DataFrame, groupby_columns: list, sum_column: str) -> int:
+def column_sums_to_1(dataframe: DataFrame, **kwargs: dict) -> int:
     """
     Check if the sum of values in a specific column of a DataFrame, grouped by other columns,
     equals 1 and return the count of rows that meet this condition.
@@ -265,6 +280,8 @@ def column_sums_to_1(dataframe: DataFrame, groupby_columns: list, sum_column: st
     - int: The count of rows in the DataFrame where the sum of values in the 'sum_column' equals 1 after grouping.
 
     """
+    groupby_columns = kwargs.get('columns')
+    sum_column = kwargs.get('sum_column')
 
     groupby_columns_list = [F.col(column) for column in groupby_columns]
     valid_rows = dataframe.groupby(groupby_columns_list).agg(F.sum(sum_column).alias(
@@ -273,6 +290,42 @@ def column_sums_to_1(dataframe: DataFrame, groupby_columns: list, sum_column: st
         valid_rows, how='inner', on=groupby_columns).count()
 
     return valid_count
+
+
+def calculate_blocking_issues(dataframe: DataFrame, blocking_check_dict: dict) -> DataFrame:
+    """
+    Calculates blocking issues based on the given dataframe and blocking check dictionary.
+
+    Args:
+        dataframe (DataFrame): The input dataframe.
+        blocking_check_dict (dict): A dictionary containing blocking check configurations.
+
+    Returns:
+        DataFrame: The resulting dataframe after calculating blocking issues.
+
+    Raises:
+        ValueError: If a blocking issue violation is detected.
+
+    """
+    current_df = dataframe.where(F.col('to_date') == '2099-12-31')
+
+    total_records = current_df.count()
+
+    for blocking_check in blocking_check_dict:
+
+        processing_dict = {
+            'values in range': check_values_in_range(current_df, **blocking_check),
+            'values are unique': check_values_unique(current_df, **blocking_check),
+            'values have format': check_values_format(current_df, **blocking_check)
+        }
+
+        test_int = processing_dict[blocking_check['check']]
+
+        blocking_count = total_records - test_int
+
+        if blocking_count != 0:
+            raise ValueError(
+                f"Blocking issue violation detected: {blocking_check['check']}")
 
 
 def calculate_signalling_issues(dataframe: DataFrame, signalling_check_dict: dict, spark_session: SparkSession) -> DataFrame:
@@ -317,7 +370,7 @@ def calculate_signalling_issues(dataframe: DataFrame, signalling_check_dict: dic
 
             value_list = signalling_check.get('value_list')
             valid_count = check_value_within_list(
-                dataframe, column_name, value_list)
+                dataframe, **signalling_check)
             input_list = '","'.join([str(val) for val in value_list])[:100]
             description_string = f'values within list of: "{input_list}"'
             check_id = 'tilt_2'
@@ -327,13 +380,13 @@ def calculate_signalling_issues(dataframe: DataFrame, signalling_check_dict: dic
             range_start = signalling_check.get('range_start')
             range_end = signalling_check.get('range_end')
             valid_count = check_values_in_range(
-                dataframe, column_name, range_start, range_end)
+                dataframe, **signalling_check)
             description_string = f'values between {str(range_start)} and {str(range_end)}'
             check_id = 'tilt_3'
 
         elif check_types == 'values are unique':
 
-            valid_count = check_values_unique(dataframe, column_name)
+            valid_count = check_values_unique(dataframe, **signalling_check)
             description_string = f"unique values in column `{column_name}`"
             check_id = 'tilt_4'
 
@@ -341,7 +394,7 @@ def calculate_signalling_issues(dataframe: DataFrame, signalling_check_dict: dic
 
             check_format = signalling_check.get('format')
             valid_count = check_values_format(
-                dataframe, column_name, check_format)
+                dataframe, **signalling_check)
             description_string = f'values have format {check_format}'
             check_id = 'tilt_5'
 
@@ -359,7 +412,7 @@ def calculate_signalling_issues(dataframe: DataFrame, signalling_check_dict: dic
 
             count_expected = signalling_check.get('expected_count')
             valid_count = check_expected_value_count(
-                dataframe, column_name, count_expected)
+                dataframe, **signalling_check)
             description_string = f'values occur {count_expected} times'
             check_id = 'tilt_7'
 
@@ -367,7 +420,7 @@ def calculate_signalling_issues(dataframe: DataFrame, signalling_check_dict: dic
 
             sum_col = signalling_check.get('sum_column')
             valid_count = column_sums_to_1(
-                dataframe, column_name, sum_col)
+                dataframe, **signalling_check)
             description_string = f'values in column "{sum_col}" sum to 1'
             check_id = 'tilt_8'
 
@@ -376,7 +429,7 @@ def calculate_signalling_issues(dataframe: DataFrame, signalling_check_dict: dic
             count_expected = signalling_check.get('expected_count')
             distinct_columns = signalling_check.get('distinct_columns')
             valid_count = check_expected_distinct_value_count(
-                dataframe, column_name, count_expected, distinct_columns)
+                dataframe, **signalling_check)
             input_list = '","'.join([str(val)
                                     for val in distinct_columns])[:100]
             description_string = f'{count_expected} distinct values occur in column {input_list}'

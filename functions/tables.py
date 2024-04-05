@@ -146,7 +146,10 @@ def get_table_definition(table_name: str = '') -> dict:
             'location': 'companies_europages',
             'type': 'delta',
             'partition_column': '',
-            'quality_checks': [['unique', ['id']]]
+            'quality_checks': [{
+                                'check': 'values are unique',
+                                'columns': ['id']
+            }]
         },
         'companies_datamodel': {
             'columns': StructType([
@@ -701,8 +704,15 @@ def get_table_definition(table_name: str = '') -> dict:
             'location': 'geographies',
             'type': 'delta',
             'partition_column': '',
-            'quality_checks': [['unique', ['ID']],
-                               ['format', 'Geographical Classification', r"[a-zA-Z\-]"]]
+            'quality_checks': [{
+                                'check': 'values are unique',
+                                'columns': ['ID']
+            },
+                {
+                'check': 'values have format',
+                'columns': ['Geographical_Classification'],
+                'format': r"[a-zA-Z\-]"
+            },]
         },
         'geographies_transform': {
             'columns':  StructType([
@@ -848,7 +858,10 @@ def get_table_definition(table_name: str = '') -> dict:
             'location': 'cutoff_ao',
             'type': 'delta',
             'partition_column': '',
-            'quality_checks': [['unique', ['Activity UUID & Product UUID']]]
+            'quality_checks': [{
+                                'check': 'values are unique',
+                                'columns': ['Activity_UUID_&_Product_UUID']
+            },]
         },
         'ecoinvent_cut_off_datamodel': {
             'columns':  StructType([
@@ -864,7 +877,10 @@ def get_table_definition(table_name: str = '') -> dict:
             'location': 'ecoinvent_cut_off',
             'type': 'delta',
             'partition_column': '',
-            'quality_checks': [['unique', ['activity_uuid_product_uuid']]]
+            'quality_checks': [{
+                                'check': 'values are unique',
+                                'columns': ['activity_uuid_product_uuid']
+            },]
         },
         'ecoinvent_product_datamodel': {
             'columns':  StructType([
@@ -880,7 +896,10 @@ def get_table_definition(table_name: str = '') -> dict:
             'location': 'ecoinvent_product',
             'type': 'delta',
             'partition_column': '',
-            'quality_checks': [['unique', ['product_uuid']]]
+            'quality_checks': [{
+                                'check': 'values are unique',
+                                'columns': ['product_uuid']
+            },]
         },
         'ecoinvent_activity_datamodel': {
             'columns':  StructType([
@@ -897,7 +916,10 @@ def get_table_definition(table_name: str = '') -> dict:
             'location': 'ecoinvent_activity',
             'type': 'delta',
             'partition_column': '',
-            'quality_checks': [['unique', ['activity_uuid']]]
+            'quality_checks': [{
+                                'check': 'values are unique',
+                                'columns': ['activity_uuid']
+            },]
         },
         'en15804_ao_landingzone': {
             'columns':  StructType([
@@ -956,7 +978,10 @@ def get_table_definition(table_name: str = '') -> dict:
             'location': 'en15804_ao',
             'type': 'delta',
             'partition_column': '',
-            'quality_checks': [['unique', ['Activity UUID & Product UUID']]]
+            'quality_checks': [{
+                                'check': 'values are unique',
+                                'columns': ['Activity_UUID_&_Product_UUID']
+            },]
         },
         'consequential_ao_landingzone': {
             'columns':  StructType([
@@ -1015,7 +1040,10 @@ def get_table_definition(table_name: str = '') -> dict:
             'location': 'consequential_ao',
             'type': 'delta',
             'partition_column': '',
-            'quality_checks': [['unique', ['Activity UUID & Product UUID']]]
+            'quality_checks': [{
+                                'check': 'values are unique',
+                                'columns': ['Activity_UUID_&_Product_UUID']
+            },]
         },
         'lcia_methods_landingzone': {
             'columns':  StructType([
@@ -1142,7 +1170,10 @@ def get_table_definition(table_name: str = '') -> dict:
             'location': 'intermediate_exchanges',
             'type': 'delta',
             'partition_column': '',
-            'quality_checks': [['unique', ['ID']]]
+            'quality_checks': [{
+                                'check': 'values are unique',
+                                'columns': ['ID']
+            },]
         },
         'intermediate_exchanges_datamodel': {
             'columns':  StructType([
@@ -1158,7 +1189,10 @@ def get_table_definition(table_name: str = '') -> dict:
             'location': 'intermediate_exchanges',
             'type': 'delta',
             'partition_column': '',
-            'quality_checks': [['unique', ['exchange_id']]]
+            'quality_checks': [{
+                                'check': 'values are unique',
+                                'columns': ['exchange_id']
+            },]
         },
         'elementary_exchanges_landingzone': {
             'columns':  StructType([
@@ -1199,7 +1233,10 @@ def get_table_definition(table_name: str = '') -> dict:
             'location': 'elementary_exchanges',
             'type': 'delta',
             'partition_column': '',
-            'quality_checks': [['unique', ['ID']]]
+            'quality_checks': [{
+                                'check': 'values are unique',
+                                'columns': ['ID']
+            },]
         },
         'cut-off_cumulative_LCIA_v3.9.1_landingzone': {
             'columns':  StructType([

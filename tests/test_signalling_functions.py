@@ -102,8 +102,13 @@ class Test_value_within_list:
 
         value_list = ['group_value_1', 'group_value_2']
 
+        check_dict = {
+            'columns': ['group_column'],
+            'value_list': value_list
+        }
+
         result_count = check_value_within_list(
-            spark_general_df, ['group_column'], value_list)
+            spark_general_df, **check_dict)
 
         assert result_count == 5
 
@@ -141,8 +146,14 @@ class Test_check_values_in_range:
     @staticmethod
     def test_check_values_in_range(spark_general_df):
 
+        check_dict = {
+            'columns': ['integer_column'],
+            'range_start': 6,
+            'range_end': 10
+        }
+
         result_count = check_values_in_range(
-            spark_general_df, ['integer_column'], 6, 10)
+            spark_general_df, **check_dict)
 
         assert result_count == 5
 
@@ -152,8 +163,12 @@ class Test_check_values_unique:
     @staticmethod
     def test_check_values_unique(spark_general_df):
 
+        check_dict = {
+            'columns': ['group_column']
+        }
+
         result_count = check_values_unique(
-            spark_general_df, ['group_column'])
+            spark_general_df, **check_dict)
 
         assert result_count == 4
 
@@ -163,8 +178,12 @@ class Test_check_values_format:
     @staticmethod
     def test_check_values_format(spark_general_df):
 
+        check_dict = {
+            'columns': ['description_column'],
+            'format': 'valid description'
+        }
         result_count = check_values_format(
-            spark_general_df, ['description_column'], 'valid description')
+            spark_general_df, **check_dict)
 
         assert result_count == 5
 
@@ -174,8 +193,14 @@ class Test_check_expected_distinct_value_count:
     @staticmethod
     def test_check_expected_distinct_value_count(spark_general_df):
 
+        check_dict = {
+            'columns': ['group_column'],
+            'expected_count': 1,
+            'distinct_columns': ['description_column']
+        }
+
         result_count = check_expected_distinct_value_count(
-            spark_general_df, ['group_column'], 1, ['description_column'])
+            spark_general_df, **check_dict)
 
         assert result_count == 3
 
@@ -185,8 +210,13 @@ class Test_columns_sum_to_1:
     @staticmethod
     def test_columns_sum_to_1(spark_general_df):
 
+        check_dict = {
+            'columns': ['group_column'],
+            'sum_column': 'sum_column'
+        }
+
         valid_count = column_sums_to_1(
-            spark_general_df, ['group_column'], 'sum_column')
+            spark_general_df, **check_dict)
 
         assert valid_count == 6
 
@@ -196,8 +226,13 @@ class Test_expected_value_count:
     @staticmethod
     def test_expected_value_count(spark_general_df):
 
+        check_dict = {
+            'columns': ['group_column'],
+            'expected_count': 3
+        }
+
         valid_count = check_expected_value_count(
-            spark_general_df, ['group_column'], 3)
+            spark_general_df, **check_dict)
 
         assert valid_count == 6
 
