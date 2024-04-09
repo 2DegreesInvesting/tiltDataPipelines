@@ -23,11 +23,17 @@ Example:
         'location': 'location_in_container',
         'type': ['multiline','csv','delta','parquet'],
         'partition_column' : 'name_of_partition_column',
-        'quality_checks': [['unique', ['string_column']],
-                           ['format', 'string_column', r"[a-zA-Z\-]"]]
+        'quality_checks': [{
+                                'check': 'values are unique',
+                                'columns': ['string_columns']
+            },{
+                                'check': 'values have format',
+                                'columns': ['string_column'],
+                                'format': r"[a-zA-Z\-]"
+            }]
     }
 """
-from pyspark.sql.types import StringType, StructType, StructField, BooleanType, DoubleType, ShortType, IntegerType, DateType, ByteType, TimestampType, DecimalType
+from pyspark.sql.types import StringType, StructType, StructField, BooleanType, DoubleType, ShortType, IntegerType, DateType, ByteType, DecimalType
 
 
 def get_table_definition(table_name: str = '') -> dict:
@@ -46,8 +52,14 @@ def get_table_definition(table_name: str = '') -> dict:
         'location': 'location_in_container',
         'type': 'data_type',
         'partition_column' : 'name_of_partition_column',
-        'quality_checks': [['unique', ['string_column']],
-                            ['format', 'string_column', r"[a-zA-Z\-]"]]
+        'quality_checks': [{
+                                'check': 'values are unique',
+                                'columns': ['string_columns']
+            },{
+                                'check': 'values have format',
+                                'columns': ['string_column'],
+                                'format': r"[a-zA-Z\-]"
+            }]
     }
     """
 
@@ -112,7 +124,10 @@ def get_table_definition(table_name: str = '') -> dict:
             'location': 'tiltEP/',
             'type': 'multiline',
             'partition_column': '',
-            'quality_checks': [['unique', ['id']]]
+            'quality_checks': [{
+                                'check': 'values are unique',
+                                'columns': ['id']
+            }]
         },
         'companies_europages_raw': {
             'columns': StructType([
@@ -729,7 +744,10 @@ def get_table_definition(table_name: str = '') -> dict:
             'location': 'geographies',
             'type': 'delta',
             'partition_column': '',
-            'quality_checks': [['unique', ['ID']]]
+            'quality_checks': [{
+                                'check': 'values are unique',
+                                'columns': ['ID']
+            }]
         },
         'geographies_related': {
             'columns':  StructType([
