@@ -147,7 +147,7 @@ class CustomDF(DataReader):
         """
         # Select all columns that are needed for the creation of a record ID
         sha_columns = [F.col(col_name) for col_name in self._df.columns if col_name not in [
-            'tiltRecordID', 'to_date']]
+            'tiltRecordID', 'to_date'] and 'map_' not in col_name]
 
         # Create the SHA256 record ID by concatenating all relevant columns
         data_frame = create_sha_values(self._df, sha_columns)
@@ -301,6 +301,20 @@ class CustomDF(DataReader):
         )
         self._df = self._df.drop(F.col(f'map_{custom_other.name}'))
 
+        return CustomDF(self._name, self._spark_session, self._df, self._partition_name, self._history)
+
+    def custom_select(self, columns: list):
+        """
+        Selects the specified columns from the DataFrame.
+
+        Args:
+            columns (list): A list of column names to select from the DataFrame.
+
+        Returns:
+            CustomDF: A new CustomDF instance with the selected columns.
+        """
+        self._df = self._df.select(
+            columns + [F.col(f"map_{self._schema['container']}_{self._schema['location']}")])
         return CustomDF(self._name, self._spark_session, self._df, self._partition_name, self._history)
 
     @property

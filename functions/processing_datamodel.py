@@ -172,10 +172,14 @@ def generate_table(table_name: str) -> None:
 
         cut_off_ao_raw.rename_columns(rename_dict)
 
+        cut_off_ao_raw.data = cut_off_ao_raw.data.groupby(
+            'product_uuid', 'reference_product_name', 'unit').agg(F.map_concat(F.col('map_raw_cutoff_ao')).alias('map_raw_cutoff_ao'))
+        # .agg(
+        #     F.map_concat('map_raw_cutoff_ao').alias('map_raw_cutoff_ao'))
+        print(cut_off_ao_raw.data.show())
         ecoinvent_product_datamodel = CustomDF(
-            'ecoinvent_product_datamodel', spark_generate, initial_df=cut_off_ao_raw.data
-            .select('product_uuid', 'reference_product_name', 'unit').distinct())
-
+            'ecoinvent_product_datamodel', spark_generate, initial_df=cut_off_ao_raw.custom_select(['product_uuid', 'reference_product_name', 'unit']).data)
+        print(ecoinvent_product_datamodel.data.show())
         ecoinvent_product_datamodel.write_table()
 
     elif table_name == 'ecoinvent_activity_datamodel':

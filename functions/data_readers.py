@@ -1,7 +1,7 @@
 import pyspark.sql.functions as F
 from pyspark.sql import DataFrame, SparkSession
 
-from functions.dataframe_helpers import create_table_path, create_table_name, clean_column_names
+from functions.dataframe_helpers import create_table_path, create_table_name, clean_column_names, create_map_column
 
 
 class DataReader:
@@ -100,6 +100,10 @@ class DataReader:
             df = df.replace(replacement_dict, subset=df.columns)
 
         df = clean_column_names(df)
+
+        if self._schema['container'] not in ['landingzone', 'monitoring']:
+            df = create_map_column(df, '_'.join(
+                [self._schema['container'], self._schema['location']]))
 
         return df
 
