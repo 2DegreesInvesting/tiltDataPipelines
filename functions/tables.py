@@ -163,7 +163,7 @@ def get_table_definition(table_name: str = '') -> dict:
             'partition_column': '',
             'quality_checks': [{
                                 'check': 'values are unique',
-                                'columns': ['id']
+                                'columns': ['id', 'group', 'sector', 'subsector']
             }]
         },
         'companies_datamodel': {
@@ -184,7 +184,10 @@ def get_table_definition(table_name: str = '') -> dict:
             'location': 'companies',
             'type': 'delta',
             'partition_column': '',
-            'quality_checks': []
+            'quality_checks': [{
+                                'check': 'values are unique',
+                                'columns': ['company_id']
+            }]
         },
         'companies_products_datamodel': {
             'columns': StructType([
