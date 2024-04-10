@@ -163,7 +163,7 @@ def get_table_definition(table_name: str = '') -> dict:
             'partition_column': '',
             'quality_checks': [{
                                 'check': 'values are unique',
-                                'columns': ['id', 'filename']
+                                'columns': ['id', 'sector','subsector']
             }]
         },
         'companies_datamodel': {
