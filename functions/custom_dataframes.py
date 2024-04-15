@@ -5,7 +5,7 @@ from pyspark.sql import functions as F
 
 
 from functions.dataframe_helpers import create_map_column, create_sha_values, create_table_path, create_table_name, create_catalog_schema, create_catalog_table, create_catalog_table_owner, apply_scd_type_2, assign_signalling_id
-from functions.signalling_functions import calculate_signalling_issues
+from functions.data_quality_functions import calculate_signalling_issues, calculate_blocking_issues
 from functions.signalling_rules import signalling_checks_dictionary
 from functions.tables import get_table_definition
 from functions.data_readers import DataReader
@@ -128,7 +128,8 @@ class CustomDF(DataReader):
             raise ValueError("Not all rows in the table are unqiue")
 
         # Perform additional quality checks on specific columns
-        # validated = validate_data_quality(spark_session, data_frame, table_name)
+        self.check_blocking_issues()
+
         return True
 
     def add_record_id(self) -> DataFrame:
@@ -183,6 +184,13 @@ class CustomDF(DataReader):
         self._spark_session.sql(set_owner_schema_string)
         self._spark_session.sql(create_string)
         self._spark_session.sql(set_owner_string)
+
+    def check_blocking_issues(self):
+
+        blocking_checks = self._schema['quality_checks']
+
+        calculate_blocking_issues(
+            self._df, blocking_checks)
 
     def check_signalling_issues(self):
         """
