@@ -7,7 +7,7 @@ from pyspark.testing import assertDataFrameEqual
 from datetime import date
 
 from functions.spark_session import create_spark_session
-from functions.signalling_functions import TransposeDF, check_value_within_list, calculate_filled_values, check_values_in_range, check_values_unique, check_values_format, check_expected_distinct_value_count, column_sums_to_1, calculate_signalling_issues, check_expected_value_count, calculate_blocking_issues
+from functions.data_quality_functions import TransposeDF, check_value_within_list, calculate_filled_values, check_values_in_range, check_values_unique, check_values_format, check_expected_distinct_value_count, column_sums_to_1, calculate_signalling_issues, check_expected_value_count, calculate_blocking_issues
 
 
 @pytest.fixture(scope='session')

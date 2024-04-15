@@ -5,7 +5,7 @@ from pyspark.sql import functions as F
 
 
 from functions.dataframe_helpers import create_map_column, create_sha_values, create_table_path, create_table_name, create_catalog_schema, create_catalog_table, create_catalog_table_owner, apply_scd_type_2, assign_signalling_id
-from functions.signalling_functions import calculate_signalling_issues, calculate_blocking_issues
+from functions.data_quality_functions import calculate_signalling_issues, calculate_blocking_issues
 from functions.signalling_rules import signalling_checks_dictionary
 from functions.tables import get_table_definition
 from functions.data_readers import DataReader
