@@ -2,6 +2,24 @@
 import os
 import yaml
 from pyspark.sql import SparkSession
+import pyspark.sql.functions as F
+import pyspark.sql.types as T
+
+from databricks.connect import DatabricksSession
+
+
+def combineMaps(map_list: list) -> dict:
+
+    return_dict = {}
+
+    for map_instance in map_list:
+        for key in map_instance:
+            if key in return_dict:
+                return_dict[key] += map_instance[key]
+            else:
+                return_dict[key] = map_instance[key]
+
+    return return_dict
 
 
 def create_spark_session() -> SparkSession:

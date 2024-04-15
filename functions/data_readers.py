@@ -103,7 +103,7 @@ class DataReader:
 
         if self._schema['container'] not in ['landingzone', 'monitoring']:
             df = create_map_column(df, '_'.join(
-                [self._schema['container'], self._schema['location']]))
+                [self._schema['location'], self._schema['container']]))
 
         return df
 

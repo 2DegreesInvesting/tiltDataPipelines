@@ -1,10 +1,12 @@
 import re
+import time
 
 from pyspark.sql import SparkSession, DataFrame
 from pyspark.sql import functions as F
+from pyspark.sql import types as T
+from pyspark.sql.functions import udf
 
-
-from functions.dataframe_helpers import create_map_column, create_sha_values, create_table_path, create_table_name, create_catalog_schema, create_catalog_table, create_catalog_table_owner, apply_scd_type_2, assign_signalling_id
+from functions.dataframe_helpers import create_sha_values, create_catalog_schema, create_catalog_table, create_catalog_table_owner, apply_scd_type_2, assign_signalling_id
 from functions.signalling_functions import calculate_signalling_issues
 from functions.signalling_rules import signalling_checks_dictionary
 from functions.tables import get_table_definition
@@ -135,8 +137,8 @@ class CustomDF(DataReader):
         """
         Computes SHA-256 hash values for each row in the DataFrame and adds the hash as a new column 'tiltRecordID'.
 
-        This method computes SHA-256 hash values for each row in the DataFrame based on the values in all columns, 
-        excluding 'tiltRecordID' and 'to_date'. The computed hash is then appended as a new column called 'tiltRecordID' 
+        This method computes SHA-256 hash values for each row in the DataFrame based on the values in all columns,
+        excluding 'tiltRecordID' and 'to_date'. The computed hash is then appended as a new column called 'tiltRecordID'
         to the DataFrame. The order of columns in the DataFrame will affect the generated hash value.
 
         If a partition column is specified in the schema, the method ensures that it is the rightmost column in the DataFrame.
@@ -242,14 +244,20 @@ class CustomDF(DataReader):
         """
 
         self.create_catalog_table()
+        print('check 1')
         # Compare the newly created records with the existing tables
         self._df = self.compare_tables()
+        print('check 2')
 
         # Add the SHA value to create a unique ID within tilt
         self._df = self.add_record_id()
+        print('check 3', time.time())
+        if self._schema['container'] not in ['landingzone', 'monitoring']:
+            self.dump_map_column()
+        print('check 4', time.time())
 
         table_check = self.validate_table_format()
-
+        print('check 5', time.time())
         if table_check:
             if self._schema['partition_column']:
                 self._df.write.partitionBy(self._schema['partition_column']).mode(
@@ -259,9 +267,48 @@ class CustomDF(DataReader):
                     'overwrite').format('delta').saveAsTable(self._table_name)
         else:
             raise ValueError("Table format validation failed.")
-
+        print('check 6', time.time())
         if self._name != 'monitoring_values':
             self.check_signalling_issues()
+        print('check 7', time.time())
+
+    def dump_map_column(self):
+
+        table_name = f"{self._env}. monitoring.record_tracing"
+
+        trace_schema = get_table_definition("record_trace")
+
+        create_schema_string, set_owner_schema_string = create_catalog_schema(
+            self._env, trace_schema)
+        create_string = create_catalog_table(
+            table_name, trace_schema)
+        set_owner_string = create_catalog_table_owner(
+            table_name)
+
+        self._spark_session.sql(create_schema_string)
+        self._spark_session.sql(set_owner_schema_string)
+        self._spark_session.sql(create_string)
+        self._spark_session.sql(set_owner_string)
+
+        map_col = [
+            col for col in self._df.columns if col.startswith('map_')][0]
+
+        dump_df = self._df.where(F.col('to_date') == '2099-12-31')
+        dump_df = dump_df.withColumn('target_table_name', F.lit(
+            self._name)).withColumnRenamed('tiltRecordID', 'target_tiltRecordID')
+        dump_df = dump_df.select('*', F.explode(map_col).alias('source_table_name', 'source_tiltRecordID_list')
+                                 ).select('*', F.explode(F.col('source_tiltRecordID_list')).alias('source_tiltRecordID'))
+        dump_df = dump_df.select(F.col('source_tiltRecordID'), F.col('source_table_name'), F.col(
+            'target_tiltRecordID'), F.col('target_table_name'))
+
+        df = self._spark_session.read.format(
+            'delta').table(table_name)
+        df.filter(F.col('target_table_name') == self._name)
+
+        dump_df.write.partitionBy('target_table_name').mode(
+            'overwrite').format('delta').saveAsTable(table_name)
+
+        self._df = self._df.drop(F.col(map_col))
 
     def convert_data_types(self, column_list: list, data_type):
         """
@@ -314,10 +361,50 @@ class CustomDF(DataReader):
             CustomDF: A new CustomDF instance with the selected columns.
         """
         self._df = self._df.select(
-            columns + [F.col(f"map_{self._schema['container']}_{self._schema['location']}")])
+            *columns, F.col(f"map_{self._schema['location']}_{self._schema['container']}"))
         return CustomDF(self._name, self._spark_session, self._df, self._partition_name, self._history)
 
-    @property
+    def custom_distinct(self):
+        """
+        Returns the distinct rows from the DataFrame.
+
+        Returns:
+            CustomDF: A new CustomDF instance with distinct rows.
+        """
+        cols = [F.col(col)
+                for col in self._df.columns if not col.startswith('map_')]
+
+        map_col = [
+            col for col in self._df.columns if col.startswith('map_')][0]
+
+        df = self._df.select(*cols, F.explode(
+            F.col(map_col)).alias('exploded_table', 'exploded_list'))\
+            .select(*cols, F.col('exploded_table'), F.explode(F.col('exploded_list')).alias('exploded'))
+
+        self._df = df\
+            .groupBy(cols + ['exploded_table'])\
+            .agg(F.collect_set(F.col('exploded')).alias('exploded_fold'))\
+            .groupBy(cols)\
+            .agg(F.collect_list(F.col('exploded_table')).alias('table_list'), F.collect_list(F.col('exploded_fold')).alias('fold_list'))\
+            .withColumn(map_col, F.map_from_arrays(F.col('table_list'), F.col('fold_list')))\
+            .select(*cols, F.col(map_col))
+
+        return CustomDF(self._name, self._spark_session, self._df, self._partition_name, self._history)
+
+    def custom_drop(self, columns: list):
+        """
+        Drops the specified columns from the DataFrame.
+
+        Args:
+            columns (list): A list of column names to drop from the DataFrame.
+
+        Returns:
+            CustomDF: A new CustomDF instance with the specified columns dropped.
+        """
+        self._df = self._df.drop(*columns)
+        return CustomDF(self._name, self._spark_session, self._df, self._partition_name, self._history)
+
+    @ property
     def data(self):
         """
         Returns the Spark DataFrame associated with the CustomDF instance.
@@ -327,7 +414,7 @@ class CustomDF(DataReader):
         """
         return self._df
 
-    @data.setter
+    @ data.setter
     def data(self, new_df: DataFrame):
         """
         Sets the DataFrame associated with the CustomDF instance.
@@ -346,7 +433,7 @@ class CustomDF(DataReader):
         """
         self._df = new_df
 
-    @property
+    @ property
     def name(self):
         """
         Returns the name of the CustomDF instance.

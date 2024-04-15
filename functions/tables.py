@@ -1455,6 +1455,19 @@ def get_table_definition(table_name: str = '') -> dict:
             'partition_column': 'table_name',
             'quality_checks': []
         },
+        'record_trace': {
+            'columns':  StructType([
+                StructField('source_tiltRecordID', StringType(), False),
+                StructField('source_table_name', StringType(), False),
+                StructField('target_tiltRecordID', StringType(), True)
+            ]
+            ),
+            'container': 'monitoring',
+            'location': 'record_trace',
+            'type': 'delta',
+            'partition_column': 'target_table_name',
+            'quality_checks': []
+        },
         'emission_profile_company_landingzone': {
             'columns':  StructType([
                 StructField('companies_id', StringType(), True),

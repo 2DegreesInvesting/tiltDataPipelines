@@ -38,8 +38,6 @@ def generate_table(table_name: str) -> None:
 
         countries_mapper_raw = CustomDF('countries_mapper_raw', spark_generate)
 
-        # countries_mapper_raw = CustomDF('countries_mapper_raw', spark_generate)
-
         # Define a dictionary to map old column names to new column names
         rename_dict = {"id": "company_id"}
 
@@ -54,16 +52,17 @@ def generate_table(table_name: str) -> None:
         companies_europages_raw.data = companies_europages_raw.data.withColumn(
             "country", F.initcap("country"))
 
-        joined_companies_countries_mapper = companies_europages_raw.data.join(
-            countries_mapper_raw.data, "country")
+        joined_companies_countries_mapper = companies_europages_raw.custom_join(
+            countries_mapper_raw, "country")
 
-        companies_raw_final = joined_companies_countries_mapper.drop("country")
+        companies_raw_final = joined_companies_countries_mapper.custom_drop(
+            ["country"])
 
-        companies_raw_final = companies_raw_final.select(
-            'company_id', 'country_un', 'source_id', 'company_name', 'address', 'company_city', 'postcode').distinct()
-
+        companies_raw_final = companies_raw_final.custom_select(
+            ['company_id', 'country_un', 'source_id', 'company_name', 'address', 'company_city', 'postcode']).custom_distinct()
+        print(companies_raw_final.data.show(5))
         companies_datamodel = CustomDF(
-            'companies_datamodel', spark_generate, initial_df=companies_raw_final)
+            'companies_datamodel', spark_generate, initial_df=companies_raw_final.data)
 
         companies_datamodel.write_table()
 
@@ -75,18 +74,22 @@ def generate_table(table_name: str) -> None:
         companies_europages_raw.data = companies_europages_raw.data.withColumn("product_name", F.explode(F.split("products_and_services", "\|")))\
             .drop("products_and_services")
 
-        companies_europages_raw.data = companies_europages_raw.data.select(
-            "product_name")
+        companies_europages_raw = companies_europages_raw.custom_select(
+            ["product_name"])
 
         # create product_id
+        # TODO: I dont think we should take the from date in here, since that might change the product id if something arbitrary in the other columns changes
         sha_columns = [F.col(col_name) for col_name in companies_europages_raw.data.columns if col_name not in [
-            'tiltRecordID', 'to_date']]
+            'tiltRecordID', 'to_date', 'map_companies_europages_raw']]
 
         companies_europages_raw.data = companies_europages_raw.data.withColumn(
             'product_id', F.sha2(F.concat_ws('|', *sha_columns), 256))
 
+        companies_europages_raw = companies_europages_raw.custom_select(
+            ['product_id', 'product_name']).custom_distinct()
+
         products_datamodel = CustomDF(
-            'products_datamodel', spark_generate, initial_df=companies_europages_raw.data.select('product_id', 'product_name').distinct())
+            'products_datamodel', spark_generate, initial_df=companies_europages_raw.data)
 
         products_datamodel.write_table()
 
@@ -103,16 +106,20 @@ def generate_table(table_name: str) -> None:
 
         companies_europages_raw.data = companies_europages_raw.data.withColumn("product_name", F.explode(F.split("products_and_services", "\|")))\
             .drop("products_and_services")
-
+        # TODO: I dont know if we have to reuse the product id created in the products datamodel table, because we can just repoduce it based on the same information
         companies_joined_product_id = companies_europages_raw.data.join(
             products_datamodel.data, "product_name")
+
+        print(companies_joined_product_id.show(5, vertical=True))
 
         companies_joined_without_product_name = companies_joined_product_id.drop(
             "product_name")
 
+        print(companies_joined_without_product_name.show(5, vertical=True))
+
         companies_products_datamodel = CustomDF(
             'companies_products_datamodel', spark_generate, initial_df=companies_joined_without_product_name.select("company_id", "product_id").distinct())
-
+        quit()
         companies_products_datamodel.write_table()
 
     # Ecoinvent data
@@ -127,8 +134,11 @@ def generate_table(table_name: str) -> None:
 
         intermediate_exchanges_raw.rename_columns(rename_dict)
 
+        intermediate_exchanges_raw = intermediate_exchanges_raw.custom_select(
+            ['exchange_id', 'exchange_name', 'unit_name'])
+
         intermediate_exchanges_datamodel = CustomDF(
-            'intermediate_exchanges_datamodel', spark_generate, initial_df=intermediate_exchanges_raw.data.select('exchange_id', 'exchange_name', 'unit_name'))
+            'intermediate_exchanges_datamodel', spark_generate, initial_df=intermediate_exchanges_raw.data)
 
         intermediate_exchanges_datamodel.write_table()
 
@@ -172,14 +182,12 @@ def generate_table(table_name: str) -> None:
 
         cut_off_ao_raw.rename_columns(rename_dict)
 
-        cut_off_ao_raw.data = cut_off_ao_raw.data.groupby(
-            'product_uuid', 'reference_product_name', 'unit').agg(F.map_concat(F.col('map_raw_cutoff_ao')).alias('map_raw_cutoff_ao'))
-        # .agg(
-        #     F.map_concat('map_raw_cutoff_ao').alias('map_raw_cutoff_ao'))
-        print(cut_off_ao_raw.data.show())
+        cut_off_ao_raw = cut_off_ao_raw.custom_select(
+            ['product_uuid', 'reference_product_name', 'unit']).custom_distinct()
+
         ecoinvent_product_datamodel = CustomDF(
-            'ecoinvent_product_datamodel', spark_generate, initial_df=cut_off_ao_raw.custom_select(['product_uuid', 'reference_product_name', 'unit']).data)
-        print(ecoinvent_product_datamodel.data.show())
+            'ecoinvent_product_datamodel', spark_generate, initial_df=cut_off_ao_raw.data)
+
         ecoinvent_product_datamodel.write_table()
 
     elif table_name == 'ecoinvent_activity_datamodel':
