@@ -319,9 +319,9 @@ def calculate_blocking_issues(dataframe: DataFrame, blocking_check_dict: dict) -
             'values have format': check_values_format(current_df, **blocking_check)
         }
 
-        test_int = processing_dict[blocking_check['check']]
+        range_test_int = processing_dict[blocking_check['check']]
 
-        blocking_count = total_records - test_int
+        blocking_count = total_records - range_test_int
 
         if blocking_count != 0:
             raise ValueError(
