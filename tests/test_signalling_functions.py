@@ -82,7 +82,7 @@ class Test_calculate_filled_values:
     @staticmethod
     def test_calculate_filled_values(spark_session_fixture, spark_general_df):
 
-        df = calculate_filled_values(spark_general_df)
+        df = calculate_filled_values(spark_general_df, spark_session_fixture)
 
         resulting_schema = T.StructType([
             T.StructField('signalling_id', T.IntegerType(), False),
