@@ -303,13 +303,15 @@ class Test_create_catalog_schema:
         }
 
         # Call the function to create the SQL string
-        sql_string = create_catalog_schema(environment, schema)
+        create_schema, set_owner = create_catalog_schema(environment, schema)
 
         # Define the expected SQL string
-        expected_sql_string = "CREATE SCHEMA IF NOT EXISTS dev.my_schema; ALTER SCHEMA dev.my_schema SET OWNER TO tiltDevelopers;"
+        expected_schema = "CREATE SCHEMA IF NOT EXISTS dev.my_schema;"
+        expected_owner = "ALTER SCHEMA dev.my_schema SET OWNER TO tiltDevelopers;"
 
         # Assert that the generated SQL string matches the expected SQL string
-        assert sql_string == expected_sql_string
+        assert create_schema == expected_schema
+        assert set_owner == expected_owner
 
 
 class Test_create_catalog_table_owner:

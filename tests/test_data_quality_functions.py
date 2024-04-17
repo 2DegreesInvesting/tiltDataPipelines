@@ -7,7 +7,7 @@ from pyspark.testing import assertDataFrameEqual
 from datetime import date
 
 from functions.spark_session import create_spark_session
-from functions.signalling_functions import check_value_within_list, calculate_filled_values, check_values_in_range, check_values_unique, check_values_format, check_expected_distinct_value_count, column_sums_to_1, calculate_signalling_issues, check_expected_value_count
+from functions.data_quality_functions import TransposeDF, check_value_within_list, calculate_filled_values, check_values_in_range, check_values_unique, check_values_format, check_expected_distinct_value_count, column_sums_to_1, calculate_signalling_issues, check_expected_value_count, calculate_blocking_issues
 
 
 @pytest.fixture(scope='session')
@@ -64,6 +64,37 @@ class Test_valid_setup:
         assert True
 
 
+class Test_Transpose_df:
+
+    @staticmethod
+    def test_transpose_dataframe(spark_session_fixture):
+
+        to_be_transposed_schema = T.StructType([
+            T.StructField('column_1', T.IntegerType(), False),
+            T.StructField('column_2', T.IntegerType(), False),
+            T.StructField('column_3', T.IntegerType(), True),
+            T.StructField('invalid_count_column', T.StringType(), True),
+        ])
+
+        to_be_transposed_df = spark_session_fixture.createDataFrame(
+            [(5, 6, 7, 'invalid_count')], to_be_transposed_schema)
+
+        col_list = ['column_1', 'column_2', 'column_3']
+
+        df = TransposeDF(to_be_transposed_df,
+                         col_list, 'invalid_count_column')
+
+        transposed_schema = T.StructType([
+            T.StructField('invalid_count_column', T.StringType(), True),
+            T.StructField('invalid_count', T.StringType(), False),
+        ])
+
+        transposed_df = spark_session_fixture.createDataFrame(
+            [('column_1', 5), ('column_2', 6), ('column_3', 7)], transposed_schema)
+
+        assertDataFrameEqual(transposed_df, df)
+
+
 class Test_value_within_list:
 
     @staticmethod
@@ -71,8 +102,13 @@ class Test_value_within_list:
 
         value_list = ['group_value_1', 'group_value_2']
 
+        check_dict = {
+            'columns': ['group_column'],
+            'value_list': value_list
+        }
+
         result_count = check_value_within_list(
-            spark_general_df, ['group_column'], value_list)
+            spark_general_df, **check_dict)
 
         assert result_count == 5
 
@@ -82,7 +118,7 @@ class Test_calculate_filled_values:
     @staticmethod
     def test_calculate_filled_values(spark_session_fixture, spark_general_df):
 
-        df = calculate_filled_values(spark_general_df, spark_session_fixture)
+        df = calculate_filled_values(spark_general_df)
 
         resulting_schema = T.StructType([
             T.StructField('signalling_id', T.IntegerType(), False),
@@ -110,8 +146,14 @@ class Test_check_values_in_range:
     @staticmethod
     def test_check_values_in_range(spark_general_df):
 
+        check_dict = {
+            'columns': ['integer_column'],
+            'range_start': 6,
+            'range_end': 10
+        }
+
         result_count = check_values_in_range(
-            spark_general_df, ['integer_column'], 6, 10)
+            spark_general_df, **check_dict)
 
         assert result_count == 5
 
@@ -121,8 +163,12 @@ class Test_check_values_unique:
     @staticmethod
     def test_check_values_unique(spark_general_df):
 
+        check_dict = {
+            'columns': ['group_column']
+        }
+
         result_count = check_values_unique(
-            spark_general_df, ['group_column'])
+            spark_general_df, **check_dict)
 
         assert result_count == 4
 
@@ -132,8 +178,12 @@ class Test_check_values_format:
     @staticmethod
     def test_check_values_format(spark_general_df):
 
+        check_dict = {
+            'columns': ['description_column'],
+            'format': 'valid description'
+        }
         result_count = check_values_format(
-            spark_general_df, ['description_column'], 'valid description')
+            spark_general_df, **check_dict)
 
         assert result_count == 5
 
@@ -143,8 +193,14 @@ class Test_check_expected_distinct_value_count:
     @staticmethod
     def test_check_expected_distinct_value_count(spark_general_df):
 
+        check_dict = {
+            'columns': ['group_column'],
+            'expected_count': 1,
+            'distinct_columns': ['description_column']
+        }
+
         result_count = check_expected_distinct_value_count(
-            spark_general_df, ['group_column'], 1, ['description_column'])
+            spark_general_df, **check_dict)
 
         assert result_count == 3
 
@@ -154,8 +210,13 @@ class Test_columns_sum_to_1:
     @staticmethod
     def test_columns_sum_to_1(spark_general_df):
 
+        check_dict = {
+            'columns': ['group_column'],
+            'sum_column': 'sum_column'
+        }
+
         valid_count = column_sums_to_1(
-            spark_general_df, ['group_column'], 'sum_column')
+            spark_general_df, **check_dict)
 
         assert valid_count == 6
 
@@ -165,8 +226,13 @@ class Test_expected_value_count:
     @staticmethod
     def test_expected_value_count(spark_general_df):
 
+        check_dict = {
+            'columns': ['group_column'],
+            'expected_count': 3
+        }
+
         valid_count = check_expected_value_count(
-            spark_general_df, ['group_column'], 3)
+            spark_general_df, **check_dict)
 
         assert valid_count == 6
 
@@ -437,3 +503,57 @@ class Test_calculate_signalling_issues:
         resulting_df = resulting_df.withColumn('signalling_id', F.lit(None))
 
         assertDataFrameEqual(df, resulting_df)
+
+    @staticmethod
+    def test_blocking_issues_with_values_unique(spark_general_df):
+
+        spark_unique_check = {
+            'quality_checks': [{
+                'check': 'values are unique',
+                'columns': ['group_column']
+            }]
+        }
+
+        with pytest.raises(ValueError) as error_info:
+            calculate_blocking_issues(
+                spark_general_df, spark_unique_check['quality_checks'])
+
+        assert str(
+            error_info.value) == 'Blocking issue violation detected: values are unique'
+
+    @staticmethod
+    def test_blocking_issues_with_values_format(spark_general_df):
+
+        spark_format_check = {
+            'quality_checks': [{
+                'check': 'values have format',
+                'columns': ['description_column'],
+                'format': 'valid description'
+            }]
+        }
+
+        with pytest.raises(ValueError) as error_info:
+            calculate_blocking_issues(
+                spark_general_df, spark_format_check['quality_checks'])
+
+        assert str(
+            error_info.value) == 'Blocking issue violation detected: values have format'
+
+    @staticmethod
+    def test_blocking_issue_with_values_in_range(spark_general_df):
+
+        spark_range_check = {
+            'quality_checks': [{
+                'check': 'values in range',
+                'columns': ['integer_column'],
+                'range_start': 6,
+                'range_end': 10
+            }]
+        }
+
+        with pytest.raises(ValueError) as error_info:
+            calculate_blocking_issues(
+                spark_general_df, spark_range_check['quality_checks'])
+
+        assert str(
+            error_info.value) == 'Blocking issue violation detected: values in range'
