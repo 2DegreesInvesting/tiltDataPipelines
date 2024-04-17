@@ -4,34 +4,6 @@ from pyspark.sql.types import StructType, StructField, StringType, IntegerType, 
 import pyspark.sql.functions as F
 
 
-def TransposeDF(df: DataFrame, columns: list, pivotCol: str) -> DataFrame:
-    """
-    Transposes a DataFrame by pivoting specified columns and aggregating values.
-
-    This function takes a DataFrame `df` and transposes it by pivoting the values in the
-    specified `columns`. It aggregates the pivoted values into new columns based on the
-    unique values in the `pivotCol` column.
-
-    Parameters:
-    - df (DataFrame): The input DataFrame to be transposed.
-    - columns (list): A list of column names to pivot and transpose.
-    - pivotCol (str): The column name to be used for pivoting and creating new columns.
-
-    Returns:
-    - DataFrame: A transposed DataFrame with the `pivotCol` values as columns and
-      aggregated values from the specified `columns`.
-
-    """
-    columnsValue = list(map(lambda x: str("'") + str(x) +
-                        str("',`") + str(x) + str("`"), columns))
-    stackCols = ','.join(x for x in columnsValue)
-    df_1 = df.selectExpr(pivotCol, "stack(" + str(len(columns)) + "," + stackCols + ")")\
-             .select(pivotCol, "col0", "col1")
-    final_df = df_1.groupBy(col("col0")).pivot(pivotCol).agg(F.concat_ws("", F.collect_list(col("col1"))))\
-                   .withColumnRenamed("col0", pivotCol)
-    return final_df
-
-
 def check_value_within_list(dataframe: DataFrame, column_name: list, value_list: list) -> int:
     """
     Filter a DataFrame based on a list of values within a specific column and return the count of valid rows.
@@ -54,30 +26,31 @@ def check_value_within_list(dataframe: DataFrame, column_name: list, value_list:
     return valid_count
 
 
-def calculate_filled_values(dataframe: DataFrame) -> DataFrame:
+def calculate_filled_values(dataframe: DataFrame, spark_session: SparkSession) -> DataFrame:
     """
-    Calculate the count of filled and total values for each column in a DataFrame.
+    Calculates the number of filled values in each column of the given dataframe.
 
-    This function takes a DataFrame and computes the count of filled (non-null) and total
-    values for each column. It generates a summary DataFrame containing the results.
-
-    Parameters:
-    - dataframe (DataFrame): The input DataFrame for which filled value counts are calculated.
+    Args:
+        dataframe (DataFrame): The input dataframe.
+        spark_session (SparkSession): The Spark session.
 
     Returns:
-    - DataFrame: A summary DataFrame containing the following columns:
-        - 'check_id': A constant identifier ('tilt_1') for this specific check.
-        - 'column_name': The name of the column.
-        - 'check_name': A constant description ('Check if values are filled') for this check.
-        - 'total_count': The total number of rows in the DataFrame.
-        - 'valid_count': The count of non-null (filled) values for each column.
+        DataFrame: A new dataframe containing the count of filled values for each column.
+
     """
     df_cols = [col for col in dataframe.columns if ('map_' not in col) and (
         col not in ['from_date', 'to_date', 'tiltRecordID'])]
     total_count = dataframe.count()
     df = dataframe.select([F.count(F.when((F.isnull(c)) | (F.col(c) == 'NA') | (F.col(c) == 'nan'), False)).alias(c) for c in df_cols]) \
         .withColumn('invalid_count_column', F.lit('invalid_count'))
-    df = TransposeDF(df, df_cols, 'invalid_count_column')
+
+    invalid_count_row = []
+    for row in df.collect():
+        for dataframe_column in row.asDict():
+            invalid_count_row += [[dataframe_column, row[dataframe_column]]]
+    df = spark_session.createDataFrame(
+        invalid_count_row, ['invalid_count_column', 'invalid_count'])
+
     df = df.withColumn('total_count', F.lit(total_count).cast(IntegerType())) \
         .withColumn('valid_count', F.lit(total_count).cast(IntegerType()) - F.col('invalid_count').cast(IntegerType())) \
         .withColumn('check_name', F.lit('Check if values are filled')) \
@@ -306,7 +279,7 @@ def calculate_signalling_issues(dataframe: DataFrame, signalling_check_dict: dic
     Note: Additional columns will be added based on the specific check type.
     """
 
-    df = calculate_filled_values(dataframe)
+    df = calculate_filled_values(dataframe, spark_session)
     total_count = dataframe.count()
 
     for signalling_check in signalling_check_dict:

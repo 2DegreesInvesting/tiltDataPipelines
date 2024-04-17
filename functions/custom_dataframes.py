@@ -244,20 +244,18 @@ class CustomDF(DataReader):
         """
 
         self.create_catalog_table()
-        print('check 1')
+
         # Compare the newly created records with the existing tables
         self._df = self.compare_tables()
-        print('check 2')
 
         # Add the SHA value to create a unique ID within tilt
         self._df = self.add_record_id()
-        print('check 3', time.time())
+
         if self._schema['container'] not in ['landingzone', 'monitoring']:
             self.dump_map_column()
-        print('check 4', time.time())
 
         table_check = self.validate_table_format()
-        print('check 5', time.time())
+
         if table_check:
             if self._schema['partition_column']:
                 self._df.write.partitionBy(self._schema['partition_column']).mode(
@@ -267,14 +265,13 @@ class CustomDF(DataReader):
                     'overwrite').format('delta').saveAsTable(self._table_name)
         else:
             raise ValueError("Table format validation failed.")
-        print('check 6', time.time())
+
         if self._name != 'monitoring_values':
             self.check_signalling_issues()
-        print('check 7', time.time())
 
     def dump_map_column(self):
 
-        table_name = f"{self._env}. monitoring.record_tracing"
+        table_name = f"{self._env}.monitoring.record_tracing"
 
         trace_schema = get_table_definition("record_trace")
 
@@ -378,6 +375,40 @@ class CustomDF(DataReader):
             col for col in self._df.columns if col.startswith('map_')][0]
 
         df = self._df.select(*cols, F.explode(
+            F.col(map_col)).alias('exploded_table', 'exploded_list'))\
+            .select(*cols, F.col('exploded_table'), F.explode(F.col('exploded_list')).alias('exploded'))
+
+        self._df = df\
+            .groupBy(cols + ['exploded_table'])\
+            .agg(F.collect_set(F.col('exploded')).alias('exploded_fold'))\
+            .groupBy(cols)\
+            .agg(F.collect_list(F.col('exploded_table')).alias('table_list'), F.collect_list(F.col('exploded_fold')).alias('fold_list'))\
+            .withColumn(map_col, F.map_from_arrays(F.col('table_list'), F.col('fold_list')))\
+            .select(*cols, F.col(map_col))
+
+        return CustomDF(self._name, self._spark_session, self._df, self._partition_name, self._history)
+
+    def custom_union(self, custom_other: 'CustomDF'):
+        """
+        Unions the current CustomDF instance with another CustomDF instance.
+
+        Args:
+            other (CustomDF): The other CustomDF instance to union with.
+
+        Returns:
+            CustomDF: A new CustomDF instance that is the result of the union.
+        """
+
+        cols = [F.col(col)
+                for col in self._df.columns if not col.startswith('map_')]
+
+        map_col = [
+            col for col in self._df.columns if col.startswith('map_')][0]
+
+        copy_df = custom_other.data
+        copy_df = self._df.unionAll(copy_df)
+
+        df = copy_df.select(*cols, F.explode(
             F.col(map_col)).alias('exploded_table', 'exploded_list'))\
             .select(*cols, F.col('exploded_table'), F.explode(F.col('exploded_list')).alias('exploded'))
 
