@@ -7,7 +7,8 @@ from pyspark.sql import functions as F
 from functions.dataframe_helpers import create_map_column, create_sha_values, create_table_path, create_table_name, create_catalog_schema, create_catalog_table, create_catalog_table_owner, apply_scd_type_2, assign_signalling_id
 from functions.signalling_functions import calculate_signalling_issues
 from functions.signalling_rules import signalling_checks_dictionary
-from functions.tables import get_table_definition
+# from functions.tables import get_table_definition
+from functions.database import get_table_definition
 from functions.data_readers import DataReader
 
 
@@ -36,10 +37,14 @@ class CustomDF(DataReader):
     def __init__(self, table_name: str, spark_session: SparkSession, initial_df: DataFrame = None,  partition_name: str = '', history: str = 'recent'):
         self._name = table_name
         self._spark_session = spark_session
-        self._schema = get_table_definition(self._name)
+        self._layer = table_name.split('_')[-1] + '_layer'
+        self._schema = get_table_definition(self._layer, self._name)
+        # self._schema = get_table_definition(self._name)
         self._partition_name = partition_name
         self._history = history
         self._env = 'develop'
+        # print(self._layer)
+        # print(self._schema)
         DataReader.__init__(self, self._spark_session, self._env,
                             self._schema, self._partition_name, self._history)
         if initial_df:
