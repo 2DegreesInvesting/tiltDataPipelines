@@ -193,17 +193,20 @@ def apply_scd_type_2(new_table: DataFrame, existing_table: DataFrame) -> DataFra
     # Determine the processing date
     processing_date = F.current_date()
     future_date = F.lit('2099-12-31')
+    map_col = ''
+    from_to_list = [F.col('from_date'), F.col('to_date')]
 
-    # This is supposed to check if we are creating the the monitoring_valus table
-    if not 'signalling_id' in existing_table.columns:
-        map_col = [
-            col for col in new_table.columns if col.startswith('map_')][0]
-        existing_table = existing_table.withColumn(
-            map_col, F.create_map().cast('Map<String, Array<String>>'))
-        from_to_list = [F.col('from_date'), F.col('to_date'), F.col(map_col)]
-    else:
-        map_col = 'map_monitoring_values'
-        from_to_list = [F.col('from_date'), F.col('to_date')]
+    # Check if the new table contains a map column
+    if [col for col in new_table.columns if col.startswith('map_')]:
+        # This is supposed to check if we are creating the the monitoring_valus table
+        if not 'signalling_id' in existing_table.columns:
+            map_col = [
+                col for col in new_table.columns if col.startswith('map_')][0]
+            existing_table = existing_table.withColumn(
+                map_col, F.create_map().cast('Map<String, Array<String>>'))
+            from_to_list += [F.col(map_col)]
+        else:
+            map_col = 'map_monitoring_values'
 
     # Select the columns that contain values that should be compared
     value_columns = [F.col(col_name) for col_name in new_table.columns if col_name not in [

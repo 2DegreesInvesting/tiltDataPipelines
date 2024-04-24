@@ -255,7 +255,8 @@ class CustomDF(DataReader):
         # Add the SHA value to create a unique ID within tilt
         self._df = self.add_record_id()
 
-        if self._schema['container'] not in ['landingzone', 'monitoring']:
+        # Since the map column is only available starting from the raw layer, we can not dump/write it when writing to the raw layer.
+        if self._schema['container'] not in ['landingzone', 'monitoring', 'raw']:
             self.dump_map_column()
 
         table_check = self.validate_table_format()

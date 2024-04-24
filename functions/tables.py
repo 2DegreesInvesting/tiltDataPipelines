@@ -163,7 +163,7 @@ def get_table_definition(table_name: str = '') -> dict:
             'partition_column': '',
             'quality_checks': [{
                                 'check': 'values are unique',
-                                'columns': ['id', 'sector','subsector']
+                                'columns': ['id', 'sector', 'subsector']
             }]
         },
         'companies_datamodel': {
@@ -2073,7 +2073,63 @@ def get_table_definition(table_name: str = '') -> dict:
             'type': 'delta',
             'partition_column': '',
             'quality_checks': []
-        }
+        },
+        'tiltLedger_landingzone': {
+            'columns':  StructType([
+                StructField('CPC21code', StringType(), True),
+                StructField('CPC21title', StringType(), True),
+                StructField('ISIC4code', StringType(), True),
+                StructField('Code', StringType(), True),
+                StructField('Description', StringType(), True),
+                StructField('Activity Type', IntegerType(), True),
+                StructField('Geography', StringType(), True),
+            ]
+            ),
+            'container': 'landingzone',
+            'location': 'tiltLedger/Ledger_dummy.csv',
+            'type': 'csv',
+            'partition_column': '',
+            'quality_checks': []
+        },
+        'tiltLedger_raw': {
+            'columns':  StructType([
+                StructField('CPC21code', StringType(), True),
+                StructField('CPC21title', StringType(), True),
+                StructField('ISIC4code', StringType(), True),
+                StructField('Code', StringType(), True),
+                StructField('Description', StringType(), True),
+                StructField('Activity_Type', IntegerType(), True),
+                StructField('Geography', StringType(), True),
+                StructField('from_date', DateType(), False),
+                StructField('to_date', DateType(), False),
+                StructField('tiltRecordID', StringType(), False)
+            ]
+            ),
+            'container': 'raw',
+            'location': 'tiltLedger',
+            'type': 'delta',
+            'partition_column': '',
+            'quality_checks': []
+        },
+        'tiltLedger_datamodel': {
+            'columns':  StructType([
+                StructField('CPC_Code', StringType(), True),
+                StructField('CPC_Name', StringType(), True),
+                StructField('ISIC_Code', StringType(), True),
+                StructField('ISIC_Name', StringType(), True),
+                StructField('Activity_Type', IntegerType(), True),
+                StructField('Geography', StringType(), True),
+                StructField('from_date', DateType(), False),
+                StructField('to_date', DateType(), False),
+                StructField('tiltRecordID', StringType(), False)
+            ]
+            ),
+            'container': 'datamodel',
+            'location': 'tiltLedger',
+            'type': 'delta',
+            'partition_column': '',
+            'quality_checks': []
+        },
 
 
     }

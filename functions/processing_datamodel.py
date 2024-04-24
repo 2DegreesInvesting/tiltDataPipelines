@@ -419,6 +419,26 @@ def generate_table(table_name: str) -> None:
             'isic_mapper_datamodel', spark_generate, initial_df=isic_4_digit_codes_landingzone.data)
         isic_mapper_datamodel.write_table()
 
+    elif table_name == 'tiltLedger_datamodel':
+
+        tiltLedger_raw = CustomDF('tiltLedger_raw', spark_generate)
+
+        rename_dict = {'CPC21code': 'CPC_Code',
+                       'CPC21title': 'CPC_Name',
+                       'ISIC4code': 'ISIC_Code',
+                       'Description': 'ISIC_Name'}
+
+        tiltLedger_raw.rename_columns(rename_dict)
+
+        final_columns = ['CPC_Code', 'CPC_Name', 'ISIC_Code',
+                         'ISIC_Name', 'Activity_Type', 'Geography']
+
+        tiltLedger_raw.custom_select(final_columns)
+
+        tiltLedger_datamodel = CustomDF(
+            'tiltLedger_datamodel', spark_generate, initial_df=tiltLedger_raw.data)
+        tiltLedger_datamodel.write_table()
+
     else:
         raise ValueError(
             f'The table: {table_name} is not specified in the processing functions')
