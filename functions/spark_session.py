@@ -2,7 +2,6 @@
 import os
 import yaml
 from pyspark.sql import SparkSession
-import pyspark.sql.functions as F
 
 
 def create_spark_session() -> SparkSession:
