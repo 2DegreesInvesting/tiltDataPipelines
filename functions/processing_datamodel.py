@@ -184,8 +184,11 @@ def generate_table(table_name: str) -> None:
 
         cut_off_ao_raw.rename_columns(rename_dict)
 
+        cut_off_ao_raw.data = cut_off_ao_raw.data.withColumn("CPC_code", F.trim(F.split("CPC_Classification", ":")[0]))
+        cut_off_ao_raw.data = cut_off_ao_raw.data.withColumn("CPC_name", F.trim(F.split("CPC_Classification", ":")[1]))
+
         cut_off_ao_raw = cut_off_ao_raw.custom_select(
-            ['product_uuid', 'reference_product_name', 'unit']).custom_distinct()
+            ['product_uuid', 'reference_product_name', 'unit', "CPC_code", "CPC_name"]).custom_distinct()
 
         ecoinvent_product_datamodel = CustomDF(
             'ecoinvent_product_datamodel', spark_generate, initial_df=cut_off_ao_raw.data)

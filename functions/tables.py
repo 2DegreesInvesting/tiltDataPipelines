@@ -908,6 +908,8 @@ def get_table_definition(table_name: str = '') -> dict:
                 StructField('product_uuid', StringType(), False),
                 StructField('reference_product_name', StringType(), True),
                 StructField('unit', StringType(), True),
+                StructField('CPC_code', StringType(), True),
+                StructField('CPC_name', StringType(), True),
                 StructField('from_date', DateType(), False),
                 StructField('to_date', DateType(), False),
                 StructField('tiltRecordID', StringType(), False)
