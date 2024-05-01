@@ -928,6 +928,7 @@ def get_table_definition(table_name: str = '') -> dict:
             'columns':  StructType([
                 StructField('activity_uuid', StringType(), False),
                 StructField('activity_name', StringType(), True),
+                StructField('activity_type', StringType(), True),
                 StructField('geography', StringType(), True),
                 StructField('isic_4digit', StringType(), True),
                 StructField('from_date', DateType(), False),
