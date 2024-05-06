@@ -92,10 +92,11 @@ def clean_column_names(data_frame: DataFrame) -> DataFrame:
         DataFrame: The DataFrame with cleaned column names.
     """
     for col in data_frame.columns:
-        new_col_name = re.sub(r"[-\\\/]", ' ', col)
-        new_col_name = re.sub(r'[\(\)]', '', new_col_name)
-        new_col_name = re.sub(r'\s+', '_', new_col_name)
-        data_frame = data_frame.withColumnRenamed(col, new_col_name)
+        if re.search(r'[-\\\/\(\)\s]', col):
+            new_col_name = re.sub(r"[-\\\/]", ' ', col)
+            new_col_name = re.sub(r'[\(\)]', '', new_col_name)
+            new_col_name = re.sub(r'\s+', '_', new_col_name)
+            data_frame = data_frame.withColumnRenamed(col, new_col_name)
     return data_frame
 
 

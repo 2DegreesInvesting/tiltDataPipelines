@@ -354,16 +354,21 @@ class CustomDF(DataReader):
 
     def custom_select(self, columns: list):
         """
-        Selects the specified columns from the DataFrame.
+        Selects the specified columns from the DataFrame. If the DataFrame is not coming from the landing zone, the existence of the map column is assumed.
 
         Args:
-            columns (list): A list of column names to select from the DataFrame.
+            columns (list): A list of column names to select.
 
         Returns:
-            CustomDF: A new CustomDF instance with the selected columns.
+            CustomDF: A new CustomDF object with the selected columns.
         """
-        self._df = self._df.select(
-            *columns, F.col(f"map_{self._schema['location']}_{self._schema['container']}"))
+
+        if self._schema['container'] not in ['landingzone']:
+            self._df = self._df.select(
+                *columns, F.col(f"map_{self._schema['location']}_{self._schema['container']}"))
+        else:
+            self._df = self._df.select(*columns)
+
         return CustomDF(self._name, self._spark_session, self._df, self._partition_name, self._history)
 
     def custom_distinct(self):
