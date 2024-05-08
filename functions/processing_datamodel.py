@@ -184,8 +184,11 @@ def generate_table(table_name: str) -> None:
 
         cut_off_ao_raw.rename_columns(rename_dict)
 
+        cut_off_ao_raw.data = cut_off_ao_raw.data.withColumn("CPC_code", F.trim(F.split("CPC_Classification", ":")[0]))
+        cut_off_ao_raw.data = cut_off_ao_raw.data.withColumn("CPC_name", F.trim(F.split("CPC_Classification", ":")[1]))
+
         cut_off_ao_raw = cut_off_ao_raw.custom_select(
-            ['product_uuid', 'reference_product_name', 'unit']).custom_distinct()
+            ['product_uuid', 'reference_product_name', 'unit', "CPC_code", "CPC_name"]).custom_distinct()
 
         ecoinvent_product_datamodel = CustomDF(
             'ecoinvent_product_datamodel', spark_generate, initial_df=cut_off_ao_raw.data)
@@ -197,7 +200,9 @@ def generate_table(table_name: str) -> None:
         cut_off_ao_raw = CustomDF('cut_off_ao_raw', spark_generate)
 
         rename_dict = {"Activity_UUID": "activity_uuid",
-                       "Activity_Name": "activity_name", 'Geography': 'geography'}
+                       "Activity_Name": "activity_name",
+                        'Geography': 'geography',
+                        "Special_Activity_Type": "activity_type"}
 
         cut_off_ao_raw.rename_columns(rename_dict)
 
@@ -205,7 +210,7 @@ def generate_table(table_name: str) -> None:
             "isic_4digit", substring(col("ISIC_Classification"), 1, 4))
 
         cut_off_ao_raw = cut_off_ao_raw.custom_select(
-            ['activity_uuid', 'activity_name', 'geography', 'isic_4digit']).custom_distinct()
+            ['activity_uuid', 'activity_name', 'activity_type', 'geography', 'isic_4digit']).custom_distinct()
 
         ecoinvent_activity_datamodel = CustomDF(
             'ecoinvent_activity_datamodel', spark_generate, initial_df=cut_off_ao_raw.data)
