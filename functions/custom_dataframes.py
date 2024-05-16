@@ -39,12 +39,9 @@ class CustomDF(DataReader):
         self._spark_session = spark_session
         self._layer = table_name.split('_')[-1] + '_layer'
         self._schema = get_table_definition(self._layer, self._name)
-        # self._schema = get_table_definition(self._name)
         self._partition_name = partition_name
         self._history = history
         self._env = 'develop'
-        # print(self._layer)
-        # print(self._schema)
         DataReader.__init__(self, self._spark_session, self._env,
                             self._schema, self._partition_name, self._history)
         if initial_df:

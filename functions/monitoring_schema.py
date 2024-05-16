@@ -1,4 +1,8 @@
-from pyspark.sql.types import StringType, StructType, StructField, BooleanType, DoubleType, ShortType, IntegerType, DateType, ByteType, TimestampType, DecimalType
+"""
+This module contains the definition of the monitoring table used in the datahub to record data quality checks.
+
+"""
+from pyspark.sql.types import StringType, StructType, StructField, IntegerType, DateType
 
 monitoring_schema = {
 'monitoring_values': {
