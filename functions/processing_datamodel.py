@@ -3,6 +3,7 @@ import pyspark.sql.functions as F
 from functions.custom_dataframes import CustomDF
 from functions.spark_session import create_spark_session
 from functions.dataframe_helpers import create_sha_values
+from functions.preprocessing_module import *
 from pyspark.sql.functions import col, substring
 
 
@@ -68,26 +69,42 @@ def generate_table(table_name: str) -> None:
         companies_datamodel.write_table()
 
     elif table_name == 'products_datamodel':
-
         companies_europages_raw = CustomDF(
             'companies_europages_raw', spark_generate)
+        
+        rename_dict = {"id": "company_id"}
+
+        companies_europages_raw.rename_columns(rename_dict)
 
         companies_europages_raw.data = companies_europages_raw.data.withColumn("product_name", F.explode(F.split("products_and_services", "\|")))\
             .drop("products_and_services")
 
         companies_europages_raw.data = companies_europages_raw.data.select(
-            "product_name")
-
-        # create product_id
-        sha_columns = [F.col(col_name) for col_name in companies_europages_raw.data.columns if col_name not in [
-            'tiltRecordID', 'to_date']]
-
+            "product_name", "company_id")
+ 
         companies_europages_raw.data = companies_europages_raw.data.withColumn(
-            'product_id', F.sha2(F.concat_ws('|', *sha_columns), 256))
+            'product_id', F.sha2(F.col('product_name'), 256)).dropDuplicates()
 
         products_datamodel = CustomDF(
-            'products_datamodel', spark_generate, initial_df=companies_europages_raw.data.select('product_id', 'product_name').distinct())
+            'products_datamodel', spark_generate)
+        
+        companies_products_datamodel = CustomDF(
+            'companies_products_datamodel', spark_generate)
+        print(companies_europages_raw.data.count())
+        # # pre-process the products
+        # processed_products, companies_products_mapping = PreProcessor().preprocess(companies_europages_raw._df.toPandas())
 
+
+        # # write to the products_datamodel table
+        # products_datamodel._df = spark_generate.createDataFrame(processed_products)
+
+        # # write to the products_datamodel table
+        # companies_products_datamodel._df = spark_generate.createDataFrame(companies_products_mapping)
+
+        # write the company_id to product_id mapping
+        companies_products_datamodel.write_table()
+
+        # write the pre-processed list of products
         products_datamodel.write_table()
 
     elif table_name == 'companies_products_datamodel':
@@ -109,9 +126,11 @@ def generate_table(table_name: str) -> None:
 
         companies_joined_without_product_name = companies_joined_product_id.drop(
             "product_name")
-
+        
         companies_products_datamodel = CustomDF(
             'companies_products_datamodel', spark_generate, initial_df=companies_joined_without_product_name.select("company_id", "product_id").distinct())
+        
+        # update the links based on the preprocessing
 
         companies_products_datamodel.write_table()
 
@@ -171,6 +190,12 @@ def generate_table(table_name: str) -> None:
                        "Reference_Product_Name": "reference_product_name", 'Unit': 'unit'}
 
         cut_off_ao_raw.rename_columns(rename_dict)
+
+        cut_off_ao_raw.data = cut_off_ao_raw.data.withColumn("cpc_code", F.trim(F.split("CPC_Classification", ":")[0]))
+        cut_off_ao_raw.data = cut_off_ao_raw.data.withColumn("cpc_name", F.trim(F.split("CPC_Classification", ":")[1]))
+
+        cut_off_ao_raw = cut_off_ao_raw.custom_select(
+            ['product_uuid', 'reference_product_name', 'unit', "cpc_code", "cpc_name"]).custom_distinct()
 
         ecoinvent_product_datamodel = CustomDF(
             'ecoinvent_product_datamodel', spark_generate, initial_df=cut_off_ao_raw.data

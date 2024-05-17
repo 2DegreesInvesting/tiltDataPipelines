@@ -23,33 +23,33 @@ from functions.processing_datamodel import generate_table as generate_table_data
 if __name__ == '__main__':
 
 # raw layer
-    generate_table_raw('geographies_raw')
+    # generate_table_raw('geographies_raw')
 
-    generate_table_raw('undefined_ao_raw')
-    generate_table_raw('cut_off_ao_raw')
-    generate_table_raw('en15804_ao_raw')
-    generate_table_raw('consequential_ao_raw')
+    # generate_table_raw('undefined_ao_raw')
+    # generate_table_raw('cut_off_ao_raw')
+    # generate_table_raw('en15804_ao_raw')
+    # generate_table_raw('consequential_ao_raw')
 
-    generate_table_raw('lcia_methods_raw')
-    generate_table_raw('impact_categories_raw')
-    generate_table_raw('intermediate_exchanges_raw')
-    generate_table_raw('elementary_exchanges_raw')
+    # generate_table_raw('lcia_methods_raw')
+    # generate_table_raw('impact_categories_raw')
+    # generate_table_raw('intermediate_exchanges_raw')
+    # generate_table_raw('elementary_exchanges_raw')
 
-    generate_table_raw('ecoinvent_co2_raw') 
+    # generate_table_raw('ecoinvent_co2_raw') 
 
-    generate_table_raw('ecoinvent_input_data_raw') 
+    # generate_table_raw('ecoinvent_input_data_raw') 
 
 
 # datamodel layer
     
     # from cut_off
-    generate_table_datamodel('ecoinvent_cut_off_datamodel') 
+    # generate_table_datamodel('ecoinvent_cut_off_datamodel') 
     generate_table_datamodel('ecoinvent_product_datamodel')
-    generate_table_datamodel('ecoinvent_activity_datamodel')
+    # generate_table_datamodel('ecoinvent_activity_datamodel')
 
-    generate_table_datamodel('intermediate_exchanges_datamodel')
+    # generate_table_datamodel('intermediate_exchanges_datamodel')
 
-    generate_table_datamodel('ecoinvent_co2_datamodel') 
+    # generate_table_datamodel('ecoinvent_co2_datamodel') 
 
-    generate_table_datamodel('ecoinvent_input_data_datamodel') 
+    # generate_table_datamodel('ecoinvent_input_data_datamodel') 
 
