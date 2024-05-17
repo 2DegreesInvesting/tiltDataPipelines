@@ -45,12 +45,10 @@ def get_table_definition(schema_name: str, table_name: str = '') -> dict:
                      ) 
    else:
    # Check if table X exists in layer Y in the dictionary
-      for layer in all_table_definitions:
-         
-         if table_name not in all_table_definitions[schema_name]:
-            raise ValueError(
-               f"Table {table_name} in {schema_name} does not exist"
-                     ) 
-         else:
-            return all_table_definitions[schema_name][table_name]
+      if table_name not in all_table_definitions[schema_name]:
+         raise ValueError(
+            f"Table {table_name} in {schema_name} does not exist"
+                  ) 
+      else:
+         return all_table_definitions[schema_name][table_name]
             

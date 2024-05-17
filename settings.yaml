@@ -1,0 +1,4 @@
+databricks:
+  workspace_name: workspace_name
+  access_token: access_token
+  cluster_id: cluster_id
