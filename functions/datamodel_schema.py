@@ -11,6 +11,7 @@ datamodel_schema = {
                 StructField('country_un', StringType(), False),
                 StructField('source_id', StringType(), False),
                 StructField('company_name', StringType(), False),
+                StructField('company_description', StringType(), False),
                 StructField('address', StringType(), True),
                 StructField('company_city', StringType(), True),
                 StructField('postcode', StringType(), True),
@@ -23,7 +24,10 @@ datamodel_schema = {
             'location': 'companies',
             'type': 'delta',
             'partition_column': '',
-            'quality_checks': []
+            'quality_checks': [{
+                                'check': 'values are unique',
+                                'columns': ['company_id']
+            }]
         },
         'companies_products_datamodel': {
             'columns': StructType([
@@ -211,7 +215,10 @@ datamodel_schema = {
             'location': 'ecoinvent_cut_off',
             'type': 'delta',
             'partition_column': '',
-            'quality_checks': [['unique', ['activity_uuid_product_uuid']]]
+            'quality_checks': [{
+                                'check': 'values are unique',
+                                'columns': ['activity_uuid_product_uuid']
+            },]
         },
         'ecoinvent_product_datamodel': {
             'columns':  StructType([
@@ -227,7 +234,10 @@ datamodel_schema = {
             'location': 'ecoinvent_product',
             'type': 'delta',
             'partition_column': '',
-            'quality_checks': [['unique', ['product_uuid']]]
+            'quality_checks': [{
+                                'check': 'values are unique',
+                                'columns': ['product_uuid']
+            },]
         },
         'ecoinvent_activity_datamodel': {
             'columns':  StructType([
@@ -244,7 +254,10 @@ datamodel_schema = {
             'location': 'ecoinvent_activity',
             'type': 'delta',
             'partition_column': '',
-            'quality_checks': [['unique', ['activity_uuid']]]
+            'quality_checks': [{
+                                'check': 'values are unique',
+                                'columns': ['activity_uuid']
+            },]
         },
         'intermediate_exchanges_datamodel': {
             'columns':  StructType([
@@ -260,7 +273,10 @@ datamodel_schema = {
             'location': 'intermediate_exchanges',
             'type': 'delta',
             'partition_column': '',
-            'quality_checks': [['unique', ['exchange_id']]]
+            'quality_checks': [{
+                                'check': 'values are unique',
+                                'columns': ['exchange_id']
+            },]
         },
         'ecoinvent_co2_datamodel': {
             'columns':  StructType([

@@ -54,7 +54,10 @@ raw_schema = {
             'location': 'companies_europages',
             'type': 'delta',
             'partition_column': '',
-            'quality_checks': [['unique', ['id']]]
+            'quality_checks': [{
+                                'check': 'values are unique',
+                                'columns': ['id', 'sector','subsector']
+            }]
         },
         'country_raw': {
             'columns': StructType([
@@ -251,8 +254,15 @@ raw_schema = {
             'location': 'geographies',
             'type': 'delta',
             'partition_column': '',
-            'quality_checks': [['unique', ['ID']],
-                               ['format', 'Geographical Classification', r"[a-zA-Z\-]"]]
+            'quality_checks': [{
+                                'check': 'values are unique',
+                                'columns': ['ID']
+            },
+                {
+                'check': 'values have format',
+                'columns': ['Geographical_Classification'],
+                'format': r"[a-zA-Z\-]"
+            },]
         },
         'undefined_ao_raw': {
             'columns':  StructType([
@@ -312,7 +322,10 @@ raw_schema = {
             'location': 'cutoff_ao',
             'type': 'delta',
             'partition_column': '',
-            'quality_checks': [['unique', ['Activity UUID & Product UUID']]]
+            'quality_checks': [{
+                                'check': 'values are unique',
+                                'columns': ['Activity_UUID_&_Product_UUID']
+            },]
         },
         'en15804_ao_raw': {
             'columns':  StructType([
@@ -333,7 +346,7 @@ raw_schema = {
                 StructField('Unit', StringType(), True),
                 StructField('Product_Information', StringType(), True),
                 StructField('CAS_Number', StringType(), True),
-                StructField('Cut-Off_Classification', StringType(), True),
+                StructField('Cut_Off_Classification', StringType(), True),
                 StructField('from_date', DateType(), False),
                 StructField('to_date', DateType(), False),
                 StructField('tiltRecordID', StringType(), False)
@@ -343,7 +356,10 @@ raw_schema = {
             'location': 'en15804_ao',
             'type': 'delta',
             'partition_column': '',
-            'quality_checks': [['unique', ['Activity UUID & Product UUID']]]
+            'quality_checks': [{
+                                'check': 'values are unique',
+                                'columns': ['Activity_UUID_&_Product_UUID']
+            },]
         },
         'consequential_ao_raw': {
             'columns':  StructType([
@@ -374,7 +390,10 @@ raw_schema = {
             'location': 'consequential_ao',
             'type': 'delta',
             'partition_column': '',
-            'quality_checks': [['unique', ['Activity UUID & Product UUID']]]
+            'quality_checks': [{
+                                'check': 'values are unique',
+                                'columns': ['Activity_UUID_&_Product_UUID']
+            },]
         },
         'lcia_methods_raw': {
             'columns':  StructType([
@@ -442,7 +461,10 @@ raw_schema = {
             'location': 'intermediate_exchanges',
             'type': 'delta',
             'partition_column': '',
-            'quality_checks': [['unique', ['ID']]]
+            'quality_checks': [{
+                                'check': 'values are unique',
+                                'columns': ['ID']
+            },]
         },
         'elementary_exchanges_raw': {
             'columns':  StructType([
@@ -464,7 +486,10 @@ raw_schema = {
             'location': 'elementary_exchanges',
             'type': 'delta',
             'partition_column': '',
-            'quality_checks': [['unique', ['ID']]]
+            'quality_checks': [{
+                                'check': 'values are unique',
+                                'columns': ['ID']
+            },]
         },
         'ecoinvent_co2_raw': {
             'columns':  StructType([

@@ -23,8 +23,14 @@ Example:
         'location': 'location_in_container',
         'type': ['multiline','csv','delta','parquet'],
         'partition_column' : 'name_of_partition_column',
-        'quality_checks': [['unique', ['string_column']],
-                           ['format', 'string_column', r"[a-zA-Z\-]"]]
+        'quality_checks': [{
+                                'check': 'values are unique',
+                                'columns': ['string_columns']
+            },{
+                                'check': 'values have format',
+                                'columns': ['string_column'],
+                                'format': r"[a-zA-Z\-]"
+            }]
     }
 """
 from pyspark.sql.types import StringType, StructType, StructField, BooleanType, DoubleType, IntegerType, DateType
@@ -45,8 +51,14 @@ landingzone_schema = {
             'location': 'location_in_container',
             'type': 'data_type',
             'partition_column' : 'name_of_partition_column',
-            'quality_checks': [['unique', ['string_column']],
-                                ['format', 'string_column', r"[a-zA-Z\-]"]]
+            'quality_checks': [{
+                                    'check': 'values are unique',
+                                    'columns': ['string_columns']
+                },{
+                                    'check': 'values have format',
+                                    'columns': ['string_column'],
+                                    'format': r"[a-zA-Z\-]"
+                }]
         }
         """
         'test_table_landingzone': {
@@ -80,8 +92,6 @@ landingzone_schema = {
                 StructField('max_headcount', StringType(), True),
                 StructField('type_of_building_for_registered_address',
                             StringType(), True),
-                StructField('type_of_building_for_registered_address',
-                            StringType(), True),
                 StructField('verified_by_europages', StringType(), True),
                 StructField('year_established', StringType(), True),
                 StructField('websites', StringType(), True),
@@ -94,7 +104,10 @@ landingzone_schema = {
             'location': 'tiltEP/',
             'type': 'multiline',
             'partition_column': '',
-            'quality_checks': [['unique', ['id']]]
+            'quality_checks': [{
+                                'check': 'values are unique',
+                                'columns': ['id']
+            }]
         },
         'companies_company_info_landingzone': {
             'columns': StructType([
@@ -357,7 +370,7 @@ landingzone_schema = {
                 StructField('Time Period', StringType(), True),
                 StructField('Special Activity Type', StringType(), True),
                 StructField('Sector', StringType(), True),
-                StructField('c', StringType(), True),
+                StructField('ISIC Classification', StringType(), True),
                 StructField('ISIC Section', StringType(), True),
                 StructField('Product UUID', StringType(), True),
                 StructField('Reference Product Name', StringType(), True),
