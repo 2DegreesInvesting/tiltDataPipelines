@@ -60,14 +60,14 @@ def generate_table(table_name: str) -> None:
         companies_raw_final = joined_companies_countries_mapper.drop("country")
 
         companies_raw_final = companies_raw_final.select(
-            'company_id', 'country_un', 'source_id', 'company_name', 'address', 'company_city', 'postcode').distinct()
+            'company_id', 'country_un', 'source_id', 'company_name', 'address', 'company_city', 'postcode', 'information').distinct()
 
         companies_datamodel = CustomDF(
             'companies_datamodel', spark_generate, initial_df=companies_raw_final)
 
         companies_datamodel.write_table()
 
-    elif table_name == 'products_datamodel':
+    elif table_name == 'EP_products_datamodel':
 
         companies_europages_raw = CustomDF(
             'companies_europages_raw', spark_generate)
@@ -90,7 +90,7 @@ def generate_table(table_name: str) -> None:
 
         products_datamodel.write_table()
 
-    elif table_name == 'companies_products_datamodel':
+    elif table_name == 'companies_EP_products_datamodel':
 
         companies_europages_raw = CustomDF(
             'companies_europages_raw', spark_generate)

@@ -29,7 +29,7 @@ datamodel_schema = {
                                 'columns': ['company_id']
             }]
         },
-        'companies_products_datamodel': {
+        'companies_EP_products_datamodel': {
             'columns': StructType([
                 StructField('company_id', StringType(), False),
                 StructField('product_id', StringType(), False),
@@ -39,12 +39,12 @@ datamodel_schema = {
             ]
             ),
             'container': 'datamodel',
-            'location': 'companies_products',
+            'location': 'companies_EP_products',
             'type': 'delta',
             'partition_column': '',
             'quality_checks': []
         },
-        'products_datamodel': {
+        'EP_products_datamodel': {
             'columns': StructType([
                 StructField('product_id', StringType(), False),
                 StructField('product_name', StringType(), False),
@@ -54,7 +54,37 @@ datamodel_schema = {
             ]
             ),
             'container': 'datamodel',
-            'location': 'products',
+            'location': 'EP_products',
+            'type': 'delta',
+            'partition_column': '',
+            'quality_checks': []
+        },
+        'companies_SBI_activities_datamodel': {
+            'columns': StructType([
+                StructField('company_id', StringType(), False),
+                StructField('sbi_code', StringType(), False),
+                StructField('from_date', DateType(), False),
+                StructField('to_date', DateType(), False),
+                StructField('tiltRecordID', StringType(), False)
+            ]
+            ),
+            'container': 'datamodel',
+            'location': 'companies_SBI_activities',
+            'type': 'delta',
+            'partition_column': '',
+            'quality_checks': []
+        },
+        'SBI_activities_datamodel': {
+            'columns': StructType([
+                StructField('sbi_code', StringType(), False),
+                StructField('sbi_code_description', StringType(), False),
+                StructField('from_date', DateType(), False),
+                StructField('to_date', DateType(), False),
+                StructField('tiltRecordID', StringType(), False)
+            ]
+            ),
+            'container': 'datamodel',
+            'location': 'SBI_activities',
             'type': 'delta',
             'partition_column': '',
             'quality_checks': []
