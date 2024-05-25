@@ -59,6 +59,30 @@ raw_schema = {
                                 'columns': ['id', 'sector','subsector']
             }]
         },
+        'companies_companyinfo_raw': {
+            'columns': StructType([
+                StructField('kvk_number', StringType(), False),
+                StructField('company_name', StringType(), False),
+                StructField('address', StringType(), True),
+                StructField('company_city', StringType(), True),
+                StructField('postcode', StringType(), True),
+                StructField('description', StringType(), True),
+                StructField('sbi_code', StringType(), False),
+                StructField('sbi_code_description', StringType(), False),
+                StructField('from_date', DateType(), False),
+                StructField('to_date', DateType(), False),
+                StructField('tiltRecordID', StringType(), False)
+            ]
+            ),
+            'container': 'raw',
+            'location': 'companies_companyinfo',
+            'type': 'delta',
+            'partition_column': '',
+            'quality_checks': [{
+                                'check': 'values are unique',
+                                'columns': ['kvk_number']
+            }]
+        },
         'country_raw': {
             'columns': StructType([
                 StructField('country_id', StringType(), False),
