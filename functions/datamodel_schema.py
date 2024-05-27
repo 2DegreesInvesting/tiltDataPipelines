@@ -89,6 +89,18 @@ datamodel_schema = {
             'partition_column': '',
             'quality_checks': []
         },
+        'companies_match_result_datamodel': {
+            'columns': StructType([
+                StructField('europages_companies_id', StringType(), False),
+                StructField('companyinfo_companies_id', StringType(), False)
+            ]
+            ),
+            'container': 'datamodel',
+            'location': 'companies_match_result',
+            'type': 'delta',
+            'partition_column': '',
+            'quality_checks': []
+        },
         'sources_mapper_datamodel': {
             'columns': StructType([
                 StructField('source_id', StringType(), False),

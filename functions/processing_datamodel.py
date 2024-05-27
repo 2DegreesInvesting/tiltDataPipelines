@@ -2,8 +2,11 @@ import os
 import pyspark.sql.functions as F
 from functions.custom_dataframes import CustomDF
 from functions.spark_session import create_spark_session
-from functions.dataframe_helpers import create_sha_values
+from functions.dataframe_helpers import create_sha_values, format_postcode
 from pyspark.sql.functions import col, substring
+from pyspark.sql.types import DoubleType
+from Levenshtein import jaro_winkler
+
 
 
 def generate_table(table_name: str) -> None:
@@ -114,6 +117,39 @@ def generate_table(table_name: str) -> None:
             'companies_products_datamodel', spark_generate, initial_df=companies_joined_without_product_name.select("company_id", "product_id").distinct())
 
         companies_products_datamodel.write_table()
+
+    elif table_name == 'companies_match_result_datamodel':
+
+        companies_europages_raw = CustomDF(
+            'companies_europages_raw', spark_generate)
+        
+        companies_europages_raw.data = companies_europages_raw.data.filter(F.col("country") == "netherlands")
+
+        companies_europages_raw.data = companies_europages_raw.data.withColumn("postcode_join", format_postcode(col("postcode"), col("company_city")))
+
+        europages = companies_europages_raw.data.select("id", "company_name", "postcode_join")
+
+        europages = europages.withColumnRenamed({"id": "europages_companies_id", "company_name": "company_name_ep"})
+
+        companies_companyinfo_raw = CustomDF(
+            'companies_companyinfo_raw', spark_generate)
+
+        companyinfo = companies_companyinfo_raw.data.withColumnsRenamed({"kvk_number": "companyinfo_companies_id", "company_name": "company_name_ci", "postcode": "postcode_join"})
+
+        companyinfo = companyinfo.select("companyinfo_companies_id", "postcode_join", "company_name_ci")
+
+        jaro_winkler_udf = F.udf(jaro_winkler, DoubleType())
+        
+        joined = europages.join(companyinfo, on="postcode_join", how="inner")
+        joined = joined.withColumn("similarity_score", jaro_winkler_udf(col("company_name_ep"), col("company_name_ci")))
+
+        matched = joined.filter(col("similarity_score") >= F.lit(0.95)) \
+            .select(["europages_companies_id", "companyinfo_companies_id"]).distinct()
+        
+        companies_datamodel = CustomDF(
+            'companies_match_result_datamodel', spark_generate, initial_df=matched)
+
+        companies_datamodel.write_table()
 
     # Ecoinvent data
 

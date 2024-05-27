@@ -3,7 +3,7 @@ import pyspark.sql.functions as F
 from pyspark.sql.types import DoubleType, IntegerType, BooleanType, ShortType, DateType, ByteType, DecimalType
 from functions.custom_dataframes import CustomDF
 from functions.spark_session import create_spark_session
-from functions.dataframe_helpers import rename
+from functions.dataframe_helpers import keep_one_name
 
 
 def generate_table(table_name: str) -> None:
@@ -57,7 +57,7 @@ def generate_table(table_name: str) -> None:
         companies_companyinfo_landingzone = CustomDF(
             'companies_companyinfo_landingzone', spark_generate)
         
-        companies_companyinfo_landingzone.data = companies_companyinfo_landingzone.data.withColumn("company_name", rename(F.col("Instellingsnaam"), F.col("Statutaire_naam")))
+        companies_companyinfo_landingzone.data = companies_companyinfo_landingzone.data.withColumn("company_name", keep_one_name(F.col("Instellingsnaam"), F.col("Statutaire_naam")))
 
         col_rename_dict = {
             'Kamer_van_Koophandel_nummer_12-cijferig': 'kvk_number',

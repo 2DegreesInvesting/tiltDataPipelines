@@ -286,3 +286,70 @@ def assign_signalling_id(monitoring_values_df: DataFrame, existing_monitoring_df
         ['signalling_id', 'check_id', 'column_name', 'check_name', 'total_count', 'valid_count', 'table_name'])
 
     return monitoring_values_df
+
+
+def structure_postcode(postcode: str) -> str:
+    """Structure raw postcode to be in the format '1234 AB'.
+
+    Args:
+        postcode (str): Raw postcode string, at least length of 6
+
+    Returns:
+        str: Structured postcode in the predefined format of '1234 AB'
+    """
+    # if postcode has 6 characters, the first four should be the numbers; 
+    # otherwise assume it is already in '1234 ab', split and take the digits only
+    num = F.when(F.length(postcode) == 6, postcode[0:4]).otherwise(F.split(postcode, ' ')[0])
+
+    # if postcode 6 characters, the latter two should be the letters;
+    # otherwise assume it is already in '1234 ab', split, and take the letters and uppercase them
+    alph = F.when(F.length(postcode) == 6, F.upper(postcode[5:7])).otherwise(F.upper(F.split(postcode, ' ')[1]))
+
+    # format postcode into `1234 AB`
+    return F.concat(num, F.lit(" "), alph)
+
+# Unify postcode format to match Company.info
+def format_postcode(postcode: str, city: str) -> str:
+    """Format Europages postcode to match the postcodes of Company.Info for
+    consistency
+
+    Args:
+        postcode (str): Raw Europages company postcode
+        city (str): Raw Europages company city
+
+    Returns:
+        str: Europages postcode formatted alike Company.Info
+    """
+    # postcode mostly looks like: '1234'
+    # city mostly looks like: 'ab city_name'
+
+    # if postcode and city are identical, take the postcode; otherwise concatenate the two into '1234ab city_name'
+    reference = F.when(postcode == city, postcode).otherwise(F.concat(postcode, city))
+
+    # if reference is just the city or NA, just just return empty string
+    reference = F.when(~reference.isin(["etten-leur", "kruiningen"]) | reference.isNotNull(), reference).otherwise("")
+
+    # slit the reference to ignore the city name
+    postcode = F.when(reference != "", F.split(reference, ' ')[0])
+
+    # take the rest to format into the correct format
+    postcode = F.when(postcode != "", (postcode))
+
+    return postcode
+
+
+def keep_one_name(default_name: str, statutory_name: str) -> str:
+    """Prioritise the statutory name for a Company.Info if available, otherwise
+    keep the default institution name for the company name.
+
+    Args:
+        default_name (str): Default institution name of Company.Info company
+        statutory_name (str|None): Statutory name of Company.Info company
+
+    Returns:
+        str: Either the default_name or statutory_name
+    """
+    # Take the statutory name (on KvK) if available, otherwise take the default name (from their marketing database)
+    name = F.when(statutory_name.isNotNull(), F.lower(statutory_name)).otherwise(F.lower(default_name))
+
+    return name
