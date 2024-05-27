@@ -53,24 +53,9 @@ def generate_table(table_name: str) -> None:
 
         companies_europages_raw.write_table()
 
-    if table_name == 'companies_companyinfo_raw':
+    elif table_name == 'companies_companyinfo_raw':
         companies_companyinfo_landingzone = CustomDF(
             'companies_companyinfo_landingzone', spark_generate)
-        
-        companies_companyinfo_landingzone.data = companies_companyinfo_landingzone.data.withColumn("company_name", keep_one_name(F.col("Instellingsnaam"), F.col("Statutaire_naam")))
-
-        col_rename_dict = {
-            'Kamer_van_Koophandel_nummer_12-cijferig': 'kvk_number',
-            'Bedrijfsomschrijving': 'description',
-            'Vestigingsadres': 'address',
-            'Vestigingsadres_postcode': 'postcode',
-            'Vestigingsadres_plaats': 'company_city',
-            'SBI-code_locatie': 'sbi_code',
-            'SBI-code_locatie_Omschrijving': 'sbi_code_description',
-        }
-
-        companies_companyinfo_landingzone.rename_columns(rename_dict=col_rename_dict)
-        companies_companyinfo_landingzone.data = companies_companyinfo_landingzone.data.select('kvk_number', 'company_name', 'description', 'address', 'postcode', 'company_city', 'sbi_code', 'sbi_code_description')
 
         companies_companyinfo_raw = CustomDF(
             'companies_companyinfo_raw', spark_generate, initial_df=companies_companyinfo_landingzone.data)
