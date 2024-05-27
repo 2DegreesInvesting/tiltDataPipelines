@@ -394,6 +394,20 @@ def generate_table(table_name: str) -> None:
             'isic_mapper_datamodel', spark_generate, initial_df=isic_4_digit_codes_landingzone.data)
         isic_mapper_datamodel.write_table()
 
+    elif table_name == 'SBI_activities_datamodel':
+
+        SBI_activities_raw = CustomDF(
+            'SBI_activities_raw', spark_generate)
+
+        rename_dict = {'SBI': 'sbi_code',
+                       'Omschrijving': 'sbi_code_description'}
+
+        SBI_activities_raw.rename_columns(rename_dict)
+
+        SBI_activities_datamodel = CustomDF(
+            'SBI_activities_datamodel', spark_generate, initial_df=SBI_activities_raw.data)
+        SBI_activities_datamodel.write_table()
+
     else:
         raise ValueError(
             f'The table: {table_name} is not specified in the processing functions')
