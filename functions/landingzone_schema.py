@@ -941,6 +941,18 @@ landingzone_schema = {
             'type': 'multiline',
             'partition_column': '',
             'quality_checks': []
+        },
+        'SBI_activities_landingzone': {
+            'columns':  StructType([
+                StructField('SBI', StringType(), False),
+                StructField('Omschrijving', StringType(), False),
+            ]
+            ),
+            'container': 'landingzone',
+            'location': 'activityCodes/standaard_bedrijfsindeling_2008.csv',
+            'type': 'multiline',
+            'partition_column': '',
+            'quality_checks': []
         }
 }
 

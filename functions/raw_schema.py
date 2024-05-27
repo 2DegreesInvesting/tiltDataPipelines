@@ -899,5 +899,17 @@ raw_schema = {
             'type': 'delta',
             'partition_column': '',
             'quality_checks': []
+        },
+        'SBI_activities_raw': {
+            'columns':  StructType([
+                StructField('SBI', StringType(), False),
+                StructField('Omschrijving', StringType(), False),
+            ]
+            ),
+            'container': 'raw',
+            'location': 'SBI_activities',
+            'type': 'delta',
+            'partition_column': '',
+            'quality_checks': []
         }
 }

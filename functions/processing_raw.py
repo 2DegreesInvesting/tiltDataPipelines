@@ -560,6 +560,14 @@ def generate_table(table_name: str) -> None:
             'isic_mapper_raw', spark_generate, initial_df=isic_4_digit_codes_landingzone.data)
         isic_mapper_raw.write_table()
 
+    elif table_name == 'SBI_activities':
+        SBI_activities_landingzone = CustomDF('SBI_activities_landingzone', spark_generate)
+
+        SBI_activities_raw = CustomDF(
+            'SBI_activites_raw', spark_generate, initial_df=SBI_activities_landingzone.data
+        )
+
+        SBI_activities_raw.write_table()
     else:
         raise ValueError(
             f'The table: {table_name} is not specified in the processing functions')
