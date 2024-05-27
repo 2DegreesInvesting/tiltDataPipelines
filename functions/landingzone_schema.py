@@ -238,7 +238,7 @@ landingzone_schema = {
                 StructField('Percentage_overig_brandstof_vrachtwagens_concern', StringType(), True)]
             ),
             'container': 'landingzone',
-            'location': 'companyInfo/',
+            'location': 'companyInfo/DEL75000_TILT_240426_BK.csv',
             'type': 'multiline',
             'partition_column': '',
             'quality_checks': [['unique', ['Kamer_van_Koophandel_nummer_12-cijferig']]]
@@ -949,7 +949,7 @@ landingzone_schema = {
             ]
             ),
             'container': 'landingzone',
-            'location': 'activityCodes/standaard_bedrijfsindeling_2008.csv',
+            'location': 'mappers/sbi.csv',
             'type': 'multiline',
             'partition_column': '',
             'quality_checks': []
