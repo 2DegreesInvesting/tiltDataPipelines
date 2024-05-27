@@ -375,5 +375,20 @@ datamodel_schema = {
             'type': 'delta',
             'partition_column': '',
             'quality_checks': []
-        }
+        },
+        'companies_SBI_activities_datamodel': {
+            'columns': StructType([
+                StructField('company_id', StringType(), False),
+                StructField('sbi_code', StringType(), False),
+                StructField('from_date', DateType(), False),
+                StructField('to_date', DateType(), False),
+                StructField('tiltRecordID', StringType(), False)
+            ]
+            ),
+            'container': 'datamodel',
+            'location': 'companies_SBI_activities',
+            'type': 'delta',
+            'partition_column': '',
+            'quality_checks': []
+        },
 }

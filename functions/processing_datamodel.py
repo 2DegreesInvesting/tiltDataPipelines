@@ -408,6 +408,23 @@ def generate_table(table_name: str) -> None:
             'SBI_activities_datamodel', spark_generate, initial_df=SBI_activities_raw.data)
         SBI_activities_datamodel.write_table()
 
+    elif table_name == 'companies_SBI_activities_datamodel':
+
+
+        companies_companyinfo_raw = CustomDF(
+            'companies_companyinfo_raw', spark_generate)
+        
+        companies_companyinfo_raw.data = companies_companyinfo_raw.select('kvk_number', 'sbi_code')
+
+        rename_dict = {"kvk_number": "company_id"}
+
+        companies_companyinfo_raw.rename_columns(rename_dict)
+
+        companies_SBI_activities_datamodel = CustomDF(
+            'companies_SBI_activities_datamodel', spark_generate, initial_df=companies_companyinfo_raw.data.select("company_id", "sbi_code").distinct())
+
+        companies_SBI_activities_datamodel.write_table()
+
     else:
         raise ValueError(
             f'The table: {table_name} is not specified in the processing functions')
