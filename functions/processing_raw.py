@@ -3,7 +3,6 @@ import pyspark.sql.functions as F
 from pyspark.sql.types import DoubleType, IntegerType, BooleanType, ShortType, DateType, ByteType, DecimalType
 from functions.custom_dataframes import CustomDF
 from functions.spark_session import create_spark_session
-from functions.dataframe_helpers import keep_one_name
 
 
 def generate_table(table_name: str) -> None:
