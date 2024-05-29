@@ -280,7 +280,7 @@ class CustomDF(DataReader):
 
         table_name = f"{self._env}.monitoring.record_tracing"
 
-        trace_schema = get_table_definition("record_trace")
+        trace_schema = get_table_definition(self._layer, "record_trace")
 
         create_schema_string, set_owner_schema_string = create_catalog_schema(
             self._env, trace_schema)

@@ -551,14 +551,14 @@ def generate_table(table_name: str) -> None:
         company_info_landingzone = CustomDF(
             'companies_company_info_landingzone', spark_generate)
 
+        #Leave it in for renaming in the future towards the data model
         rename_dict = {
             'Kamer_van_Koophandel_nummer': 'kvk_number', 'RSIN_nummer': 'rsin_number', 'Instellingsnaam': 'default_compnay_name', 'Statutaire_naam': 'statutory_compnay_name', 'Handelsnaam_1': 'trade_compnay_name_1', 'Handelsnaam_2': 'trade_compnay_name_2', 'Handelsnaam_3': 'trade_compnay_name_3', 'Bedrijfsomschrijving': 'description', 'Vestigingsadres': 'adress', 'Vestigingsadres_postcode': 'postcode', 'Vestigingsadres_plaats': 'company_city', 'SBI_code': 'sbi_code', 'SBI_code_Omschrijving': 'sbi_code_description', 'SBI_code_segment': 'sbi_code_segment', 'SBI_code_segment_Omschrijving': 'sbi_code_segment_description', 'NACE_code': 'NACE_code', 'NACE_code_Omschrijving': 'NACE_code_description',
             'SBI_code_locatie': 'sbi_code_location', 'SBI_code_locatie_Omschrijving': 'sbi_code_description_location', 'SBI_code_segment_locatie': 'sbi_code_segment_location', 'SBI_code_segment_locatie_Omschrijving': 'sbi_code_segment_description_location'}
 
-        company_info_landingzone.rename_columns(rename_dict)
-
-        select_list = ['kvk_number', 'rsin_number', 'default_compnay_name', 'statutory_compnay_name', 'trade_compnay_name_1', 'trade_compnay_name_2', 'trade_compnay_name_3',
-                       'description', 'adress', 'postcode', 'company_city', 'sbi_code', 'sbi_code_description', 'sbi_code_segment', 'sbi_code_segment_description', 'NACE_code', 'NACE_code_description', 'sbi_code_location', 'sbi_code_description_location', 'sbi_code_segment_location', 'sbi_code_segment_description_location']
+        select_list = [
+            'Kamer_van_Koophandel_nummer', 'RSIN_nummer', 'Instellingsnaam', 'Statutaire_naam', 'Handelsnaam_1', 'Handelsnaam_2', 'Handelsnaam_3', 'Bedrijfsomschrijving', 'Vestigingsadres', 'Vestigingsadres_postcode', 'Vestigingsadres_plaats', 'SBI_code', 'SBI_code_Omschrijving', 'SBI_code_segment', 'SBI_code_segment_Omschrijving', 'NACE_code', 'NACE_code_Omschrijving',
+            'SBI_code_locatie', 'SBI_code_locatie_Omschrijving', 'SBI_code_segment_locatie', 'SBI_code_segment_locatie_Omschrijving']
 
         company_info_landingzone = company_info_landingzone.custom_select(
             select_list)
