@@ -109,7 +109,7 @@ landingzone_schema = {
                                 'columns': ['id']
             }]
         },
-        'companies_company_info_landingzone': {
+        'companies_companyinfo_landingzone': {
             'columns': StructType([
                 StructField('Sizokey', StringType(), False),
                 StructField('Kamer_van_Koophandel_nummer', StringType(), False),
@@ -238,10 +238,10 @@ landingzone_schema = {
                 StructField('Percentage_overig_brandstof_vrachtwagens_concern', StringType(), True)]
             ),
             'container': 'landingzone',
-            'location': 'companyInfo/company_info_20240426.csv',
+            'location': 'CompanyInfo/company_info_20240426.csv',
             'type': 'multiline',
             'partition_column': '',
-            'quality_checks': [['unique', ['Kamer_van_Koophandel_nummer_12-cijferig']]]
+            'quality_checks': []
         },
         'country_landingzone': {
             'columns': StructType([

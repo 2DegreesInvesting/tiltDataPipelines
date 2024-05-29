@@ -179,7 +179,7 @@ def generate_table(table_name: str) -> None:
 
         europages = companies_europages_raw.data.select('id', 'company_name', 'postcode_join')
 
-        europages = europages.withColumnRenamed({'id': 'europages_company_id', 'company_name': 'company_name_ep'})
+        europages = europages.withColumnsRenamed({'id': 'europages_company_id', 'company_name': 'company_name_ep'})
 
         companies_companyinfo_raw = CustomDF(
             'companies_companyinfo_raw', spark_generate)
