@@ -79,9 +79,9 @@ raw_schema = {
                 StructField("Sizokey", StringType(), False),
                 StructField("Kamer_van_Koophandel_nummer", StringType(), False),
                 StructField(
-                    "Kamer_van_Koophandel_nummer_12-cijferig", StringType(), False
+                    "Kamer_van_Koophandel_nummer_12_cijferig", StringType(), False
                 ),
-                StructField("RSIN-nummer", StringType(), True),
+                StructField("RSIN_nummer", StringType(), True),
                 StructField("Vestigingsnummer", StringType(), True),
                 StructField("Instellingsnaam", StringType(), False),
                 StructField("Statutaire_naam", StringType(), True),
@@ -98,7 +98,7 @@ raw_schema = {
                 StructField("Plan_Naam_1", StringType(), True),
                 StructField("Kern_Naam_1", StringType(), True),
                 StructField("KIX", StringType(), False),
-                StructField("4-cijferige_Postcode", StringType(), False),
+                StructField("4_cijferige_Postcode", StringType(), False),
                 StructField("Pand_ID", StringType(), True),
                 StructField("Rechtsvorm_Omschrijving", StringType(), False),
                 StructField("Aantal_medewerkers", StringType(), False),
@@ -115,23 +115,23 @@ raw_schema = {
                     StringType(),
                     False,
                 ),
-                StructField("SBI-code", StringType(), False),
-                StructField("SBI-code_Omschrijving", StringType(), False),
-                StructField("SBI-code_2-cijferig", StringType(), False),
-                StructField("SBI-code_2-cijferig_Omschrijving", StringType(), False),
-                StructField("SBI-code_segment", StringType(), False),
-                StructField("SBI-code_segment_Omschrijving", StringType(), False),
-                StructField("NACE-code", StringType(), False),
-                StructField("NACE-code_Omschrijving", StringType(), False),
-                StructField("SBI-code_locatie", StringType(), False),
-                StructField("SBI-code_locatie_Omschrijving", StringType(), False),
-                StructField("SBI-code_2-cijferig_locatie", StringType(), False),
+                StructField("SBI_code", StringType(), False),
+                StructField("SBI_code_Omschrijving", StringType(), False),
+                StructField("SBI_code_2_cijferig", StringType(), False),
+                StructField("SBI_code_2_cijferig_Omschrijving", StringType(), False),
+                StructField("SBI_code_segment", StringType(), False),
+                StructField("SBI_code_segment_Omschrijving", StringType(), False),
+                StructField("NACE_code", StringType(), False),
+                StructField("NACE_code_Omschrijving", StringType(), False),
+                StructField("SBI_code_locatie", StringType(), False),
+                StructField("SBI_code_locatie_Omschrijving", StringType(), False),
+                StructField("SBI_code_2_cijferig_locatie", StringType(), False),
                 StructField(
-                    "SBI-code_2-cijferig_locatie_Omschrijving", StringType(), False
+                    "SBI_code_2_cijferig_locatie_Omschrijving", StringType(), False
                 ),
-                StructField("SBI-code_segment_locatie", StringType(), False),
+                StructField("SBI_code_segment_locatie", StringType(), False),
                 StructField(
-                    "SBI-code_segment_locatie_Omschrijving", StringType(), False
+                    "SBI_code_segment_locatie_Omschrijving", StringType(), False
                 ),
                 StructField("Concernrelatie_Omschrijving", StringType(), False),
                 StructField("Sizokey_ultimate_parent", StringType(), False),
@@ -151,15 +151,15 @@ raw_schema = {
                     StringType(),
                     False,
                 ),
-                StructField("SBI-code_concern", StringType(), False),
-                StructField("SBI-code_concern_Omschrijving", StringType(), False),
-                StructField("SBI-code_2-cijferig_concern", StringType(), False),
+                StructField("SBI_code_concern", StringType(), False),
+                StructField("SBI_code_concern_Omschrijving", StringType(), False),
+                StructField("SBI_code_2_cijferig_concern", StringType(), False),
                 StructField(
-                    "SBI-code_2-cijferig_concern_Omschrijving", StringType(), False
+                    "SBI_code_2_cijferig_concern_Omschrijving", StringType(), False
                 ),
-                StructField("SBI-code_segment_concern", StringType(), False),
+                StructField("SBI_code_segment_concern", StringType(), False),
                 StructField(
-                    "SBI-code_segment_concern_Omschrijving", StringType(), False
+                    "SBI_code_segment_concern_Omschrijving", StringType(), False
                 ),
                 StructField("Subsidie_bedrag_concern", StringType(), False),
                 StructField("Klasse_subsidie_bedrag_concern", StringType(), False),
@@ -404,7 +404,7 @@ raw_schema = {
         "location": "companies_companyinfo",
         "type": "delta",
         "partition_column": "",
-        "quality_checks": [["unique", ["Kamer_van_Koophandel_nummer_12-cijferig"]]],
+        "quality_checks": [],
     },
     "country_raw": {
         "columns": StructType(

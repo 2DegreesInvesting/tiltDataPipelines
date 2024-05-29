@@ -55,7 +55,7 @@ def generate_table(table_name: str) -> None:
         )
 
         rename_dict = {
-            'Kamer_van_Koophandel_nummer_12-cijferig': 'companyifo_company_id',
+            'Kamer_van_Koophandel_nummer_12_cijferig': 'companyifo_company_id',
             'Bedrijfsomschrijving': 'company_description',
             'Vestigingsadres': 'address',
             'Vestigingsadres_plaats': 'company_city',
@@ -184,9 +184,11 @@ def generate_table(table_name: str) -> None:
         companies_companyinfo_raw = CustomDF(
             'companies_companyinfo_raw', spark_generate)
 
-        companyinfo = companies_companyinfo_raw.data.withColumnsRenamed({'kvk_number': 'companyinfo_company_id', 'company_name': 'company_name_ci', 'postcode': 'postcode_join'})
+        companies_companyinfo_raw.data = companies_companyinfo_raw.data.withColumn('company_name', keep_one_name(F.col('Instellingsnaam'), F.col('Statutaire_naam')))
 
-        companyinfo = companyinfo.select('companyinfo_company_id', 'postcode_join', 'company_name_ci')
+        companies_companyinfo_raw.rename_columns({'Kamer_van_Koophandel_nummer_12_cijferig': 'companyinfo_company_id', 'company_name': 'company_name_ci', 'Vestigingsadres_postcode': 'postcode_join'})
+
+        companyinfo = companies_companyinfo_raw.data.select(['companyinfo_company_id', 'postcode_join', 'company_name_ci'])
 
         jaro_winkler_udf = F.udf(jaro_winkler, DoubleType())
         
@@ -503,8 +505,8 @@ def generate_table(table_name: str) -> None:
             'companies_companyinfo_raw', spark_generate)
         
         rename_dict = {
-            'Kamer_van_Koophandel_nummer_12-cijferig': 'company_id',
-            'SBI-code_locatie': 'sbi_code'
+            'Kamer_van_Koophandel_nummer_12_cijferig': 'company_id',
+            'SBI_code_locatie': 'sbi_code'
         }
         companies_companyinfo_raw = companies_companyinfo_raw.rename_columns(rename_dict)
 
