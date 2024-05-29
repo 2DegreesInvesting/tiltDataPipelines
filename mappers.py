@@ -8,6 +8,8 @@ if __name__ == '__main__':
     generate_table_raw('sources_mapper_raw')
     generate_table_raw('countries_mapper_raw') 
 
+    generate_table_raw('country_raw')
+
     generate_table_raw('geography_ecoinvent_mapper_raw')
     generate_table_raw('EP_tilt_sector_unmatched_mapper_raw')
     generate_table_raw('tilt_sector_isic_mapper_raw')
@@ -25,5 +27,6 @@ if __name__ == '__main__':
     generate_table_datamodel('tilt_sector_isic_mapper_datamodel')
     generate_table_datamodel('tilt_sector_scenario_mapper_datamodel')
 
-
     generate_table_datamodel('isic_mapper_datamodel')
+
+
