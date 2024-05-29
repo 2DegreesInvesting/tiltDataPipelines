@@ -109,49 +109,6 @@ landingzone_schema = {
             'columns': ['id']
         }]
     },
-    'companies_company_info_landingzone': {
-        'columns': StructType([
-            StructField('Organisatie', StringType(), False),
-            StructField('Link', StringType(), True),
-            StructField('KVK/ID', StringType(), True),
-            StructField('Vestnr', StringType(), True),
-            StructField('RSIN', StringType(), True),
-            StructField('Vennootschapsnaam', StringType(), True),
-            StructField('Rechtsvorm', StringType(), True),
-            StructField('Hoofd/Neven', StringType(), True),
-            StructField('Status', StringType(), False),
-            StructField('SBI_CODES Hoofdact', StringType(), True),
-            StructField('Omschrijving (hoofdact)', StringType(), True),
-            StructField('SBI_CODES Nevenact1', StringType(), True),
-            StructField('Omschrijving (nevenact1)', StringType(), True),
-            StructField('SBI_CODES Nevenact2',
-                        StringType(), True),
-            StructField('Omschrijving (nevenact2)',
-                        StringType(), True),
-            StructField('CI SBI`s', StringType(), True),
-            StructField('Non-Mailing', StringType(), True),
-            StructField('Non-Marketing', StringType(), True),
-            StructField('Straatnaam', StringType(), True),
-            StructField('Huisnr', StringType(), False),
-            StructField('Toevoeging huisnr', StringType(), False),
-            StructField('Postcode', StringType(), False),
-            StructField('Woonplaats', StringType(), False),
-            StructField('Straatnaam CA', StringType(), False),
-            StructField('Huisnr CA', StringType(), False),
-            StructField('Toevoeg huisnr CA', StringType(), False),
-            StructField('Postcode CA', StringType(), False),
-            StructField('Woonplaats CA', StringType(), False),
-            StructField('Gemeente', StringType(), False),
-            StructField('Statutaire zetel', StringType(), False),
-
-        ]
-        ),
-        'container': 'landingzone',
-        'location': 'companyInfo/',
-        'type': 'multiline',
-        'partition_column': '',
-        'quality_checks': [['unique', ['KVK/ID']]]
-    },
     'country_landingzone': {
         'columns': StructType([
             StructField('country_id', StringType(), False),
