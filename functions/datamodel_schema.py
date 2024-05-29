@@ -29,6 +29,21 @@ datamodel_schema = {
                                 'columns': ['company_id']
             }]
         },
+        'companies_match_result_datamodel': {
+            'columns': StructType([
+                StructField('europages_company_id', StringType(), False),
+                StructField('companyinfo_company_id', StringType(), False),
+                StructField('from_date', DateType(), False),
+                StructField('to_date', DateType(), False),
+                StructField('tiltRecordID', StringType(), False)
+            ]
+            ),
+            'container': 'datamodel',
+            'location': 'companies_match_result',
+            'type': 'delta',
+            'partition_column': '',
+            'quality_checks': []
+        },
         'companies_EP_products_datamodel': {
             'columns': StructType([
                 StructField('company_id', StringType(), False),
@@ -74,17 +89,17 @@ datamodel_schema = {
             'partition_column': '',
             'quality_checks': []
         },
-        'companies_match_result_datamodel': {
+        'companies_SBI_activities_datamodel': {
             'columns': StructType([
-                StructField('europages_company_id', StringType(), False),
-                StructField('companyinfo_company_id', StringType(), False),
+                StructField('company_id', StringType(), False),
+                StructField('sbi_code', StringType(), False),
                 StructField('from_date', DateType(), False),
                 StructField('to_date', DateType(), False),
                 StructField('tiltRecordID', StringType(), False)
             ]
             ),
             'container': 'datamodel',
-            'location': 'companies_match_result',
+            'location': 'companies_SBI_activities',
             'type': 'delta',
             'partition_column': '',
             'quality_checks': []
@@ -357,21 +372,6 @@ datamodel_schema = {
             ),
             'container': 'datamodel',
             'location': 'isic_mapper',
-            'type': 'delta',
-            'partition_column': '',
-            'quality_checks': []
-        },
-        'companies_SBI_activities_datamodel': {
-            'columns': StructType([
-                StructField('company_id', StringType(), False),
-                StructField('sbi_code', StringType(), False),
-                StructField('from_date', DateType(), False),
-                StructField('to_date', DateType(), False),
-                StructField('tiltRecordID', StringType(), False)
-            ]
-            ),
-            'container': 'datamodel',
-            'location': 'companies_SBI_activities',
             'type': 'delta',
             'partition_column': '',
             'quality_checks': []
