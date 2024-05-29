@@ -1,6 +1,6 @@
 import os
 import pyspark.sql.functions as F
-from functions.custom_dataframes import CustomDF
+from functions.custom_dataframes import CustomDF 
 from functions.spark_session import create_spark_session
 from functions.dataframe_helpers import create_sha_values
 from functions.preprocessing_module import *
@@ -33,7 +33,7 @@ def generate_table(table_name: str) -> None:
     # Companies data
 
     if table_name == 'companies_datamodel':
-
+        
         companies_europages_raw = CustomDF(
             'companies_europages_raw', spark_generate)
 
@@ -85,27 +85,19 @@ def generate_table(table_name: str) -> None:
         companies_europages_raw.data = companies_europages_raw.data.withColumn(
             'product_id', F.sha2(F.col('product_name'), 256)).dropDuplicates()
 
-        products_datamodel = CustomDF(
-            'products_datamodel', spark_generate)
+        # pre-process the products
+        processed_products, companies_products_mapping = PreProcessor().preprocess(spark_generate, companies_europages_raw._df) 
+        # PreProcessor().preprocess(spark_generate, companies_europages_raw._df) 
+
+        # products_datamodel = CustomDF(
+        #     'products_datamodel', spark_generate, initial_df=processed_products)
         
-        companies_products_datamodel = CustomDF(
-            'companies_products_datamodel', spark_generate)
-        print(companies_europages_raw.data.count())
-        # # pre-process the products
-        # processed_products, companies_products_mapping = PreProcessor().preprocess(companies_europages_raw._df.toPandas())
+        # companies_products_datamodel = CustomDF(
+        #     'companies_products_datamodel', spark_generate, initial_df=companies_products_mapping)
+        
+        # companies_products_datamodel.write_table()
 
-
-        # # write to the products_datamodel table
-        # products_datamodel._df = spark_generate.createDataFrame(processed_products)
-
-        # # write to the products_datamodel table
-        # companies_products_datamodel._df = spark_generate.createDataFrame(companies_products_mapping)
-
-        # write the company_id to product_id mapping
-        companies_products_datamodel.write_table()
-
-        # write the pre-processed list of products
-        products_datamodel.write_table()
+        # products_datamodel.write_table()
 
     elif table_name == 'companies_products_datamodel':
 

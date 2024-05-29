@@ -69,13 +69,13 @@ class DataReader:
                 f"{self._history} is not a valid argument for the history of a table, use 'recent' or 'complete'")
 
         implemented_read_functions = {
-            'csv': self.read_csv_file(),
-            'parquet': self.read_parquet_file(),
-            'delta':  self.read_delta_table(),
-            'multiline': self.read_multiline_file()
+            'csv': self.read_csv_file,
+            'parquet': self.read_parquet_file,
+            'delta':  self.read_delta_table,
+            'multiline': self.read_multiline_file
         }
 
-        df = implemented_read_functions[self._schema['type']]
+        df = implemented_read_functions[self._schema['type']]()
 
         try:
             df.head()  # Force to load first record of the data to check if it throws an error
