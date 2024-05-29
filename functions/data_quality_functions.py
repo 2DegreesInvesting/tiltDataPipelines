@@ -31,21 +31,15 @@ def check_value_within_list(dataframe: DataFrame, **kwargs: dict) -> int:
 
 def calculate_filled_values(dataframe: DataFrame, spark_session: SparkSession) -> DataFrame:
     """
-    Calculate the count of filled and total values for each column in a DataFrame.
+    Calculates the number of filled values in each column of a DataFrame.
 
-    This function takes a DataFrame and computes the count of filled (non-null) and total
-    values for each column. It generates a summary DataFrame containing the results.
-
-    Parameters:
-    - dataframe (DataFrame): The input DataFrame for which filled value counts are calculated.
+    Args:
+        dataframe (DataFrame): The input DataFrame.
+        spark_session (SparkSession): The SparkSession object.
 
     Returns:
-    - DataFrame: A summary DataFrame containing the following columns:
-        - 'check_id': A constant identifier ('tilt_1') for this specific check.
-        - 'column_name': The name of the column.
-        - 'check_name': A constant description ('Check if values are filled') for this check.
-        - 'total_count': The total number of rows in the DataFrame.
-        - 'valid_count': The count of non-null (filled) values for each column.
+        DataFrame: A DataFrame containing the column name, total count, valid count, and other metadata.
+
     """
     df_cols = [col for col in dataframe.columns if ('map_' not in col) and (
         col not in ['from_date', 'to_date', 'tiltRecordID'])]

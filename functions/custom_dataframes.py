@@ -277,41 +277,70 @@ class CustomDF(DataReader):
             self.check_signalling_issues()
 
     def dump_map_column(self):
+        """
+        Dumps the map column from the DataFrame to a Delta table.
 
+        This method creates a Delta table and dumps the map column from the DataFrame into it.
+        The process happens when writing the table, so the map column is dumped to the record_trace table.
+        Here we use the new recordID of the generated record and explode the valus in the map column.
+        This process also include the creation and generation of the record trace table in case it does not exist yet. 
+
+        Returns:
+            None
+        """
+        # Define the table name using the environment variable
         table_name = f"{self._env}.monitoring.record_tracing"
-
+        
+        # Get the schema for the "record_trace" table
         trace_schema = get_table_definition(self._layer, "record_trace")
-
+        
+        # Generate SQL strings to create the schema and set the owner of the schema
         create_schema_string, set_owner_schema_string = create_catalog_schema(
             self._env, trace_schema)
+        
+        # Generate SQL strings to create the table and set the owner of the table
         create_string = create_catalog_table(
             table_name, trace_schema)
         set_owner_string = create_catalog_table_owner(
             table_name)
-
+        
+        # Execute the SQL strings
         self._spark_session.sql(create_schema_string)
         self._spark_session.sql(set_owner_schema_string)
         self._spark_session.sql(create_string)
         self._spark_session.sql(set_owner_string)
-
+        
+        # Find the map_column
         map_col = [
             col for col in self._df.columns if col.startswith('map_')][0]
-
+        
+        # Filter the DataFrame to only include rows that are newly created. Only for the new rows we want to dump the new record traces.
         dump_df = self._df.where(F.col('to_date') == '2099-12-31')
+        
+        # Add a new column 'target_table_name' with the name of the table, and rename 'tiltRecordID' to 'target_tiltRecordID'
         dump_df = dump_df.withColumn('target_table_name', F.lit(
             self._name)).withColumnRenamed('tiltRecordID', 'target_tiltRecordID')
+        
+        # Explode the map column to be able to write the array format to a standard sql table
         dump_df = dump_df.select('*', F.explode(map_col).alias('source_table_name', 'source_tiltRecordID_list')
                                  ).select('*', F.explode(F.col('source_tiltRecordID_list')).alias('source_tiltRecordID'))
+        
+        # Select only the columns 'source_tiltRecordID', 'source_table_name', 'target_tiltRecordID', and 'target_table_name'
         dump_df = dump_df.select(F.col('source_tiltRecordID'), F.col('source_table_name'), F.col(
             'target_tiltRecordID'), F.col('target_table_name'))
-
+        
+        # Read the existing record tracing table into a DataFrame
         df = self._spark_session.read.format(
             'delta').table(table_name)
-        df.filter(F.col('target_table_name') == self._name)
-
-        dump_df.write.partitionBy('target_table_name').mode(
+        
+        # Filter the DataFrame to only include rows where for the current table
+        df = df.filter(F.col('target_table_name') == self._name)
+        
+        # Union the two DataFrames and write the result to the table, partitioned by the name of the table
+        dump_df.union(df).write.partitionBy('target_table_name').mode(
             'overwrite').format('delta').saveAsTable(table_name)
-
+        
+        # Drop the map column from the original DataFrame
         self._df = self._df.drop(F.col(map_col))
 
     def convert_data_types(self, column_list: list, data_type):

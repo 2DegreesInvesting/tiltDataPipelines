@@ -66,60 +66,6 @@ def generate_table(table_name: str) -> None:
 
         companies_datamodel.write_table()
 
-    elif table_name == 'products_datamodel':
-
-        companies_europages_raw = CustomDF(
-            'companies_europages_raw', spark_generate)
-
-        companies_europages_raw.data = companies_europages_raw.data.withColumn("product_name", F.explode(F.split("products_and_services", "\|")))\
-            .drop("products_and_services")
-
-        companies_europages_raw = companies_europages_raw.custom_select(
-            ["product_name"])
-
-        # create product_id
-        # TODO: I dont think we should take the from date in here, since that might change the product id if something arbitrary in the other columns changes
-        sha_columns = [F.col(col_name) for col_name in companies_europages_raw.data.columns if col_name not in [
-            'tiltRecordID', 'to_date', 'map_companies_europages_raw']]
-
-        companies_europages_raw.data = companies_europages_raw.data.withColumn(
-            'product_id', F.sha2(F.concat_ws('|', *sha_columns), 256))
-
-        companies_europages_raw = companies_europages_raw.custom_select(
-            ['product_id', 'product_name']).custom_distinct()
-
-        products_datamodel = CustomDF(
-            'products_datamodel', spark_generate, initial_df=companies_europages_raw.data)
-
-        products_datamodel.write_table()
-
-    elif table_name == 'companies_products_datamodel':
-
-        companies_europages_raw = CustomDF(
-            'companies_europages_raw', spark_generate)
-
-        products_datamodel = CustomDF('products_datamodel', spark_generate)
-
-        rename_dict = {"id": "company_id"}
-
-        companies_europages_raw.rename_columns(rename_dict)
-
-        companies_europages_raw.data = companies_europages_raw.data.withColumn("product_name", F.explode(F.split("products_and_services", "\|")))\
-            .drop("products_and_services")
-        # TODO: I dont know if we have to reuse the product id created in the products datamodel table, because we can just repoduce it based on the same information
-        companies_joined_product_id = companies_europages_raw.custom_join(
-            products_datamodel, custom_on="product_name")
-
-        companies_joined_without_product_name = companies_joined_product_id.custom_drop(
-            ["product_name"])
-
-        companies_joined_without_product_name = companies_joined_without_product_name.custom_select(
-            ["company_id", "product_id"]).custom_distinct()
-
-        companies_products_datamodel = CustomDF(
-            'companies_products_datamodel', spark_generate, initial_df=companies_joined_without_product_name.data)
-        companies_products_datamodel.write_table()
-
     # Ecoinvent data
 
     elif table_name == 'intermediate_exchanges_datamodel':
@@ -184,8 +130,10 @@ def generate_table(table_name: str) -> None:
 
         cut_off_ao_raw.rename_columns(rename_dict)
 
-        cut_off_ao_raw.data = cut_off_ao_raw.data.withColumn("CPC_code", F.trim(F.split("CPC_Classification", ":")[0]))
-        cut_off_ao_raw.data = cut_off_ao_raw.data.withColumn("CPC_name", F.trim(F.split("CPC_Classification", ":")[1]))
+        cut_off_ao_raw.data = cut_off_ao_raw.data.withColumn(
+            "CPC_code", F.trim(F.split("CPC_Classification", ":")[0]))
+        cut_off_ao_raw.data = cut_off_ao_raw.data.withColumn(
+            "CPC_name", F.trim(F.split("CPC_Classification", ":")[1]))
 
         cut_off_ao_raw = cut_off_ao_raw.custom_select(
             ['product_uuid', 'reference_product_name', 'unit', "CPC_code", "CPC_name"]).custom_distinct()
@@ -201,8 +149,8 @@ def generate_table(table_name: str) -> None:
 
         rename_dict = {"Activity_UUID": "activity_uuid",
                        "Activity_Name": "activity_name",
-                        'Geography': 'geography',
-                        "Special_Activity_Type": "activity_type"}
+                       'Geography': 'geography',
+                       "Special_Activity_Type": "activity_type"}
 
         cut_off_ao_raw.rename_columns(rename_dict)
 

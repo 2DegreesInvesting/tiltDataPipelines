@@ -9,8 +9,3 @@ if __name__ == '__main__':
 
     # datamodel layer
     generate_table_datamodel('companies_datamodel')
-    generate_table_datamodel('products_datamodel')
-    generate_table_datamodel('companies_products_datamodel')
-
-
-    
