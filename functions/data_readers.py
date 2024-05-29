@@ -1,7 +1,7 @@
 import pyspark.sql.functions as F
 from pyspark.sql import DataFrame, SparkSession
 
-from functions.dataframe_helpers import create_table_path, create_table_name, clean_column_names
+from functions.dataframe_helpers import create_table_path, create_table_name, clean_column_names, create_map_column
 
 
 class DataReader:
@@ -69,13 +69,13 @@ class DataReader:
                 f"{self._history} is not a valid argument for the history of a table, use 'recent' or 'complete'")
 
         implemented_read_functions = {
-            'csv': self.read_csv_file(),
-            'parquet': self.read_parquet_file(),
-            'delta':  self.read_delta_table(),
-            'multiline': self.read_multiline_file()
+            'csv': self.read_csv_file,
+            'parquet': self.read_parquet_file,
+            'delta':  self.read_delta_table,
+            'multiline': self.read_multiline_file
         }
 
-        df = implemented_read_functions[self._schema['type']]
+        df = implemented_read_functions[self._schema['type']]()
 
         try:
             df.head()  # Force to load first record of the data to check if it throws an error
@@ -100,6 +100,10 @@ class DataReader:
             df = df.replace(replacement_dict, subset=df.columns)
 
         df = clean_column_names(df)
+
+        if self._schema['container'] not in ['landingzone', 'monitoring']:
+            df = create_map_column(df, '_'.join(
+                [self._schema['location'], self._schema['container']]))
 
         return df
 

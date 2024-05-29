@@ -1,10 +1,8 @@
-import re
-
 from pyspark.sql import SparkSession, DataFrame
 from pyspark.sql import functions as F
 
 
-from functions.dataframe_helpers import create_map_column, create_sha_values, create_table_path, create_table_name, create_catalog_schema, create_catalog_table, create_catalog_table_owner, apply_scd_type_2, assign_signalling_id
+from functions.dataframe_helpers import create_sha_values, create_catalog_schema, create_catalog_table, create_catalog_table_owner, apply_scd_type_2, assign_signalling_id
 from functions.data_quality_functions import calculate_signalling_issues, calculate_blocking_issues
 from functions.signalling_rules import signalling_checks_dictionary
 # from functions.tables import get_table_definition
@@ -138,8 +136,8 @@ class CustomDF(DataReader):
         """
         Computes SHA-256 hash values for each row in the DataFrame and adds the hash as a new column 'tiltRecordID'.
 
-        This method computes SHA-256 hash values for each row in the DataFrame based on the values in all columns, 
-        excluding 'tiltRecordID' and 'to_date'. The computed hash is then appended as a new column called 'tiltRecordID' 
+        This method computes SHA-256 hash values for each row in the DataFrame based on the values in all columns,
+        excluding 'tiltRecordID' and 'to_date'. The computed hash is then appended as a new column called 'tiltRecordID'
         to the DataFrame. The order of columns in the DataFrame will affect the generated hash value.
 
         If a partition column is specified in the schema, the method ensures that it is the rightmost column in the DataFrame.
@@ -150,7 +148,7 @@ class CustomDF(DataReader):
         """
         # Select all columns that are needed for the creation of a record ID
         sha_columns = [F.col(col_name) for col_name in self._df.columns if col_name not in [
-            'tiltRecordID', 'to_date']]
+            'tiltRecordID', 'to_date'] and 'map_' not in col_name]
 
         # Create the SHA256 record ID by concatenating all relevant columns
         data_frame = create_sha_values(self._df, sha_columns)
@@ -252,11 +250,16 @@ class CustomDF(DataReader):
         """
 
         self.create_catalog_table()
+
         # Compare the newly created records with the existing tables
         self._df = self.compare_tables()
 
         # Add the SHA value to create a unique ID within tilt
         self._df = self.add_record_id()
+
+        # Since the map column is only available starting from the raw layer, we can not dump/write it when writing to the raw layer.
+        if self._schema['container'] not in ['landingzone', 'monitoring', 'raw']:
+            self.dump_map_column()
 
         table_check = self.validate_table_format()
 
@@ -272,6 +275,73 @@ class CustomDF(DataReader):
 
         if self._name != 'monitoring_values':
             self.check_signalling_issues()
+
+    def dump_map_column(self):
+        """
+        Dumps the map column from the DataFrame to a Delta table.
+
+        This method creates a Delta table and dumps the map column from the DataFrame into it.
+        The process happens when writing the table, so the map column is dumped to the record_trace table.
+        Here we use the new recordID of the generated record and explode the valus in the map column.
+        This process also include the creation and generation of the record trace table in case it does not exist yet. 
+
+        Returns:
+            None
+        """
+        # Define the table name using the environment variable
+        table_name = f"{self._env}.monitoring.record_tracing"
+        
+        # Get the schema for the "record_trace" table
+        trace_schema = get_table_definition(self._layer, "record_trace")
+        
+        # Generate SQL strings to create the schema and set the owner of the schema
+        create_schema_string, set_owner_schema_string = create_catalog_schema(
+            self._env, trace_schema)
+        
+        # Generate SQL strings to create the table and set the owner of the table
+        create_string = create_catalog_table(
+            table_name, trace_schema)
+        set_owner_string = create_catalog_table_owner(
+            table_name)
+        
+        # Execute the SQL strings
+        self._spark_session.sql(create_schema_string)
+        self._spark_session.sql(set_owner_schema_string)
+        self._spark_session.sql(create_string)
+        self._spark_session.sql(set_owner_string)
+        
+        # Find the map_column
+        map_col = [
+            col for col in self._df.columns if col.startswith('map_')][0]
+        
+        # Filter the DataFrame to only include rows that are newly created. Only for the new rows we want to dump the new record traces.
+        dump_df = self._df.where(F.col('to_date') == '2099-12-31')
+        
+        # Add a new column 'target_table_name' with the name of the table, and rename 'tiltRecordID' to 'target_tiltRecordID'
+        dump_df = dump_df.withColumn('target_table_name', F.lit(
+            self._name)).withColumnRenamed('tiltRecordID', 'target_tiltRecordID')
+        
+        # Explode the map column to be able to write the array format to a standard sql table
+        dump_df = dump_df.select('*', F.explode(map_col).alias('source_table_name', 'source_tiltRecordID_list')
+                                 ).select('*', F.explode(F.col('source_tiltRecordID_list')).alias('source_tiltRecordID'))
+        
+        # Select only the columns 'source_tiltRecordID', 'source_table_name', 'target_tiltRecordID', and 'target_table_name'
+        dump_df = dump_df.select(F.col('source_tiltRecordID'), F.col('source_table_name'), F.col(
+            'target_tiltRecordID'), F.col('target_table_name'))
+        
+        # Read the existing record tracing table into a DataFrame
+        df = self._spark_session.read.format(
+            'delta').table(table_name)
+        
+        # Filter the DataFrame to only include rows where for the current table
+        df = df.filter(F.col('target_table_name') == self._name)
+        
+        # Union the two DataFrames and write the result to the table, partitioned by the name of the table
+        dump_df.union(df).write.partitionBy('target_table_name').mode(
+            'overwrite').format('delta').saveAsTable(table_name)
+        
+        # Drop the map column from the original DataFrame
+        self._df = self._df.drop(F.col(map_col))
 
     def convert_data_types(self, column_list: list, data_type):
         """
@@ -313,7 +383,100 @@ class CustomDF(DataReader):
 
         return CustomDF(self._name, self._spark_session, self._df, self._partition_name, self._history)
 
-    @property
+    def custom_select(self, columns: list):
+        """
+        Selects the specified columns from the DataFrame. If the DataFrame is not coming from the landing zone, the existence of the map column is assumed.
+
+        Args:
+            columns (list): A list of column names to select.
+
+        Returns:
+            CustomDF: A new CustomDF object with the selected columns.
+        """
+
+        if self._schema['container'] not in ['landingzone']:
+            self._df = self._df.select(
+                *columns, F.col(f"map_{self._schema['location']}_{self._schema['container']}"))
+        else:
+            self._df = self._df.select(*columns)
+
+        return CustomDF(self._name, self._spark_session, self._df, self._partition_name, self._history)
+
+    def custom_distinct(self):
+        """
+        Returns the distinct rows from the DataFrame.
+
+        Returns:
+            CustomDF: A new CustomDF instance with distinct rows.
+        """
+        cols = [F.col(col)
+                for col in self._df.columns if not col.startswith('map_')]
+
+        map_col = [
+            col for col in self._df.columns if col.startswith('map_')][0]
+
+        df = self._df.select(*cols, F.explode(
+            F.col(map_col)).alias('exploded_table', 'exploded_list'))\
+            .select(*cols, F.col('exploded_table'), F.explode(F.col('exploded_list')).alias('exploded'))
+
+        self._df = df\
+            .groupBy(cols + ['exploded_table'])\
+            .agg(F.collect_set(F.col('exploded')).alias('exploded_fold'))\
+            .groupBy(cols)\
+            .agg(F.collect_list(F.col('exploded_table')).alias('table_list'), F.collect_list(F.col('exploded_fold')).alias('fold_list'))\
+            .withColumn(map_col, F.map_from_arrays(F.col('table_list'), F.col('fold_list')))\
+            .select(*cols, F.col(map_col))
+
+        return CustomDF(self._name, self._spark_session, self._df, self._partition_name, self._history)
+
+    def custom_union(self, custom_other: 'CustomDF'):
+        """
+        Unions the current CustomDF instance with another CustomDF instance.
+
+        Args:
+            other (CustomDF): The other CustomDF instance to union with.
+
+        Returns:
+            CustomDF: A new CustomDF instance that is the result of the union.
+        """
+
+        cols = [F.col(col)
+                for col in self._df.columns if not col.startswith('map_')]
+
+        map_col = [
+            col for col in self._df.columns if col.startswith('map_')][0]
+
+        copy_df = custom_other.data
+        copy_df = self._df.unionAll(copy_df)
+
+        df = copy_df.select(*cols, F.explode(
+            F.col(map_col)).alias('exploded_table', 'exploded_list'))\
+            .select(*cols, F.col('exploded_table'), F.explode(F.col('exploded_list')).alias('exploded'))
+
+        self._df = df\
+            .groupBy(cols + ['exploded_table'])\
+            .agg(F.collect_set(F.col('exploded')).alias('exploded_fold'))\
+            .groupBy(cols)\
+            .agg(F.collect_list(F.col('exploded_table')).alias('table_list'), F.collect_list(F.col('exploded_fold')).alias('fold_list'))\
+            .withColumn(map_col, F.map_from_arrays(F.col('table_list'), F.col('fold_list')))\
+            .select(*cols, F.col(map_col))
+
+        return CustomDF(self._name, self._spark_session, self._df, self._partition_name, self._history)
+
+    def custom_drop(self, columns: list):
+        """
+        Drops the specified columns from the DataFrame.
+
+        Args:
+            columns (list): A list of column names to drop from the DataFrame.
+
+        Returns:
+            CustomDF: A new CustomDF instance with the specified columns dropped.
+        """
+        self._df = self._df.drop(*columns)
+        return CustomDF(self._name, self._spark_session, self._df, self._partition_name, self._history)
+
+    @ property
     def data(self):
         """
         Returns the Spark DataFrame associated with the CustomDF instance.
@@ -323,7 +486,7 @@ class CustomDF(DataReader):
         """
         return self._df
 
-    @data.setter
+    @ data.setter
     def data(self, new_df: DataFrame):
         """
         Sets the DataFrame associated with the CustomDF instance.
@@ -342,7 +505,7 @@ class CustomDF(DataReader):
         """
         self._df = new_df
 
-    @property
+    @ property
     def name(self):
         """
         Returns the name of the CustomDF instance.
