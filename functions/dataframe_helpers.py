@@ -333,7 +333,7 @@ def format_postcode(postcode: str, city: str) -> str:
     postcode = F.when(reference != "", F.split(reference, ' ')[0])
 
     # take the rest to format into the correct format
-    postcode = F.when(postcode != "", (postcode))
+    postcode = F.when(postcode != "", structure_postcode(postcode))
 
     return postcode
 
