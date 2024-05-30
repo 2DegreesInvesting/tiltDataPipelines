@@ -298,20 +298,13 @@ def structure_postcode(postcode: str) -> str:
     Returns:
         str: Structured postcode in the predefined format of '1234 AB'
     """
-    # if postcode has 6 characters, the first four should be the numbers;
-    # otherwise assume it is already in '1234 ab', split and take the digits only
-    num = F.when(F.length(postcode) == 6, postcode[0:4]).otherwise(
-        F.split(postcode, ' ')[0])
 
-    # if postcode 6 characters, the latter two should be the letters;
-    # otherwise assume it is already in '1234 ab', split, and take the letters and uppercase them
-    alph = F.when(F.length(postcode) == 6, F.upper(postcode[5:7])).otherwise(
-        F.upper(F.split(postcode, ' ')[1]))
+    # Use regex to extract the numbers and letters from the postcode
+    num = F.regexp_extract(postcode, r'^(\d{4})', 1)
+    alph = F.regexp_extract(postcode, r'([A-Za-z]{2})$', 1)
 
-    # format postcode into `1234 AB`
-    return F.concat(num, F.lit(" "), alph)
-
-# Unify postcode format to match Company.info
+    # Format postcode into `1234 AB`
+    return F.concat(num, F.lit(" "), F.upper(alph))
 
 
 def format_postcode(postcode: str, city: str) -> str:
