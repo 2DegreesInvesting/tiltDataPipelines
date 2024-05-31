@@ -1,6 +1,14 @@
 import os
 import pyspark.sql.functions as F
-from pyspark.sql.types import DoubleType, IntegerType, BooleanType, ShortType, DateType, ByteType, DecimalType
+from pyspark.sql.types import (
+    DoubleType,
+    IntegerType,
+    BooleanType,
+    ShortType,
+    DateType,
+    ByteType,
+    DecimalType,
+)
 from functions.custom_dataframes import CustomDF
 from functions.spark_session import create_spark_session
 
@@ -28,27 +36,35 @@ def generate_table(table_name: str) -> None:
 
     spark_generate = create_spark_session()
 
-    if table_name == 'companies_europages_raw':
+    if table_name == "companies_europages_raw":
 
         companies_europages_landingzone = CustomDF(
-            'companies_europages_landingzone', spark_generate)
+            "companies_europages_landingzone", spark_generate
+        )
 
         column_names = ["min_headcount", "max_headcount", "year_established"]
 
-        companies_europages_landingzone.convert_data_types(
-            column_names, IntegerType())
+        companies_europages_landingzone.convert_data_types(column_names, IntegerType())
 
         companies_europages_landingzone.convert_data_types(
-            ['verified_by_europages'], BooleanType())
+            ["verified_by_europages"], BooleanType()
+        )
 
         companies_europages_landingzone.convert_data_types(
-            ['download_datetime'], DateType())
+            ["download_datetime"], DateType()
+        )
 
-        companies_europages_landingzone.data = companies_europages_landingzone.data.filter(
-            F.col('id') != 'na_00000004265865-001')
+        companies_europages_landingzone.data = (
+            companies_europages_landingzone.data.filter(
+                F.col("id") != "na_00000004265865-001"
+            )
+        )
 
         companies_europages_raw = CustomDF(
-            'companies_europages_raw', spark_generate, initial_df=companies_europages_landingzone.data)
+            "companies_europages_raw",
+            spark_generate,
+            initial_df=companies_europages_landingzone.data,
+        )
 
         companies_europages_raw.write_table()
 
@@ -56,11 +72,11 @@ def generate_table(table_name: str) -> None:
         companies_companyinfo_landingzone = CustomDF(
             "companies_companyinfo_landingzone", spark_generate
         )
-        print(companies_companyinfo_landingzone.data.count())
+
         companies_companyinfo_raw = CustomDF(
             "companies_companyinfo_raw",
             spark_generate,
-            initial_df=companies_companyinfo_landingzone.data
+            initial_df=companies_companyinfo_landingzone.data,
         )
 
         companies_companyinfo_raw.write_table()
@@ -697,26 +713,35 @@ def generate_table(table_name: str) -> None:
     elif table_name == "isic_mapper_raw":
 
         isic_4_digit_codes_landingzone = CustomDF(
-            'isic_4_digit_codes_landingzone', spark_generate)
+            "isic_4_digit_codes_landingzone", spark_generate
+        )
 
         isic_mapper_raw = CustomDF(
-            'isic_mapper_raw', spark_generate, initial_df=isic_4_digit_codes_landingzone.data)
+            "isic_mapper_raw",
+            spark_generate,
+            initial_df=isic_4_digit_codes_landingzone.data,
+        )
         isic_mapper_raw.write_table()
 
-    elif table_name == 'SBI_activities':
-        SBI_activities_landingzone = CustomDF('SBI_activities_landingzone', spark_generate)
+    elif table_name == "SBI_activities_raw":
+        SBI_activities_landingzone = CustomDF(
+            "SBI_activities_landingzone", spark_generate
+        )
 
         SBI_activities_raw = CustomDF(
-            'SBI_activites_raw', spark_generate, initial_df=SBI_activities_landingzone.data
+            "SBI_activities_raw",
+            spark_generate,
+            initial_df=SBI_activities_landingzone.data,
         )
 
         SBI_activities_raw.write_table()
     else:
         raise ValueError(
-            f'The table: {table_name} is not specified in the processing functions')
+            f"The table: {table_name} is not specified in the processing functions"
+        )
 
     # If the code is run as a workflow on databricks, we do not want to shutdown the spark session.
     # If the code is run as a workflow on databricks, we do not want to shutdown the spark session.
     # This will cause the cluster to be unusable for other spark processes
-    if not 'DATABRICKS_RUNTIME_VERSION' in os.environ:
+    if not "DATABRICKS_RUNTIME_VERSION" in os.environ:
         spark_generate.stop()

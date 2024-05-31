@@ -1244,7 +1244,7 @@ raw_schema = {
         "columns": StructType(
             [
                 StructField("SBI", StringType(), False),
-                StructField("Omschrijving", StringType(), False),
+                StructField("Omschrijving", StringType(), True),
                 StructField("from_date", DateType(), False),
                 StructField("to_date", DateType(), False),
                 StructField("tiltRecordID", StringType(), False),
