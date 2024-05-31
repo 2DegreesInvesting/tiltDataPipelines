@@ -52,6 +52,36 @@ def generate_table(table_name: str) -> None:
 
         companies_europages_raw.write_table()
 
+    #### temporary table of deduplicated europages data for Friday Demo (possibly also for MVP)
+    elif table_name == 'companies_products_raw':
+
+        companies_product_mapping_landingzone = CustomDF(
+            'companies_products_landingzone', spark_generate
+        )
+
+        column_names = ["id", "product_id"]
+
+        companies_product_mapping_raw = CustomDF(
+            'companies_products_raw', spark_generate, initial_df=companies_product_mapping_landingzone.data.select(column_names)
+        )
+
+        companies_product_mapping_raw.write_table()
+
+    elif table_name == 'products_raw':
+
+        products_landingzone = CustomDF(
+            'products_landingzone', spark_generate
+        )
+
+        column_names = ['product_id', 'product_name']
+
+        products_raw = CustomDF(
+            'products_raw', spark_generate, initial_df=products_landingzone.data.select(column_names)
+        )
+
+        products_raw.write_table()
+    ####
+
     elif table_name == 'country_raw':
 
         country_landingzone = CustomDF(

@@ -66,6 +66,34 @@ def generate_table(table_name: str) -> None:
 
         companies_datamodel.write_table()
 
+    #### temporary table of deduplicated europages data for Friday Demo (possibly also for MVP)
+    elif table_name == 'companies_products_datamodel':
+
+        companies_products_raw = CustomDF(
+            'companies_products_raw', spark_generate
+        )
+
+        rename_dict = {"id":"company_id"}
+
+        companies_products_datamodel = CustomDF(
+            'companies_products_datamodel', spark_generate, initial_df=companies_products_raw.data.withColumnsRenamed(rename_dict)
+        )
+
+        companies_products_datamodel.write_table()
+
+    elif table_name == 'products_datamodel':
+
+        products_raw = CustomDF(
+            'products_raw', spark_generate
+        )
+
+        products_datamodel = CustomDF(
+            'products_datamodel', spark_generate, initial_df=products_raw.data
+        )
+
+        products_datamodel.write_table()
+    ####
+
     # Ecoinvent data
 
     elif table_name == 'intermediate_exchanges_datamodel':

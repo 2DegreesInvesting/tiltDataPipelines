@@ -121,6 +121,34 @@ landingzone_schema = {
         'partition_column': '',
         'quality_checks': []
     },
+    #### temporary boarding of pre-processed data for Friday Demo (perhaps also MVP):
+    'companies_products_landingzone': {
+        'columns': StructType([
+            StructField('id', StringType(), False),
+            StructField('product_id', StringType(), False)
+        ]
+        ),
+        'container': 'landingzone',
+        'location': 'pre_processed-data/tilt_company_products_mapping_deduped.csv',
+        'type': 'csv',
+        'partition_column': '',
+        'quality_checks': []
+    },
+    'products_landingzone': {
+        'columns': StructType([
+            StructField('product_id', StringType(), False),
+            StructField('product_name', StringType(), False)
+        ]
+        ),
+        'container': 'landingzone',
+        'location': 'pre_processed-data/tilt_products_deduped.csv',
+        'type': 'csv',
+        'partition_column': '',
+        'quality_checks': []
+    },
+
+    ####
+
     # 'geography_mapper_landingzone': {
     #     'columns':  StructType([
     #         StructField('geography_id', StringType(), False),

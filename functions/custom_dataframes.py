@@ -122,7 +122,7 @@ class CustomDF(DataReader):
             raise ValueError("The head of the table does not match.")
 
         # Check if all of the rows are unique in the table
-
+        print(self._name)
         if self._df.count() != self._df.distinct().count():
             # The format of the DataFrame does not match the table definition
             raise ValueError("Not all rows in the table are unqiue")

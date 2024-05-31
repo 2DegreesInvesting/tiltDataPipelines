@@ -59,6 +59,41 @@ raw_schema = {
             'columns': ['id', 'sector', 'subsector']
         }]
     },
+
+    #### temporary boarding of pre-processed data for Friday Demo (perhaps also MVP):
+    'companies_products_raw': {
+        'columns': StructType([
+            StructField('id', StringType(), False),
+            StructField('product_id', StringType(), False),
+            StructField('from_date', DateType(), False),
+            StructField('to_date', DateType(), False),
+            StructField('tiltRecordID', StringType(), False)
+        ]
+        ),
+        'container': 'raw',
+        'location': 'companies_products',
+        'type': 'delta',
+        'partition_column': '',
+        'quality_checks': []
+    },
+    'products_raw': {
+        'columns': StructType([
+            StructField('product_id', StringType(), False),
+            StructField('product_name', StringType(), False),
+            StructField('from_date', DateType(), False),
+            StructField('to_date', DateType(), False),
+            StructField('tiltRecordID', StringType(), False)
+        ]
+        ),
+        'container': 'raw',
+        'location': 'products',
+        'type': 'delta',
+        'partition_column': '',
+        'quality_checks': []
+    },
+
+    ####
+
     'country_raw': {
         'columns': StructType([
             StructField('country_id', StringType(), False),
