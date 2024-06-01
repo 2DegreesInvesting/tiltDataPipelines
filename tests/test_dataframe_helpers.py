@@ -3,7 +3,7 @@ from functions.dataframe_helpers import create_catalog_table, create_catalog_sch
 import pyspark.sql.types as T
 import pyspark.sql.functions as F
 
-from pyspark.testing import assertDataFrameEqual, assertSchemaEqual
+from pyspark.testing import assertDataFrameEqual
 from functions.spark_session import create_spark_session
 from datetime import date
 
@@ -66,7 +66,7 @@ def spark_map_schema_fixture():
         T.StructField('test_date_column', T.DateType(), True),
         T.StructField('tiltRecordID', T.StringType(), True),
         T.StructField('map_test_table_raw', T.MapType(
-            T.StringType(), T.StringType()), True),
+            T.StringType(), T.ArrayType(T.StringType())), True),
     ]
     )
     return schema
@@ -74,8 +74,8 @@ def spark_map_schema_fixture():
 
 @pytest.fixture(scope='session')
 def spark_df_map_fixture(spark_session_fixture, spark_map_schema_fixture):
-    data = [('test', 3, 4.25, date(2024, 1, 1), 'c08b3845dc7c50a6adcffe4eaac17e48254452b2a02a2d8e5b736388e1a922e2', {'test_table_raw': 'c08b3845dc7c50a6adcffe4eaac17e48254452b2a02a2d8e5b736388e1a922e2'},), ('test', 4, 4.25, date(2024, 1, 1), '493ea4dfd66efdecd87aaf61e8b871cb3799778bbcea79b9c8dbb2845fd57536', {
-        'test_table_raw': '493ea4dfd66efdecd87aaf61e8b871cb3799778bbcea79b9c8dbb2845fd57536'},), ('test', 8, -12.25, date(2025, 1, 1), '21c45afcd25c751840e738ea0cd09c3627b934130b620e88469798334364c4d9', {'test_table_raw': '21c45afcd25c751840e738ea0cd09c3627b934130b620e88469798334364c4d9'},),]
+    data = [('test', 3, 4.25, date(2024, 1, 1), 'c08b3845dc7c50a6adcffe4eaac17e48254452b2a02a2d8e5b736388e1a922e2', {'test_table_raw': ['c08b3845dc7c50a6adcffe4eaac17e48254452b2a02a2d8e5b736388e1a922e2']},), ('test', 4, 4.25, date(2024, 1, 1), '493ea4dfd66efdecd87aaf61e8b871cb3799778bbcea79b9c8dbb2845fd57536', {
+        'test_table_raw': ['493ea4dfd66efdecd87aaf61e8b871cb3799778bbcea79b9c8dbb2845fd57536']},), ('test', 8, -12.25, date(2025, 1, 1), '21c45afcd25c751840e738ea0cd09c3627b934130b620e88469798334364c4d9', {'test_table_raw': ['21c45afcd25c751840e738ea0cd09c3627b934130b620e88469798334364c4d9']},),]
     df = spark_session_fixture.createDataFrame(
         data, spark_map_schema_fixture)
     return df
@@ -374,7 +374,9 @@ class Test_apply_scd_type_2:
         initial_schema = T.StructType([
             T.StructField('id', T.StringType(), False),
             T.StructField('name', T.StringType(), False),
-            T.StructField('value', T.DoubleType(), False)
+            T.StructField('value', T.DoubleType(), False),
+            T.StructField('map_test_table_raw', T.MapType(
+                T.StringType(), T.ArrayType(T.StringType())), True)
         ])
         target_schema = T.StructType([
             T.StructField('id', T.StringType(), False),
@@ -382,15 +384,17 @@ class Test_apply_scd_type_2:
             T.StructField('value', T.DoubleType(), False),
             T.StructField('from_date', T.DateType(), False),
             T.StructField('to_date', T.DateType(), False),
+            T.StructField('map_test_table_raw', T.MapType(
+                T.StringType(), T.ArrayType(T.StringType())), True)
         ])
         new_table = spark_session_fixture.createDataFrame(
-            [(1, 'test', 1.0,)], initial_schema)
+            [(1, 'test', 1.0, {'test_table_raw': ['test_id']})], initial_schema)
 
         existing_table = spark_session_fixture.createDataFrame(
-            [(1, 'test', 1.0, date(2024, 1, 1),  date(2099, 12, 31),)], target_schema)
+            [(1, 'test', 1.0, date(2024, 1, 1),  date(2099, 12, 31), {})], target_schema)
 
         resulting_table = spark_session_fixture.createDataFrame(
-            [(1, 'test', 1.0, date(2024, 1, 1),  date(2099, 12, 31),)], target_schema)
+            [(1, 'test', 1.0, date(2024, 1, 1),  date(2099, 12, 31), {})], target_schema)
 
         test_table = apply_scd_type_2(new_table, existing_table)
 
@@ -408,11 +412,12 @@ class Test_apply_scd_type_2:
             None
         """
 
-        processing_date = date.today()
         initial_schema = T.StructType([
             T.StructField('id', T.StringType(), False),
             T.StructField('name', T.StringType(), False),
-            T.StructField('value', T.DoubleType(), False)
+            T.StructField('value', T.DoubleType(), False),
+            T.StructField('map_test_table_raw', T.MapType(
+                T.StringType(), T.ArrayType(T.StringType())), True)
         ])
         target_schema = T.StructType([
             T.StructField('id', T.StringType(), False),
@@ -420,16 +425,18 @@ class Test_apply_scd_type_2:
             T.StructField('value', T.DoubleType(), False),
             T.StructField('from_date', T.DateType(), False),
             T.StructField('to_date', T.DateType(), False),
+            T.StructField('map_test_table_raw', T.MapType(
+                T.StringType(), T.ArrayType(T.StringType())), True)
         ])
-
+        processing_date = date.today()
         new_table = spark_session_fixture.createDataFrame(
-            [(1, 'test', 2.0,)], initial_schema)
+            [('1', 'test', 2.0, {'test_table_raw': ['test_id_new']})], initial_schema)
 
         existing_table = spark_session_fixture.createDataFrame(
-            [(1, 'test', 1.0, date(2024, 1, 1),  date(2099, 12, 31),)], target_schema)
+            [('1', 'test', 1.0, date(2024, 1, 1),  date(2099, 12, 31), {})], target_schema)
 
         resulting_table = spark_session_fixture.createDataFrame(
-            [(1, 'test', 1.0, date(2024, 1, 1),  processing_date,), ('1', 'test', 2.0, processing_date, date(2099, 12, 31),)], target_schema)
+            [('1', 'test', 1.0, date(2024, 1, 1),  processing_date, {},), ('1', 'test', 2.0, processing_date, date(2099, 12, 31), {'test_table_raw': ['test_id_new']},),], target_schema)
 
         test_table = apply_scd_type_2(new_table, existing_table)
 

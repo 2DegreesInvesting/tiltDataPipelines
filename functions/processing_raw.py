@@ -735,6 +735,18 @@ def generate_table(table_name: str) -> None:
         )
 
         SBI_activities_raw.write_table()
+
+    elif table_name == "tiltLedger_raw":
+
+        tiltLedger_landingzone = CustomDF("tiltLedger_landingzone", spark_generate)
+
+        tiltLedger_landingzone.data = tiltLedger_landingzone.data.distinct()
+
+        tiltLedger_raw = CustomDF(
+            "tiltLedger_raw", spark_generate, initial_df=tiltLedger_landingzone.data
+        )
+        tiltLedger_raw.write_table()
+
     else:
         raise ValueError(
             f"The table: {table_name} is not specified in the processing functions"

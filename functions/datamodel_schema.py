@@ -400,4 +400,24 @@ datamodel_schema = {
         "partition_column": "",
         "quality_checks": [],
     },
+    "tiltLedger_datamodel": {
+        "columns": StructType(
+            [
+                StructField("CPC_Code", StringType(), True),
+                StructField("CPC_Name", StringType(), True),
+                StructField("ISIC_4digit", StringType(), True),
+                StructField("ISIC_Name", StringType(), True),
+                StructField("Activity_Type", StringType(), True),
+                StructField("Geography", StringType(), True),
+                StructField("from_date", DateType(), False),
+                StructField("to_date", DateType(), False),
+                StructField("tiltRecordID", StringType(), False),
+            ]
+        ),
+        "container": "datamodel",
+        "location": "tiltLedger",
+        "type": "delta",
+        "partition_column": "",
+        "quality_checks": [],
+    },
 }

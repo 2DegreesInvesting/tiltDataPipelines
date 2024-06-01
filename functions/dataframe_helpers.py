@@ -2,6 +2,8 @@ import re
 import pyspark.sql.functions as F
 from pyspark.sql import SparkSession, DataFrame
 from pyspark.sql.window import Window
+import pyspark.sql.types as T
+from pyspark.sql.functions import udf
 
 
 def create_map_column(dataframe: DataFrame, dataframe_name: str) -> DataFrame:
@@ -18,7 +20,7 @@ def create_map_column(dataframe: DataFrame, dataframe_name: str) -> DataFrame:
     """
     dataframe = dataframe.withColumn(
         f'map_{dataframe_name}', F.create_map(
-            F.lit(dataframe_name), F.col('tiltRecordID'))
+            F.lit(dataframe_name), F.array(F.col('tiltRecordID')))
     )
     return dataframe
 
@@ -192,11 +194,24 @@ def apply_scd_type_2(new_table: DataFrame, existing_table: DataFrame) -> DataFra
     # Determine the processing date
     processing_date = F.current_date()
     future_date = F.lit('2099-12-31')
+    map_col = ''
     from_to_list = [F.col('from_date'), F.col('to_date')]
+
+    # Check if the new table contains a map column
+    if [col for col in new_table.columns if col.startswith('map_')]:
+        # This is supposed to check if we are creating the the monitoring_valus table
+        if not 'signalling_id' in existing_table.columns:
+            map_col = [
+                col for col in new_table.columns if col.startswith('map_')][0]
+            existing_table = existing_table.withColumn(
+                map_col, F.create_map().cast('Map<String, Array<String>>'))
+            from_to_list += [F.col(map_col)]
+        else:
+            map_col = 'map_monitoring_values'
 
     # Select the columns that contain values that should be compared
     value_columns = [F.col(col_name) for col_name in new_table.columns if col_name not in [
-        'tiltRecordID', 'from_date', 'to_date']]
+        'tiltRecordID', 'from_date', 'to_date'] and col_name != map_col]
 
     old_closed_records = existing_table.filter(
         F.col('to_date') != future_date).select(value_columns + from_to_list)

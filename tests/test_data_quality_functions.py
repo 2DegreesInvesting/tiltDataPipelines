@@ -7,7 +7,7 @@ from pyspark.testing import assertDataFrameEqual
 from datetime import date
 
 from functions.spark_session import create_spark_session
-from functions.data_quality_functions import TransposeDF, check_value_within_list, calculate_filled_values, check_values_in_range, check_values_unique, check_values_format, check_expected_distinct_value_count, column_sums_to_1, calculate_signalling_issues, check_expected_value_count, calculate_blocking_issues
+from functions.data_quality_functions import check_value_within_list, calculate_filled_values, check_values_in_range, check_values_unique, check_values_format, check_expected_distinct_value_count, column_sums_to_1, calculate_signalling_issues, check_expected_value_count, calculate_blocking_issues
 
 
 @pytest.fixture(scope='session')
@@ -64,37 +64,6 @@ class Test_valid_setup:
         assert True
 
 
-class Test_Transpose_df:
-
-    @staticmethod
-    def test_transpose_dataframe(spark_session_fixture):
-
-        to_be_transposed_schema = T.StructType([
-            T.StructField('column_1', T.IntegerType(), False),
-            T.StructField('column_2', T.IntegerType(), False),
-            T.StructField('column_3', T.IntegerType(), True),
-            T.StructField('invalid_count_column', T.StringType(), True),
-        ])
-
-        to_be_transposed_df = spark_session_fixture.createDataFrame(
-            [(5, 6, 7, 'invalid_count')], to_be_transposed_schema)
-
-        col_list = ['column_1', 'column_2', 'column_3']
-
-        df = TransposeDF(to_be_transposed_df,
-                         col_list, 'invalid_count_column')
-
-        transposed_schema = T.StructType([
-            T.StructField('invalid_count_column', T.StringType(), True),
-            T.StructField('invalid_count', T.StringType(), False),
-        ])
-
-        transposed_df = spark_session_fixture.createDataFrame(
-            [('column_1', 5), ('column_2', 6), ('column_3', 7)], transposed_schema)
-
-        assertDataFrameEqual(transposed_df, df)
-
-
 class Test_value_within_list:
 
     @staticmethod
@@ -118,7 +87,7 @@ class Test_calculate_filled_values:
     @staticmethod
     def test_calculate_filled_values(spark_session_fixture, spark_general_df):
 
-        df = calculate_filled_values(spark_general_df)
+        df = calculate_filled_values(spark_general_df, spark_session_fixture)
 
         resulting_schema = T.StructType([
             T.StructField('signalling_id', T.IntegerType(), False),

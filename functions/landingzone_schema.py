@@ -128,88 +128,84 @@ landingzone_schema = {
                 ),
                 StructField("RSIN-nummer", StringType(), True),
                 StructField("Vestigingsnummer", StringType(), True),
-                StructField("Instellingsnaam", StringType(), False),
+                StructField("Instellingsnaam", StringType(), True),
                 StructField("Statutaire_naam", StringType(), True),
                 StructField("Handelsnaam_1", StringType(), True),
                 StructField("Handelsnaam_2", StringType(), True),
                 StructField("Handelsnaam_3", StringType(), True),
                 StructField("Bedrijfsomschrijving", StringType(), True),
-                StructField("Vestigingsadres", StringType(), False),
-                StructField("Vestigingsadres_straat", StringType(), False),
-                StructField("Vestigingsadres_huisnummer", StringType(), False),
+                StructField("Vestigingsadres", StringType(), True),
+                StructField("Vestigingsadres_straat", StringType(), True),
+                StructField("Vestigingsadres_huisnummer", StringType(), True),
                 StructField("Vestigingsadres_toevoeging", StringType(), True),
-                StructField("Vestigingsadres_postcode", StringType(), False),
-                StructField("Vestigingsadres_plaats", StringType(), False),
+                StructField("Vestigingsadres_postcode", StringType(), True),
+                StructField("Vestigingsadres_plaats", StringType(), True),
                 StructField("Plan_Naam_1", StringType(), True),
                 StructField("Kern_Naam_1", StringType(), True),
-                StructField("KIX", StringType(), False),
-                StructField("4-cijferige_Postcode", StringType(), False),
+                StructField("KIX", StringType(), True),
+                StructField("4-cijferige_Postcode", StringType(), True),
                 StructField("Pand_ID", StringType(), True),
-                StructField("Rechtsvorm_Omschrijving", StringType(), False),
-                StructField("Aantal_medewerkers", StringType(), False),
-                StructField("Klasse_aantal_medewerkers", StringType(), False),
+                StructField("Rechtsvorm_Omschrijving", StringType(), True),
+                StructField("Aantal_medewerkers", StringType(), True),
+                StructField("Klasse_aantal_medewerkers", StringType(), True),
                 StructField(
-                    "Klasse_aantal_medewerkers_Omschrijving", StringType(), False
+                    "Klasse_aantal_medewerkers_Omschrijving", StringType(), True
                 ),
                 StructField(
-                    "Aantal_medewerkers_van_concern_op_locatie", StringType(), False
+                    "Aantal_medewerkers_van_concern_op_locatie", StringType(), True
                 ),
-                StructField("Klasse_aantal_medewerkers_locatie", StringType(), False),
+                StructField("Klasse_aantal_medewerkers_locatie", StringType(), True),
                 StructField(
-                    "Klasse_aantal_medewerkers_locatie_Omschrijving",
-                    StringType(),
-                    False,
+                    "Klasse_aantal_medewerkers_locatie_Omschrijving", StringType(), True
                 ),
-                StructField("SBI-code", StringType(), False),
-                StructField("SBI-code_Omschrijving", StringType(), False),
-                StructField("SBI-code_2-cijferig", StringType(), False),
-                StructField("SBI-code_2-cijferig_Omschrijving", StringType(), False),
-                StructField("SBI-code_segment", StringType(), False),
-                StructField("SBI-code_segment_Omschrijving", StringType(), False),
-                StructField("NACE-code", StringType(), False),
-                StructField("NACE-code_Omschrijving", StringType(), False),
-                StructField("SBI-code_locatie", StringType(), False),
-                StructField("SBI-code_locatie_Omschrijving", StringType(), False),
-                StructField("SBI-code_2-cijferig_locatie", StringType(), False),
+                StructField("SBI-code", StringType(), True),
+                StructField("SBI-code_Omschrijving", StringType(), True),
+                StructField("SBI-code_2-cijferig", StringType(), True),
+                StructField("SBI-code_2-cijferig_Omschrijving", StringType(), True),
+                StructField("SBI-code_segment", StringType(), True),
+                StructField("SBI-code_segment_Omschrijving", StringType(), True),
+                StructField("NACE-code", StringType(), True),
+                StructField("NACE-code_Omschrijving", StringType(), True),
+                StructField("SBI-code_locatie", StringType(), True),
+                StructField("SBI-code_locatie_Omschrijving", StringType(), True),
+                StructField("SBI-code_2-cijferig_locatie", StringType(), True),
                 StructField(
-                    "SBI-code_2-cijferig_locatie_Omschrijving", StringType(), False
+                    "SBI-code_2-cijferig_locatie_Omschrijving", StringType(), True
                 ),
-                StructField("SBI-code_segment_locatie", StringType(), False),
+                StructField("SBI-code_segment_locatie", StringType(), True),
                 StructField(
-                    "SBI-code_segment_locatie_Omschrijving", StringType(), False
+                    "SBI-code_segment_locatie_Omschrijving", StringType(), True
                 ),
-                StructField("Concernrelatie_Omschrijving", StringType(), False),
-                StructField("Sizokey_ultimate_parent", StringType(), False),
-                StructField("Instellingsnaam_ultimate_parent", StringType(), False),
-                StructField("Aantal_instellingen_in_concern", StringType(), False),
-                StructField("Aantal_locaties_van_concern", StringType(), False),
-                StructField("Klasse_aantal_locaties_van_concern", StringType(), False),
+                StructField("Concernrelatie_Omschrijving", StringType(), True),
+                StructField("Sizokey_ultimate_parent", StringType(), True),
+                StructField("Instellingsnaam_ultimate_parent", StringType(), True),
+                StructField("Aantal_instellingen_in_concern", StringType(), True),
+                StructField("Aantal_locaties_van_concern", StringType(), True),
+                StructField("Klasse_aantal_locaties_van_concern", StringType(), True),
                 StructField(
                     "Klasse_aantal_locaties_van_concern_Omschrijving",
                     StringType(),
-                    False,
+                    True,
                 ),
-                StructField("Aantal_medewerkers_concern", StringType(), False),
-                StructField("Klasse_aantal_medewerkers_concern", StringType(), False),
+                StructField("Aantal_medewerkers_concern", StringType(), True),
+                StructField("Klasse_aantal_medewerkers_concern", StringType(), True),
                 StructField(
-                    "Klasse_aantal_medewerkers_concern_Omschrijving",
-                    StringType(),
-                    False,
+                    "Klasse_aantal_medewerkers_concern_Omschrijving", StringType(), True
                 ),
-                StructField("SBI-code_concern", StringType(), False),
-                StructField("SBI-code_concern_Omschrijving", StringType(), False),
-                StructField("SBI-code_2-cijferig_concern", StringType(), False),
+                StructField("SBI-code_concern", StringType(), True),
+                StructField("SBI-code_concern_Omschrijving", StringType(), True),
+                StructField("SBI-code_2-cijferig_concern", StringType(), True),
                 StructField(
-                    "SBI-code_2-cijferig_concern_Omschrijving", StringType(), False
+                    "SBI-code_2-cijferig_concern_Omschrijving", StringType(), True
                 ),
-                StructField("SBI-code_segment_concern", StringType(), False),
+                StructField("SBI-code_segment_concern", StringType(), True),
                 StructField(
-                    "SBI-code_segment_concern_Omschrijving", StringType(), False
+                    "SBI-code_segment_concern_Omschrijving", StringType(), True
                 ),
-                StructField("Subsidie_bedrag_concern", StringType(), False),
-                StructField("Klasse_subsidie_bedrag_concern", StringType(), False),
+                StructField("Subsidie_bedrag_concern", StringType(), True),
+                StructField("Klasse_subsidie_bedrag_concern", StringType(), True),
                 StructField(
-                    "Klasse_subsidie_bedrag_concern_Omschrijving", StringType(), False
+                    "Klasse_subsidie_bedrag_concern_Omschrijving", StringType(), True
                 ),
                 StructField(
                     "Grootverbruik_of_kleinverbruik_Omschrijving", StringType(), True
@@ -219,20 +215,20 @@ landingzone_schema = {
                 StructField(
                     "Klasse_oppervlakte_verblijfsobject_Omschrijving",
                     StringType(),
-                    False,
+                    True,
                 ),
                 StructField(
                     "Hoofd_gebruiksdoel_verblijfsobject_Omschrijving",
                     StringType(),
-                    False,
+                    True,
                 ),
                 StructField(
-                    "Energielabel_verblijfsobject_Omschrijving", StringType(), False
+                    "Energielabel_verblijfsobject_Omschrijving", StringType(), True
                 ),
                 StructField(
                     "Energielabel_status_verblijfsobject_Omschrijving",
                     StringType(),
-                    False,
+                    True,
                 ),
                 StructField(
                     "Type_bedrijfsverzamelpand_Omschrijving", StringType(), True
@@ -248,42 +244,40 @@ landingzone_schema = {
                 StructField(
                     "Klasse_geconsolideerde_omzet_Omschrijving", StringType(), True
                 ),
+                StructField("Totaal_aantal_personenwagens_locatie", StringType(), True),
                 StructField(
-                    "Totaal_aantal_personenwagens_locatie", StringType(), False
+                    "Totaal_aantal_lichte_bedrijfswagens_locatie", StringType(), True
                 ),
-                StructField(
-                    "Totaal_aantal_lichte_bedrijfswagens_locatie", StringType(), False
-                ),
-                StructField("Totaal_aantal_vrachtwagens_locatie", StringType(), False),
+                StructField("Totaal_aantal_vrachtwagens_locatie", StringType(), True),
                 StructField(
                     "Voorspelling_waarde_totaal_aantal_personenwagens_locatie",
                     StringType(),
-                    False,
+                    True,
                 ),
                 StructField(
                     "Voorspelling_waarde_totaal_aantal_lichte_bedrijfswagens_locatie",
                     StringType(),
-                    False,
+                    True,
                 ),
                 StructField(
                     "Voorspelling_waarde_totaal_aantal_vrachtwagens_locatie",
                     StringType(),
-                    False,
+                    True,
                 ),
                 StructField(
                     "Voorspelling_klasse_totaal_aantal_personenwagens_locatie_Omschrijving",
                     StringType(),
-                    False,
+                    True,
                 ),
                 StructField(
                     "Voorspelling_klasse_totaal_aantal_lichte_bedrijfswagens_locatie_Omschrijving",
                     StringType(),
-                    False,
+                    True,
                 ),
                 StructField(
                     "Voorspelling_klasse_totaal_aantal_vrachtwagens_locatie_Omschrijving",
                     StringType(),
-                    False,
+                    True,
                 ),
                 StructField(
                     "Percentage_benzine_personenwagens_locatie", StringType(), True
@@ -344,42 +338,40 @@ landingzone_schema = {
                     StringType(),
                     True,
                 ),
+                StructField("Totaal_aantal_personenwagens_concern", StringType(), True),
                 StructField(
-                    "Totaal_aantal_personenwagens_concern", StringType(), False
+                    "Totaal_aantal_lichte_bedrijfswagens_concern", StringType(), True
                 ),
-                StructField(
-                    "Totaal_aantal_lichte_bedrijfswagens_concern", StringType(), False
-                ),
-                StructField("Totaal_aantal_vrachtwagens_concern", StringType(), False),
+                StructField("Totaal_aantal_vrachtwagens_concern", StringType(), True),
                 StructField(
                     "Voorspelling_waarde_totaal_aantal_personenwagens_concern",
                     StringType(),
-                    False,
+                    True,
                 ),
                 StructField(
                     "Voorspelling_waarde_totaal_aantal_lichte_bedrijfswagens_concern",
                     StringType(),
-                    False,
+                    True,
                 ),
                 StructField(
                     "Voorspelling_waarde_totaal_aantal_vrachtwagens_concern",
                     StringType(),
-                    False,
+                    True,
                 ),
                 StructField(
                     "Voorspelling_klasse_totaal_aantal_personenwagens_concern_Omschrijving",
                     StringType(),
-                    False,
+                    True,
                 ),
                 StructField(
                     "Voorspelling_klasse_totaal_aantal_lichte_bedrijfswagens_concern_Omschrijving",
                     StringType(),
-                    False,
+                    True,
                 ),
                 StructField(
                     "Voorspelling_klasse_totaal_aantal_vrachtwagens_concern_Omschrijving",
                     StringType(),
-                    False,
+                    True,
                 ),
                 StructField(
                     "Percentage_benzine_personenwagens_concern", StringType(), True
@@ -1181,6 +1173,23 @@ landingzone_schema = {
         ),
         "container": "landingzone",
         "location": "mappers/sbi.csv",
+        "type": "multiline",
+        "partition_column": "",
+        "quality_checks": [],
+    },
+    "tiltLedger_landingzone": {
+        "columns": StructType(
+            [
+                StructField("CPC21code", StringType(), True),
+                StructField("CPC21title", StringType(), True),
+                StructField("ISIC4code", StringType(), True),
+                StructField("Description", StringType(), True),
+                StructField("Activity Type", StringType(), True),
+                StructField("Geography", StringType(), True),
+            ]
+        ),
+        "container": "landingzone",
+        "location": "tiltLedger/Ledger_dummy.csv",
         "type": "multiline",
         "partition_column": "",
         "quality_checks": [],

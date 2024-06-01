@@ -1256,4 +1256,24 @@ raw_schema = {
         "partition_column": "",
         "quality_checks": [],
     },
+    "tiltLedger_raw": {
+        "columns": StructType(
+            [
+                StructField("CPC21code", StringType(), True),
+                StructField("CPC21title", StringType(), True),
+                StructField("ISIC4code", StringType(), True),
+                StructField("Description", StringType(), True),
+                StructField("Activity_Type", StringType(), True),
+                StructField("Geography", StringType(), True),
+                StructField("from_date", DateType(), False),
+                StructField("to_date", DateType(), False),
+                StructField("tiltRecordID", StringType(), False),
+            ]
+        ),
+        "container": "raw",
+        "location": "tiltLedger",
+        "type": "delta",
+        "partition_column": "",
+        "quality_checks": [],
+    },
 }
