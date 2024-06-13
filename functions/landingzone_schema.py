@@ -339,7 +339,7 @@ landingzone_schema = {
         ]
         ),
         'container': 'landingzone',
-        'location': 'ecoInvent/Cut-OFF AO.csv',
+        'location': 'ecoInvent/Cut-Off AO.csv',
         'type': 'multiline',
         'partition_column': '',
         'quality_checks': []
@@ -478,23 +478,27 @@ landingzone_schema = {
         'partition_column': '',
         'quality_checks': []
     },
-    'cut-off_cumulative_LCIA_v3.9.1_landingzone': {
-        'columns':  StructType([
-            StructField('Activity UUID_Product UUID', StringType(), False),
-            StructField('Activity Name', StringType(), True),
-            StructField('Geography', StringType(), True),
-            StructField('Reference Product Name', StringType(), True),
-            StructField('Reference Product Unit', StringType(), True),
-            StructField(
-                'IPCC 2021 climate change global warming potential (GWP100) kg CO2-Eq', StringType(), True)
-        ]
+    "cut-off_cumulative_LCIA_v_X_landingzone": {
+        "columns": StructType(
+            [
+                StructField("Activity UUID_Product UUID", StringType(), False),
+                StructField("Activity Name", StringType(), True),
+                StructField("Geography", StringType(), True),
+                StructField("Reference Product Name", StringType(), True),
+                StructField("Reference Product Unit", StringType(), True),
+                StructField(
+                    "IPCC 2021 climate change global warming potential (GWP100) kg CO2-Eq",
+                    StringType(),
+                    True,
+                ),
+            ]
         ),
         'container': 'landingzone',
         # file that is created by extracting certain columns from the licensed data
-        'location': 'ecoInvent/cut-off_cumulative_LCIA_v3.9.1.csv',
-        'type': 'multiline',
-        'partition_column': '',
-        'quality_checks': []
+        "location": "ecoInvent/cut-off_cumulative_LCIA_v10.csv", # the file name will change based on the availability of the new version
+        "type": "multiline",
+        "partition_column": "",
+        "quality_checks": [],
     },
     'ecoinvent_input_data_relevant_columns_landingzone': {
         'columns':  StructType([

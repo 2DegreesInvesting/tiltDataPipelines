@@ -282,7 +282,7 @@ def generate_table(table_name: str) -> None:
     elif table_name == 'ecoinvent_co2_raw':
 
         ecoinvent_co2_landingzone = CustomDF(
-            'cut-off_cumulative_LCIA_v3.9.1_landingzone', spark_generate)
+            'cut-off_cumulative_LCIA_v_X_landingzone', spark_generate)
 
         ecoinvent_co2_landingzone.data = ecoinvent_co2_landingzone.data.withColumn('IPCC_2021_climate_change_global_warming_potential_GWP100_kg_CO2_Eq', F.regexp_replace(
             'IPCC_2021_climate_change_global_warming_potential_GWP100_kg_CO2_Eq', '[,]', '.'))
