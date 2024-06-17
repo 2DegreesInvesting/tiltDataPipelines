@@ -242,6 +242,8 @@ raw_schema = {
             StructField('ID', StringType(), False),
             StructField('Name', StringType(), True),
             StructField('Shortname', StringType(), True),
+            StructField('Latitude', DoubleType(), True),
+            StructField('Longitude', DoubleType(), True),
             StructField('Geographical_Classification', StringType(), True),
             StructField('Contained_and_Overlapping_Geographies',
                         StringType(), True),
@@ -343,6 +345,7 @@ raw_schema = {
             StructField('Product_UUID', StringType(), False),
             StructField('Reference_Product_Name', StringType(), True),
             StructField('CPC_Classification', StringType(), True),
+            StructField('HS2017_Classification', StringType(), True),
             StructField('Unit', StringType(), True),
             StructField('Product_Information', StringType(), True),
             StructField('CAS_Number', StringType(), True),
@@ -354,6 +357,41 @@ raw_schema = {
         ),
         'container': 'raw',
         'location': 'en15804_ao',
+        'type': 'delta',
+        'partition_column': '',
+        'quality_checks': [{
+                'check': 'values are unique',
+            'columns': ['Activity_UUID_&_Product_UUID']
+        },]
+    },
+    'apos_ao_raw': {
+        'columns':  StructType([
+            StructField('Activity_UUID_&_Product_UUID',
+                        StringType(), False),
+            StructField('Activity_UUID', StringType(), False),
+            StructField('EcoQuery_URL', StringType(), True),
+            StructField('Activity_Name', StringType(), True),
+            StructField('Geography', StringType(), True),
+            StructField('Time_Period', StringType(), True),
+            StructField('Special_Activity_Type', StringType(), True),
+            StructField('Sector', StringType(), True),
+            StructField('ISIC_Classification', StringType(), True),
+            StructField('ISIC_Section', StringType(), True),
+            StructField('Product_UUID', StringType(), False),
+            StructField('Reference_Product_Name', StringType(), True),
+            StructField('CPC_Classification', StringType(), True),
+            StructField('HS2017_Classification', StringType(), True),
+            StructField('Unit', StringType(), True),
+            StructField('Product_Information', StringType(), True),
+            StructField('CAS_Number', StringType(), True),
+            StructField('APOS_Classification', StringType(), True),
+            StructField('from_date', DateType(), False),
+            StructField('to_date', DateType(), False),
+            StructField('tiltRecordID', StringType(), False)
+        ]
+        ),
+        'container': 'raw',
+        'location': 'apos_ao',
         'type': 'delta',
         'partition_column': '',
         'quality_checks': [{

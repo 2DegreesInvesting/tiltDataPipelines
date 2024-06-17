@@ -176,6 +176,9 @@ def generate_table(table_name: str) -> None:
 
         geographies_landingzone = CustomDF(
             'geographies_landingzone', spark_generate)
+        
+        geographies_landingzone.convert_data_types(
+            ['Latitude', 'Longitude'], DoubleType())
 
         # Filter out the empty values in the ID column, as empty records are read in from the source data.
         geographies_landingzone.data = geographies_landingzone.data.filter(
@@ -233,6 +236,15 @@ def generate_table(table_name: str) -> None:
         en15804_ao_raw = CustomDF(
             'en15804_ao_raw', spark_generate, initial_df=en15804_ao_landingzone.data)
         en15804_ao_raw.write_table()
+
+    elif table_name == 'apos_ao_raw':
+
+        apos_ao_landingzone = CustomDF(
+            'apos_ao_landingzone', spark_generate)
+
+        apos_ao_raw = CustomDF(
+            'apos_ao_raw', spark_generate, initial_df=apos_ao_landingzone.data)
+        apos_ao_raw.write_table()
 
     elif table_name == 'consequential_ao_raw':
 

@@ -225,6 +225,8 @@ datamodel_schema = {
             StructField('product_uuid', StringType(), False),
             StructField('reference_product_name', StringType(), True),
             StructField('unit', StringType(), True),
+            StructField('CPC_code', StringType(), True),
+            StructField('CPC_name', StringType(), True),
             StructField('from_date', DateType(), False),
             StructField('to_date', DateType(), False),
             StructField('tiltRecordID', StringType(), False)
@@ -243,6 +245,7 @@ datamodel_schema = {
         'columns':  StructType([
             StructField('activity_uuid', StringType(), False),
             StructField('activity_name', StringType(), True),
+            StructField('activity_type', StringType(), True),
             StructField('geography', StringType(), True),
             StructField('isic_4digit', StringType(), True),
             StructField('from_date', DateType(), False),
