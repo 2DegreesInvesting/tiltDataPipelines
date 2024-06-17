@@ -176,6 +176,9 @@ def generate_table(table_name: str) -> None:
 
         geographies_landingzone = CustomDF(
             'geographies_landingzone', spark_generate)
+        
+        geographies_landingzone.convert_data_types(
+            ['Latitude', 'Longitude'], DoubleType())
 
         # Filter out the empty values in the ID column, as empty records are read in from the source data.
         geographies_landingzone.data = geographies_landingzone.data.filter(
@@ -234,6 +237,15 @@ def generate_table(table_name: str) -> None:
             'en15804_ao_raw', spark_generate, initial_df=en15804_ao_landingzone.data)
         en15804_ao_raw.write_table()
 
+    elif table_name == 'apos_ao_raw':
+
+        apos_ao_landingzone = CustomDF(
+            'apos_ao_landingzone', spark_generate)
+
+        apos_ao_raw = CustomDF(
+            'apos_ao_raw', spark_generate, initial_df=apos_ao_landingzone.data)
+        apos_ao_raw.write_table()
+
     elif table_name == 'consequential_ao_raw':
 
         consequential_ao_landingzone = CustomDF(
@@ -282,7 +294,7 @@ def generate_table(table_name: str) -> None:
     elif table_name == 'ecoinvent_co2_raw':
 
         ecoinvent_co2_landingzone = CustomDF(
-            'cut-off_cumulative_LCIA_v3.9.1_landingzone', spark_generate)
+            'cut-off_cumulative_LCIA_v_X_landingzone', spark_generate)
 
         ecoinvent_co2_landingzone.data = ecoinvent_co2_landingzone.data.withColumn('IPCC_2021_climate_change_global_warming_potential_GWP100_kg_CO2_Eq', F.regexp_replace(
             'IPCC_2021_climate_change_global_warming_potential_GWP100_kg_CO2_Eq', '[,]', '.'))

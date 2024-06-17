@@ -279,6 +279,8 @@ landingzone_schema = {
             StructField('ID', StringType(), False),
             StructField('Name', StringType(), True),
             StructField('Shortname', StringType(), True),
+            StructField('Latitude', StringType(), True),
+            StructField('Longitude', StringType(), True),
             StructField('Geographical_Classification', StringType(), True),
             StructField('Contained_and_Overlapping_Geographies',
                         StringType(), True),
@@ -339,7 +341,7 @@ landingzone_schema = {
         ]
         ),
         'container': 'landingzone',
-        'location': 'ecoInvent/Cut-OFF AO.csv',
+        'location': 'ecoInvent/Cut-Off AO.csv',
         'type': 'multiline',
         'partition_column': '',
         'quality_checks': []
@@ -360,6 +362,7 @@ landingzone_schema = {
             StructField('Product UUID', StringType(), True),
             StructField('Reference Product Name', StringType(), True),
             StructField('CPC Classification', StringType(), True),
+            StructField('HS2017_Classification', StringType(), True),
             StructField('Unit', StringType(), True),
             StructField('Product Information', StringType(), True),
             StructField('CAS Number', StringType(), True),
@@ -368,6 +371,36 @@ landingzone_schema = {
         ),
         'container': 'landingzone',
         'location': 'ecoInvent/EN15804 AO.csv',
+        'type': 'multiline',
+        'partition_column': '',
+        'quality_checks': []
+    },
+    'apos_ao_landingzone': {
+        'columns':  StructType([
+            StructField('Activity UUID & Product UUID',
+                        StringType(), True),
+            StructField('Activity UUID', StringType(), True),
+            StructField('EcoQuery URL', StringType(), True),
+            StructField('Activity Name', StringType(), True),
+            StructField('Geography', StringType(), True),
+            StructField('Time Period', StringType(), True),
+            StructField('Special Activity Type', StringType(), True),
+            StructField('Sector', StringType(), True),
+            StructField('ISIC Classification', StringType(), True),
+            StructField('ISIC Section', StringType(), True),
+            StructField('Product UUID', StringType(), True),
+            StructField('Reference Product Name', StringType(), True),
+            StructField('CPC Classification', StringType(), True),
+            StructField('HS2017_Classification', StringType(), True),
+            StructField('Unit', StringType(), True),
+            StructField('Product Information', StringType(), True),
+            StructField('CAS Number', StringType(), True),
+            StructField('APOS Classification', StringType(), True)
+
+        ]
+        ),
+        'container': 'landingzone',
+        'location': 'ecoInvent/APOS AO.csv',
         'type': 'multiline',
         'partition_column': '',
         'quality_checks': []
@@ -478,23 +511,27 @@ landingzone_schema = {
         'partition_column': '',
         'quality_checks': []
     },
-    'cut-off_cumulative_LCIA_v3.9.1_landingzone': {
-        'columns':  StructType([
-            StructField('Activity UUID_Product UUID', StringType(), False),
-            StructField('Activity Name', StringType(), True),
-            StructField('Geography', StringType(), True),
-            StructField('Reference Product Name', StringType(), True),
-            StructField('Reference Product Unit', StringType(), True),
-            StructField(
-                'IPCC 2021 climate change global warming potential (GWP100) kg CO2-Eq', StringType(), True)
-        ]
+    "cut-off_cumulative_LCIA_v_X_landingzone": {
+        "columns": StructType(
+            [
+                StructField("Activity UUID_Product UUID", StringType(), False),
+                StructField("Activity Name", StringType(), True),
+                StructField("Geography", StringType(), True),
+                StructField("Reference Product Name", StringType(), True),
+                StructField("Reference Product Unit", StringType(), True),
+                StructField(
+                    "IPCC 2021 climate change global warming potential (GWP100) kg CO2-Eq",
+                    StringType(),
+                    True,
+                ),
+            ]
         ),
         'container': 'landingzone',
         # file that is created by extracting certain columns from the licensed data
-        'location': 'ecoInvent/cut-off_cumulative_LCIA_v3.9.1.csv',
-        'type': 'multiline',
-        'partition_column': '',
-        'quality_checks': []
+        "location": "ecoInvent/cut-off_cumulative_LCIA_v10.csv", # the file name will change based on the availability of the new version
+        "type": "multiline",
+        "partition_column": "",
+        "quality_checks": [],
     },
     'ecoinvent_input_data_relevant_columns_landingzone': {
         'columns':  StructType([
