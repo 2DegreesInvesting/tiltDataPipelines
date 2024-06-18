@@ -344,8 +344,11 @@ class CustomDF(DataReader):
         # Filter the DataFrame to only include rows where for the current table
         df = df.filter(F.col('target_table_name') == self._name)
 
+        # Eliminate the duplicate records from dump_df
+        dump_df = dump_df.drop_duplicates()
+
         # Union the two DataFrames and write the result to the table, partitioned by the name of the table
-        dump_df.union(df).drop_duplicates().write.partitionBy('target_table_name').mode(
+        dump_df.union(df).write.partitionBy('target_table_name').mode(
             'overwrite').format('delta').saveAsTable(table_name)
 
         # Drop the map column from the original DataFrame
