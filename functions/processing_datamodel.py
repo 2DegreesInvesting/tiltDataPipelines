@@ -41,7 +41,8 @@ def generate_table(table_name: str) -> None:
 
         # process EP data
 
-        companies_europages_raw = CustomDF("companies_europages_raw", spark_generate)
+        companies_europages_raw = CustomDF(
+            "companies_europages_raw", spark_generate)
 
         # rename columns per schema
         rename_dict = {
@@ -51,14 +52,14 @@ def generate_table(table_name: str) -> None:
         companies_europages_raw.rename_columns(rename_dict)
 
         # EP: select only the necessary columns
-        companies_europages_raw.data = companies_europages_raw.data.select(
-            "europages_company_id",
-            "company_name",
-            "company_description",
-            "address",
-            "postcode",
-            "company_city",
-            "country",
+        companies_europages_raw = companies_europages_raw.custom_select(
+            ["europages_company_id",
+             "company_name",
+             "company_description",
+             "address",
+             "postcode",
+             "company_city",
+             "country",]
         )
 
         # process CI data
@@ -83,13 +84,13 @@ def generate_table(table_name: str) -> None:
         )
 
         # CI: select only the necessary columns
-        companies_companyinfo_raw.data = companies_companyinfo_raw.data.select(
-            "companyinfo_company_id",
-            "company_name",
-            "company_description",
-            "address",
-            "postcode",
-            "company_city",
+        companies_companyinfo_raw = companies_companyinfo_raw.custom_select(
+            ["companyinfo_company_id",
+             "company_name",
+             "company_description",
+             "address",
+             "postcode",
+             "company_city",]
         )
 
         # CI: add country colum
@@ -108,32 +109,32 @@ def generate_table(table_name: str) -> None:
         )
 
         # CMR: matched companies
-        match_source = companies_match_result_datamodel.data.withColumn(
+        companies_match_result_datamodel.data = companies_match_result_datamodel.data.withColumn(
             "source", F.lit(ep_ci)
-        ).select(["europages_company_id", "companyinfo_company_id", "source"])
-
-        # EP: get companies
-        companies_europages = companies_europages_raw.data.select(
-            "europages_company_id"
         )
-
+        companies_match_result_datamodel = companies_match_result_datamodel.custom_select(
+            ["europages_company_id", "companyinfo_company_id", "source"])
+        # EP: get companies
+        companies_europages = companies_europages_raw.custom_select(
+            ["europages_company_id"]
+        )
         # Add other EP companies to the table
-        europages_matched = companies_europages.join(
-            match_source, on="europages_company_id", how="left_outer"
+        europages_matched = companies_europages.custom_join(
+            companies_match_result_datamodel, custom_on="europages_company_id", custom_how="left_outer"
         )
 
         # CI: get companies
-        companies_companyinfo = companies_companyinfo_raw.data.select(
-            "companyinfo_company_id"
+        companies_companyinfo = companies_companyinfo_raw.custom_select(
+            ["companyinfo_company_id"]
         )
 
-        both_matched = companies_companyinfo.join(
-            europages_matched, on="companyinfo_company_id", how="full_outer"
+        both_matched = companies_companyinfo.custom_join(
+            europages_matched, custom_on="companyinfo_company_id", custom_how="full_outer"
         )
 
-        both_matched = both_matched.dropDuplicates()
+        both_matched = both_matched.custom_distinct()
 
-        both_matched = both_matched.withColumn(
+        both_matched.data = both_matched.data.withColumn(
             "source_id",
             F.when(col("source").isNotNull(), F.lit(ep_ci)).otherwise(
                 F.when(
@@ -142,58 +143,73 @@ def generate_table(table_name: str) -> None:
             ),
         )
 
-        companies = both_matched.withColumn(
+        both_matched.data = both_matched.data.withColumn(
             "company_id",
             F.when(
-                col("source_id").isin([ep_ci, ci_only]), col("companyinfo_company_id")
+                col("source_id").isin([ep_ci, ci_only]), col(
+                    "companyinfo_company_id")
             ).otherwise(col("europages_company_id")),
-        ).drop("companyinfo_company_id", "europages_company_id", "source")
+        )
 
-        companyinfo_data_filled = companies.join(
-            companies_companyinfo_raw.data,
-            companies.company_id
-            == companies_companyinfo_raw.data.companyinfo_company_id,
-        ).drop("companyinfo_company_id", "europages_company_id", "source")
+        companies = both_matched.custom_drop(
+            ["companyinfo_company_id", "europages_company_id", "source"])
 
-        europages_data_filled = companies.join(
-            companies_europages_raw.data,
-            companies.company_id == companies_europages_raw.data.europages_company_id,
-        ).drop("companyinfo_company_id", "europages_company_id", "source")
+        companyinfo_data_filled = companies.custom_join(
+            companies_companyinfo_raw,
+            custom_on=companies.data.company_id
+            == companies_companyinfo_raw.data.companyinfo_company_id, custom_how='inner'
+        )
+        companyinfo_data_filled = companyinfo_data_filled.custom_drop(
+            ["companyinfo_company_id", "europages_company_id", "source"])
 
-        both_data_filled = europages_data_filled.union(companyinfo_data_filled)
+        europages_data_filled = companies.custom_join(
+            companies_europages_raw,
+            companies.data.company_id == companies_europages_raw.data.europages_company_id, custom_how='inner'
+        )
+
+        europages_data_filled = europages_data_filled.custom_drop(
+            ["companyinfo_company_id", "europages_company_id", "source"])
+        both_data_filled = europages_data_filled.custom_union(
+            companyinfo_data_filled)
 
         # process country data
         countries_mapper_raw = CustomDF("countries_mapper_raw", spark_generate)
 
         # Capitalize the first letter of the values in the 'country' column to match with countries_mapperpoductr
-        companies_raw = both_data_filled.withColumn("country", F.initcap("country"))
+        both_data_filled.data = both_data_filled.data.withColumn(
+            "country", F.initcap("country"))
 
-        joined_companies_countries_mapper = companies_raw.join(
-            countries_mapper_raw.data, "country"
+        joined_companies_countries_mapper = both_data_filled.custom_join(
+            countries_mapper_raw, custom_on="country", custom_how="inner"
         )
 
-        companies_raw_final = joined_companies_countries_mapper.custom_drop(["country"])
+        companies_raw_final = joined_companies_countries_mapper.custom_drop([
+            "country"])
 
-        companies_raw_final = companies_raw_final.select(
-            "company_id",
-            "country_un",
-            "source_id",
-            "company_name",
-            "company_description",
-            "address",
-            "company_city",
-            "postcode",
-        ).distinct()
-        companies_raw_final = companies_raw_final.dropDuplicates(["company_id"])
+        companies_raw_final = companies_raw_final.custom_select(
+            ["company_id",
+             "country_un",
+             "source_id",
+             "company_name",
+             "company_description",
+             "address",
+             "company_city",
+             "postcode",]
+        )
+
+        companies_raw_final = companies_raw_final.custom_distinct()
+        companies_raw_final.data = companies_raw_final.data.dropDuplicates([
+            "company_id"])
         companies_datamodel = CustomDF(
-            "companies_datamodel", spark_generate, initial_df=companies_raw_final
+            "companies_datamodel", spark_generate, initial_df=companies_raw_final.data
         )
 
         companies_datamodel.write_table()
 
     elif table_name == "EP_products_datamodel":
 
-        companies_europages_raw = CustomDF("companies_europages_raw", spark_generate)
+        companies_europages_raw = CustomDF(
+            "companies_europages_raw", spark_generate)
 
         companies_europages_raw.data = companies_europages_raw.data.withColumn(
             "product_name", F.explode(F.split("products_and_services", "\|"))
@@ -219,14 +235,15 @@ def generate_table(table_name: str) -> None:
             spark_generate,
             initial_df=companies_europages_raw.data.select(
                 "product_id", "product_name"
-            ).distinct(),
+            ).distinct()
         )
 
         products_datamodel.write_table()
 
     elif table_name == "companies_EP_products_datamodel":
 
-        companies_europages_raw = CustomDF("companies_europages_raw", spark_generate)
+        companies_europages_raw = CustomDF(
+            "companies_europages_raw", spark_generate)
 
         products_datamodel = CustomDF("products_datamodel", spark_generate)
 
@@ -258,14 +275,16 @@ def generate_table(table_name: str) -> None:
 
     elif table_name == "companies_match_result_datamodel":
 
-        companies_europages_raw = CustomDF("companies_europages_raw", spark_generate)
+        companies_europages_raw = CustomDF(
+            "companies_europages_raw", spark_generate)
 
         companies_europages_raw.data = companies_europages_raw.data.filter(
             F.col("country") == "netherlands"
         )
 
         companies_europages_raw.data = companies_europages_raw.data.withColumn(
-            "postcode_join", format_postcode(col("postcode"), col("company_city"))
+            "postcode_join", format_postcode(
+                col("postcode"), col("company_city"))
         )
 
         europages = companies_europages_raw.data.select(
@@ -308,7 +327,8 @@ def generate_table(table_name: str) -> None:
 
         SIMILARITY_THRESHOLD = 0.95
         matched = (
-            joined.filter(col("similarity_score") >= F.lit(SIMILARITY_THRESHOLD))
+            joined.filter(col("similarity_score") >=
+                          F.lit(SIMILARITY_THRESHOLD))
             .select(["europages_company_id", "companyinfo_company_id"])
             .distinct()
         )
@@ -358,7 +378,8 @@ def generate_table(table_name: str) -> None:
 
         ecoinvent_co2_raw.rename_columns(rename_dict)
 
-        ecoinvent_co2_raw.custom_select(["activity_uuid_product_uuid", "co2_footprint"])
+        ecoinvent_co2_raw.custom_select(
+            ["activity_uuid_product_uuid", "co2_footprint"])
 
         ecoinvent_co2_datamodel = CustomDF(
             "ecoinvent_co2_datamodel", spark_generate, initial_df=ecoinvent_co2_raw.data
@@ -410,7 +431,8 @@ def generate_table(table_name: str) -> None:
         )
 
         cut_off_ao_raw = cut_off_ao_raw.custom_select(
-            ["product_uuid", "reference_product_name", "unit", "CPC_code", "CPC_name"]
+            ["product_uuid", "reference_product_name",
+                "unit", "CPC_code", "CPC_name"]
         ).custom_distinct()
 
         ecoinvent_product_datamodel = CustomDF(
@@ -458,7 +480,8 @@ def generate_table(table_name: str) -> None:
 
     elif table_name == "ecoinvent_input_data_datamodel":
 
-        ecoinvent_input_data_raw = CustomDF("ecoinvent_input_data_raw", spark_generate)
+        ecoinvent_input_data_raw = CustomDF(
+            "ecoinvent_input_data_raw", spark_generate)
 
         ecoinvent_input_data_raw = ecoinvent_input_data_raw.custom_select(
             [
@@ -637,7 +660,8 @@ def generate_table(table_name: str) -> None:
 
         # Filtering null and non_match
         both_scenarios.data = both_scenarios.data.filter(
-            (col("tilt_sector") != "no_match") & (col("tilt_sector").isNotNull())
+            (col("tilt_sector") != "no_match") & (
+                col("tilt_sector").isNotNull())
         )
 
         both_scenarios = both_scenarios.custom_select(
@@ -662,7 +686,8 @@ def generate_table(table_name: str) -> None:
 
     elif table_name == "scenario_targets_IPR_datamodel":
 
-        scenario_targets_IPR_raw = CustomDF("scenario_targets_IPR_raw", spark_generate)
+        scenario_targets_IPR_raw = CustomDF(
+            "scenario_targets_IPR_raw", spark_generate)
 
         scenario_targets_IPR_raw = scenario_targets_IPR_raw.custom_select(
             ["Scenario", "Region", "Sector", "Sub_Sector", "Year", "Value"]
@@ -689,7 +714,8 @@ def generate_table(table_name: str) -> None:
 
         # Create the SHA256 record ID by concatenating all relevant columns
         scenario_targets_IPR_raw.data = scenario_targets_IPR_raw.data.withColumn(
-            "scenario_targets_ipr_id", F.sha2(F.concat_ws("|", *sha_columns), 256)
+            "scenario_targets_ipr_id", F.sha2(
+                F.concat_ws("|", *sha_columns), 256)
         )
 
         scenario_targets_IPR_raw = scenario_targets_IPR_raw.custom_select(
@@ -714,7 +740,8 @@ def generate_table(table_name: str) -> None:
 
     elif table_name == "scenario_targets_WEO_datamodel":
 
-        scenario_targets_WEO_raw = CustomDF("scenario_targets_WEO_raw", spark_generate)
+        scenario_targets_WEO_raw = CustomDF(
+            "scenario_targets_WEO_raw", spark_generate)
 
         scenario_targets_WEO_raw = scenario_targets_WEO_raw.custom_select(
             ["SCENARIO", "REGION", "PRODUCT", "FLOW", "YEAR", "VALUE"]
@@ -741,7 +768,8 @@ def generate_table(table_name: str) -> None:
 
         # Create the SHA256 record ID by concatenating all relevant columns
         scenario_targets_WEO_raw.data = scenario_targets_WEO_raw.data.withColumn(
-            "scenario_targets_weo_id", F.sha2(F.concat_ws("|", *sha_columns), 256)
+            "scenario_targets_weo_id", F.sha2(
+                F.concat_ws("|", *sha_columns), 256)
         )
 
         scenario_targets_WEO_raw = scenario_targets_WEO_raw.custom_select(
@@ -766,13 +794,15 @@ def generate_table(table_name: str) -> None:
 
     elif table_name == "isic_mapper_datamodel":
 
-        isic_4_digit_codes_landingzone = CustomDF("isic_mapper_raw", spark_generate)
+        isic_4_digit_codes_landingzone = CustomDF(
+            "isic_mapper_raw", spark_generate)
 
         isic_4_digit_codes_landingzone = isic_4_digit_codes_landingzone.custom_select(
             ["Code", "ISIC_Rev_4_label"]
         )
 
-        rename_dict = {"Code": "isic_4digit", "ISIC_Rev_4_label": "isic_4digit_name"}
+        rename_dict = {"Code": "isic_4digit",
+                       "ISIC_Rev_4_label": "isic_4digit_name"}
 
         isic_4_digit_codes_landingzone.rename_columns(rename_dict)
 
@@ -787,7 +817,8 @@ def generate_table(table_name: str) -> None:
 
         SBI_activities_raw = CustomDF("SBI_activities_raw", spark_generate)
 
-        rename_dict = {"SBI": "sbi_code", "Omschrijving": "sbi_code_description"}
+        rename_dict = {"SBI": "sbi_code",
+                       "Omschrijving": "sbi_code_description"}
 
         SBI_activities_raw.rename_columns(rename_dict)
 
