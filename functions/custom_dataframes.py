@@ -345,7 +345,7 @@ class CustomDF(DataReader):
         df = df.filter(F.col('target_table_name') == self._name)
 
         # Union the two DataFrames and write the result to the table, partitioned by the name of the table
-        dump_df.union(df).write.partitionBy('target_table_name').mode(
+        dump_df.union(df).drop_duplicates().write.partitionBy('target_table_name').mode(
             'overwrite').format('delta').saveAsTable(table_name)
 
         # Drop the map column from the original DataFrame
