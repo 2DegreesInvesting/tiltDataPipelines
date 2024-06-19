@@ -931,6 +931,24 @@ raw_schema = {
         'type': 'delta',
         'partition_column': '',
         'quality_checks': []
-    }
+    },
+    'tiltLedger_mapping_raw': {
+        'columns':  StructType([
+            StructField('company_id', StringType(), True),
+            StructField('ISIC', StringType(), True),
+            StructField('CPC', StringType(), True),
+            StructField('Activity', StringType(), True),
+            StructField('Geography', StringType(), True),
+            StructField('from_date', DateType(), False),
+            StructField('to_date', DateType(), False),
+            StructField('tiltRecordID', StringType(), False)
+        ]
+        ),
+        'container': 'raw',
+        'location': 'tiltLedger_mapping',
+        'type': 'delta',
+        'partition_column': '',
+        'quality_checks': []
+    },
 
 }

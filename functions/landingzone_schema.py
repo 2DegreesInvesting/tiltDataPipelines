@@ -1038,5 +1038,20 @@ landingzone_schema = {
         'type': 'multiline',
         'partition_column': '',
         'quality_checks': []
-    }
+    },
+    'tiltLedger_mapping_landingzone': {
+        'columns':  StructType([
+            StructField('company_id', StringType(), True),
+            StructField('ISIC', StringType(), True),
+            StructField('CPC', StringType(), True),
+            StructField('Activity', StringType(), True),
+            StructField('Geography', StringType(), True),
+        ]
+        ),
+        'container': 'landingzone',
+        'location': 'ledgerMapping/ledger_mapping.csv',
+        'type': 'csv',
+        'partition_column': '',
+        'quality_checks': []
+    },
 }
