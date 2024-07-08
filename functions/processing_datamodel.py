@@ -38,19 +38,12 @@ def generate_table(table_name: str) -> None:
 
     if table_name == "companies_datamodel":
 
-    if table_name == "companies_datamodel":
-
         # process EP data
 
         companies_europages_raw = CustomDF("companies_europages_raw", spark_generate)
 
         # rename columns per schema
-        companies_europages_raw = CustomDF("companies_europages_raw", spark_generate)
-
-        # rename columns per schema
         rename_dict = {
-            "id": "europages_company_id",
-            "information": "company_description",
             "id": "europages_company_id",
             "information": "company_description",
         }
@@ -69,17 +62,10 @@ def generate_table(table_name: str) -> None:
         # process CI data
         companies_companyinfo_raw = CustomDF(
             "companies_companyinfo_raw", spark_generate
-            "companies_companyinfo_raw", spark_generate
         )
 
         # CI: rename columns per schema
-        # CI: rename columns per schema
         rename_dict = {
-            "Kamer_van_Koophandel_nummer_12_cijferig": "companyinfo_company_id",
-            "Bedrijfsomschrijving": "company_description",
-            "Vestigingsadres": "address",
-            "Vestigingsadres_plaats": "company_city",
-            "Vestigingsadres_postcode": "postcode",
             "Kamer_van_Koophandel_nummer_12_cijferig": "companyinfo_company_id",
             "Bedrijfsomschrijving": "company_description",
             "Vestigingsadres": "address",
@@ -88,11 +74,6 @@ def generate_table(table_name: str) -> None:
         }
         companies_companyinfo_raw.rename_columns(rename_dict)
 
-        # CI: unify company name
-        companies_companyinfo_raw.data = companies_companyinfo_raw.data.withColumn(
-            "company_name",
-            keep_one_name(F.col("Instellingsnaam"), F.col("Statutaire_naam")),
-        )
         # CI: unify company name
         companies_companyinfo_raw.data = companies_companyinfo_raw.data.withColumn(
             "company_name",
@@ -192,8 +173,6 @@ def generate_table(table_name: str) -> None:
         # process country data
         countries_mapper_raw = CustomDF("countries_mapper_raw", spark_generate)
 
-        countries_mapper_raw = CustomDF("countries_mapper_raw", spark_generate)
-
         # Capitalize the first letter of the values in the 'country' column to match with countries_mapperpoductr
         both_data_filled.data = both_data_filled.data.withColumn("country", F.initcap("country"))
 
@@ -201,7 +180,6 @@ def generate_table(table_name: str) -> None:
             countries_mapper_raw, custom_on = "country", custom_how="inner"
         )
 
-        companies_raw_final = joined_companies_countries_mapper.custom_drop(["country"])
         companies_raw_final = joined_companies_countries_mapper.custom_drop(["country"])
 
         companies_raw_final.data = companies_raw_final.data.filter(
@@ -228,15 +206,11 @@ def generate_table(table_name: str) -> None:
         companies_datamodel = CustomDF(
             "companies_datamodel", spark_generate, initial_df=companies_raw_final
         )
-            "companies_datamodel", spark_generate, initial_df=companies_raw_final
-        )
 
         companies_datamodel.write_table()
 
     elif table_name == "EP_products_datamodel":
-    elif table_name == "EP_products_datamodel":
 
-        companies_europages_raw = CustomDF("companies_europages_raw", spark_generate)
         companies_europages_raw = CustomDF("companies_europages_raw", spark_generate)
 
         companies_europages_raw.data = companies_europages_raw.data.withColumn(
@@ -252,15 +226,8 @@ def generate_table(table_name: str) -> None:
             for col_name in companies_europages_raw.data.columns
             if col_name not in ["tiltRecordID", "to_date"]
         ]
-        sha_columns = [
-            F.col(col_name)
-            for col_name in companies_europages_raw.data.columns
-            if col_name not in ["tiltRecordID", "to_date"]
-        ]
 
         companies_europages_raw.data = companies_europages_raw.data.withColumn(
-            "product_id", F.sha2(F.concat_ws("|", *sha_columns), 256)
-        )
             "product_id", F.sha2(F.concat_ws("|", *sha_columns), 256)
         )
 
@@ -275,15 +242,11 @@ def generate_table(table_name: str) -> None:
         products_datamodel.write_table()
 
     elif table_name == "companies_EP_products_datamodel":
-    elif table_name == "companies_EP_products_datamodel":
 
-        companies_europages_raw = CustomDF("companies_europages_raw", spark_generate)
         companies_europages_raw = CustomDF("companies_europages_raw", spark_generate)
 
         products_datamodel = CustomDF("products_datamodel", spark_generate)
-        products_datamodel = CustomDF("products_datamodel", spark_generate)
 
-        rename_dict = {"id": "company_id"}
         rename_dict = {"id": "company_id"}
 
         companies_europages_raw.rename_columns(rename_dict)
@@ -335,21 +298,7 @@ def generate_table(table_name: str) -> None:
         companies_companyinfo_raw = CustomDF(
             "companies_companyinfo_raw", spark_generate
         )
-            "companies_companyinfo_raw", spark_generate
-        )
 
-        companies_companyinfo_raw.data = companies_companyinfo_raw.data.withColumn(
-            "company_name",
-            keep_one_name(F.col("Instellingsnaam"), F.col("Statutaire_naam")),
-        )
-
-        companies_companyinfo_raw.rename_columns(
-            {
-                "Kamer_van_Koophandel_nummer_12_cijferig": "companyinfo_company_id",
-                "company_name": "company_name_ci",
-                "Vestigingsadres_postcode": "postcode_join",
-            }
-        )
         companies_companyinfo_raw.data = companies_companyinfo_raw.data.withColumn(
             "company_name",
             keep_one_name(F.col("Instellingsnaam"), F.col("Statutaire_naam")),
@@ -393,19 +342,11 @@ def generate_table(table_name: str) -> None:
     # Ecoinvent data
 
     elif table_name == "intermediate_exchanges_datamodel":
-    elif table_name == "intermediate_exchanges_datamodel":
 
         intermediate_exchanges_raw = CustomDF(
             "intermediate_exchanges_raw", spark_generate
         )
-            "intermediate_exchanges_raw", spark_generate
-        )
 
-        rename_dict = {
-            "ID": "exchange_id",
-            "Name": "exchange_name",
-            "Unit_Name": "unit_name",
-        }
         rename_dict = {
             "ID": "exchange_id",
             "Name": "exchange_name",
@@ -418,15 +359,7 @@ def generate_table(table_name: str) -> None:
             ["exchange_id", "exchange_name", "unit_name"]
         )
 
-        intermediate_exchanges_raw = intermediate_exchanges_raw.custom_select(
-            ["exchange_id", "exchange_name", "unit_name"]
-        )
-
         intermediate_exchanges_datamodel = CustomDF(
-            "intermediate_exchanges_datamodel",
-            spark_generate,
-            initial_df=intermediate_exchanges_raw.data,
-        )
             "intermediate_exchanges_datamodel",
             spark_generate,
             initial_df=intermediate_exchanges_raw.data,
@@ -435,15 +368,9 @@ def generate_table(table_name: str) -> None:
         intermediate_exchanges_datamodel.write_table()
 
     elif table_name == "ecoinvent_co2_datamodel":
-    elif table_name == "ecoinvent_co2_datamodel":
 
         ecoinvent_co2_raw = CustomDF("ecoinvent_co2_raw", spark_generate)
-        ecoinvent_co2_raw = CustomDF("ecoinvent_co2_raw", spark_generate)
 
-        rename_dict = {
-            "Activity_UUID_Product_UUID": "activity_uuid_product_uuid",
-            "IPCC_2021_climate_change_global_warming_potential_GWP100_kg_CO2_Eq": "co2_footprint",
-        }
         rename_dict = {
             "Activity_UUID_Product_UUID": "activity_uuid_product_uuid",
             "IPCC_2021_climate_change_global_warming_potential_GWP100_kg_CO2_Eq": "co2_footprint",
@@ -453,27 +380,16 @@ def generate_table(table_name: str) -> None:
 
         ecoinvent_co2_raw.custom_select(["activity_uuid_product_uuid", "co2_footprint"])
 
-        ecoinvent_co2_raw.custom_select(["activity_uuid_product_uuid", "co2_footprint"])
-
         ecoinvent_co2_datamodel = CustomDF(
-            "ecoinvent_co2_datamodel", spark_generate, initial_df=ecoinvent_co2_raw.data
-        )
             "ecoinvent_co2_datamodel", spark_generate, initial_df=ecoinvent_co2_raw.data
         )
 
         ecoinvent_co2_datamodel.write_table()
 
     elif table_name == "ecoinvent_cut_off_datamodel":
-    elif table_name == "ecoinvent_cut_off_datamodel":
 
         cut_off_ao_raw = CustomDF("cut_off_ao_raw", spark_generate)
-        cut_off_ao_raw = CustomDF("cut_off_ao_raw", spark_generate)
 
-        rename_dict = {
-            "Activity_UUID_&_Product_UUID": "activity_uuid_product_uuid",
-            "Activity_UUID": "activity_uuid",
-            "Product_UUID": "product_uuid",
-        }
         rename_dict = {
             "Activity_UUID_&_Product_UUID": "activity_uuid_product_uuid",
             "Activity_UUID": "activity_uuid",
@@ -481,10 +397,6 @@ def generate_table(table_name: str) -> None:
         }
 
         cut_off_ao_raw.rename_columns(rename_dict)
-
-        cut_off_ao_raw = cut_off_ao_raw.custom_select(
-            ["activity_uuid_product_uuid", "activity_uuid", "product_uuid"]
-        )
 
         cut_off_ao_raw = cut_off_ao_raw.custom_select(
             ["activity_uuid_product_uuid", "activity_uuid", "product_uuid"]
@@ -495,24 +407,13 @@ def generate_table(table_name: str) -> None:
             spark_generate,
             initial_df=cut_off_ao_raw.data,
         )
-            "ecoinvent_cut_off_datamodel",
-            spark_generate,
-            initial_df=cut_off_ao_raw.data,
-        )
 
         ecoinvent_cut_off_datamodel.write_table()
 
     elif table_name == "ecoinvent_product_datamodel":
-    elif table_name == "ecoinvent_product_datamodel":
 
         cut_off_ao_raw = CustomDF("cut_off_ao_raw", spark_generate)
-        cut_off_ao_raw = CustomDF("cut_off_ao_raw", spark_generate)
 
-        rename_dict = {
-            "Product_UUID": "product_uuid",
-            "Reference_Product_Name": "reference_product_name",
-            "Unit": "unit",
-        }
         rename_dict = {
             "Product_UUID": "product_uuid",
             "Reference_Product_Name": "reference_product_name",
@@ -520,17 +421,6 @@ def generate_table(table_name: str) -> None:
         }
 
         cut_off_ao_raw.rename_columns(rename_dict)
-
-        cut_off_ao_raw.data = cut_off_ao_raw.data.withColumn(
-            "CPC_code", F.trim(F.split("CPC_Classification", ":")[0])
-        )
-        cut_off_ao_raw.data = cut_off_ao_raw.data.withColumn(
-            "CPC_name", F.trim(F.split("CPC_Classification", ":")[1])
-        )
-
-        cut_off_ao_raw = cut_off_ao_raw.custom_select(
-            ["product_uuid", "reference_product_name", "unit", "CPC_code", "CPC_name"]
-        ).custom_distinct()
 
         cut_off_ao_raw.data = cut_off_ao_raw.data.withColumn(
             "CPC_code", F.trim(F.split("CPC_Classification", ":")[0])
@@ -548,25 +438,13 @@ def generate_table(table_name: str) -> None:
             spark_generate,
             initial_df=cut_off_ao_raw.data,
         )
-            "ecoinvent_product_datamodel",
-            spark_generate,
-            initial_df=cut_off_ao_raw.data,
-        )
 
         ecoinvent_product_datamodel.write_table()
 
     elif table_name == "ecoinvent_activity_datamodel":
-    elif table_name == "ecoinvent_activity_datamodel":
 
         cut_off_ao_raw = CustomDF("cut_off_ao_raw", spark_generate)
-        cut_off_ao_raw = CustomDF("cut_off_ao_raw", spark_generate)
 
-        rename_dict = {
-            "Activity_UUID": "activity_uuid",
-            "Activity_Name": "activity_name",
-            "Geography": "geography",
-            "Special_Activity_Type": "activity_type",
-        }
         rename_dict = {
             "Activity_UUID": "activity_uuid",
             "Activity_Name": "activity_name",
@@ -577,18 +455,6 @@ def generate_table(table_name: str) -> None:
         cut_off_ao_raw.rename_columns(rename_dict)
 
         cut_off_ao_raw.data = cut_off_ao_raw.data.withColumn(
-            "isic_4digit", substring(col("ISIC_Classification"), 1, 4)
-        )
-
-        cut_off_ao_raw = cut_off_ao_raw.custom_select(
-            [
-                "activity_uuid",
-                "activity_name",
-                "activity_type",
-                "geography",
-                "isic_4digit",
-            ]
-        ).custom_distinct()
             "isic_4digit", substring(col("ISIC_Classification"), 1, 4)
         )
 
@@ -607,32 +473,11 @@ def generate_table(table_name: str) -> None:
             spark_generate,
             initial_df=cut_off_ao_raw.data,
         )
-            "ecoinvent_activity_datamodel",
-            spark_generate,
-            initial_df=cut_off_ao_raw.data,
-        )
 
         ecoinvent_activity_datamodel.write_table()
 
     elif table_name == "ecoinvent_input_data_datamodel":
-    elif table_name == "ecoinvent_input_data_datamodel":
 
-        ecoinvent_input_data_raw = CustomDF("ecoinvent_input_data_raw", spark_generate)
-
-        ecoinvent_input_data_raw = ecoinvent_input_data_raw.custom_select(
-            [
-                "activityId",
-                "activityName",
-                "geography",
-                "reference_product",
-                "group",
-                "exchange_name",
-                "activityLinkId",
-                "activityLink_activityName",
-                "activityLink_geography",
-                "exchange_unitName",
-            ]
-        ).custom_distinct()
         ecoinvent_input_data_raw = CustomDF("ecoinvent_input_data_raw", spark_generate)
 
         ecoinvent_input_data_raw = ecoinvent_input_data_raw.custom_select(
@@ -655,26 +500,16 @@ def generate_table(table_name: str) -> None:
             spark_generate,
             initial_df=ecoinvent_input_data_raw.data,
         )
-            "ecoinvent_input_data_datamodel",
-            spark_generate,
-            initial_df=ecoinvent_input_data_raw.data,
-        )
 
         ecoinvent_input_data_datamodel.write_table()
 
     # Mappers data
 
     elif table_name == "sources_mapper_datamodel":
-    elif table_name == "sources_mapper_datamodel":
 
-        sources_mapper_raw = CustomDF("sources_mapper_raw", spark_generate)
         sources_mapper_raw = CustomDF("sources_mapper_raw", spark_generate)
 
         sources_mapper_datamodel = CustomDF(
-            "sources_mapper_datamodel",
-            spark_generate,
-            initial_df=sources_mapper_raw.data,
-        )
             "sources_mapper_datamodel",
             spark_generate,
             initial_df=sources_mapper_raw.data,
@@ -683,17 +518,9 @@ def generate_table(table_name: str) -> None:
         sources_mapper_datamodel.write_table()
 
     elif table_name == "countries_mapper_datamodel":
-    elif table_name == "countries_mapper_datamodel":
 
         countries_mapper_raw = CustomDF("countries_mapper_raw", spark_generate)
-        countries_mapper_raw = CustomDF("countries_mapper_raw", spark_generate)
 
-        countries_mapper_raw.data = countries_mapper_raw.data.withColumn(
-            "country_un",
-            F.when(countries_mapper_raw.data["country"] == "Namibia", "NA").otherwise(
-                countries_mapper_raw.data["country_un"]
-            ),
-        )
         countries_mapper_raw.data = countries_mapper_raw.data.withColumn(
             "country_un",
             F.when(countries_mapper_raw.data["country"] == "Namibia", "NA").otherwise(
@@ -706,26 +533,17 @@ def generate_table(table_name: str) -> None:
             spark_generate,
             initial_df=countries_mapper_raw.data,
         )
-            "countries_mapper_datamodel",
-            spark_generate,
-            initial_df=countries_mapper_raw.data,
-        )
 
         countries_mapper_datamodel.write_table()
 
-    elif table_name == "geography_ecoinvent_mapper_datamodel":
     elif table_name == "geography_ecoinvent_mapper_datamodel":
 
         geography_ecoinvent_mapper_raw = CustomDF(
             "geography_ecoinvent_mapper_raw", spark_generate
         )
-            "geography_ecoinvent_mapper_raw", spark_generate
-        )
 
         country_raw = CustomDF("country_raw", spark_generate)
-        country_raw = CustomDF("country_raw", spark_generate)
 
-        countries_mapper_raw = CustomDF("countries_mapper_raw", spark_generate)
         countries_mapper_raw = CustomDF("countries_mapper_raw", spark_generate)
 
         rename_dict = {"lca_geo": "ecoinvent_geography"}
@@ -739,17 +557,7 @@ def generate_table(table_name: str) -> None:
         geography_country_name.data = geography_country_name.data.withColumn(
             "country", F.initcap(col("country"))
         )
-        geography_country_name = geography_ecoinvent_mapper_raw.custom_join(
-            country_raw, custom_on="country_id"
-        )
 
-        geography_country_name.data = geography_country_name.data.withColumn(
-            "country", F.initcap(col("country"))
-        )
-
-        geography_country_un = geography_country_name.custom_join(
-            countries_mapper_raw, "country"
-        )
         geography_country_un = geography_country_name.custom_join(
             countries_mapper_raw, "country"
         )
@@ -757,19 +565,7 @@ def generate_table(table_name: str) -> None:
         geography_country_un = geography_country_un.custom_drop(
             ["country_id", "country"]
         )
-        geography_country_un = geography_country_un.custom_drop(
-            ["country_id", "country"]
-        )
 
-        geography_country_un = geography_country_un.custom_select(
-            [
-                "geography_id",
-                "country_un",
-                "ecoinvent_geography",
-                "priority",
-                "input_priority",
-            ]
-        )
         geography_country_un = geography_country_un.custom_select(
             [
                 "geography_id",
@@ -785,19 +581,12 @@ def generate_table(table_name: str) -> None:
             spark_generate,
             initial_df=geography_country_un.data,
         )
-            "geography_ecoinvent_mapper_datamodel",
-            spark_generate,
-            initial_df=geography_country_un.data,
-        )
 
         geography_ecoinvent_mapper_datamodel.write_table()
 
     elif table_name == "EP_tilt_sector_unmatched_mapper_datamodel":
-    elif table_name == "EP_tilt_sector_unmatched_mapper_datamodel":
 
         EP_tilt_sector_unmatched_mapper_raw = CustomDF(
-            "EP_tilt_sector_unmatched_mapper_raw", spark_generate
-        )
             "EP_tilt_sector_unmatched_mapper_raw", spark_generate
         )
 
@@ -806,23 +595,12 @@ def generate_table(table_name: str) -> None:
             spark_generate,
             initial_df=EP_tilt_sector_unmatched_mapper_raw.data,
         )
-            "EP_tilt_sector_unmatched_mapper_datamodel",
-            spark_generate,
-            initial_df=EP_tilt_sector_unmatched_mapper_raw.data,
-        )
 
         EP_tilt_sector_unmatched_mapper_datamodel.write_table()
 
     elif table_name == "tilt_sector_isic_mapper_datamodel":
-    elif table_name == "tilt_sector_isic_mapper_datamodel":
 
         tilt_sector_isic_mapper_raw = CustomDF(
-            "tilt_sector_isic_mapper_raw", spark_generate
-        )
-
-        tilt_sector_isic_mapper_raw = tilt_sector_isic_mapper_raw.custom_select(
-            ["tilt_sector", "tilt_subsector", "isic_4digit", "isic_section"]
-        )
             "tilt_sector_isic_mapper_raw", spark_generate
         )
 
@@ -835,47 +613,25 @@ def generate_table(table_name: str) -> None:
             spark_generate,
             initial_df=tilt_sector_isic_mapper_raw.data,
         )
-            "tilt_sector_isic_mapper_datamodel",
-            spark_generate,
-            initial_df=tilt_sector_isic_mapper_raw.data,
-        )
 
         tilt_sector_isic_mapper_datamodel.write_table()
 
     elif table_name == "tilt_sector_scenario_mapper_datamodel":
-    elif table_name == "tilt_sector_scenario_mapper_datamodel":
 
         tilt_sector_scenario_weo_mapper_raw = CustomDF(
-            "tilt_sector_scenario_mapper_raw", spark_generate
-        )
             "tilt_sector_scenario_mapper_raw", spark_generate
         )
 
         tilt_sector_scenario_ipr_mapper_raw = CustomDF(
             "tilt_sector_scenario_mapper_raw", spark_generate
         )
-            "tilt_sector_scenario_mapper_raw", spark_generate
-        )
 
         tilt_sector_scenario_weo_mapper_raw.data = (
             tilt_sector_scenario_weo_mapper_raw.custom_select(
                 ["tilt_sector", "tilt_subsector", "weo_product", "weo_flow"]
             ).data.withColumn("scenario_type", F.lit("weo"))
         )
-        tilt_sector_scenario_weo_mapper_raw.data = (
-            tilt_sector_scenario_weo_mapper_raw.custom_select(
-                ["tilt_sector", "tilt_subsector", "weo_product", "weo_flow"]
-            ).data.withColumn("scenario_type", F.lit("weo"))
-        )
 
-        rename_ipr_dict = {
-            "ipr_sector": "scenario_sector",
-            "ipr_subsector": "scenario_subsector",
-        }
-        rename_weo_dict = {
-            "weo_product": "scenario_sector",
-            "weo_flow": "scenario_subsector",
-        }
         rename_ipr_dict = {
             "ipr_sector": "scenario_sector",
             "ipr_subsector": "scenario_subsector",
@@ -892,35 +648,14 @@ def generate_table(table_name: str) -> None:
                 ["tilt_sector", "tilt_subsector", "ipr_sector", "ipr_subsector"]
             ).data.withColumn("scenario_type", F.lit("ipr"))
         )
-        tilt_sector_scenario_ipr_mapper_raw.data = (
-            tilt_sector_scenario_ipr_mapper_raw.custom_select(
-                ["tilt_sector", "tilt_subsector", "ipr_sector", "ipr_subsector"]
-            ).data.withColumn("scenario_type", F.lit("ipr"))
-        )
 
         tilt_sector_scenario_ipr_mapper_raw.rename_columns(rename_ipr_dict)
 
         both_scenarios = tilt_sector_scenario_weo_mapper_raw.custom_union(
             tilt_sector_scenario_ipr_mapper_raw
         )
-        both_scenarios = tilt_sector_scenario_weo_mapper_raw.custom_union(
-            tilt_sector_scenario_ipr_mapper_raw
-        )
 
         # Filtering null and non_match
-        both_scenarios.data = both_scenarios.data.filter(
-            (col("tilt_sector") != "no_match") & (col("tilt_sector").isNotNull())
-        )
-
-        both_scenarios = both_scenarios.custom_select(
-            [
-                "tilt_sector",
-                "tilt_subsector",
-                "scenario_type",
-                "scenario_sector",
-                "scenario_subsector",
-            ]
-        )
         both_scenarios.data = both_scenarios.data.filter(
             (col("tilt_sector") != "no_match") & (col("tilt_sector").isNotNull())
         )
@@ -940,36 +675,19 @@ def generate_table(table_name: str) -> None:
             spark_generate,
             initial_df=both_scenarios.data,
         )
-            "tilt_sector_scenario_mapper_datamodel",
-            spark_generate,
-            initial_df=both_scenarios.data,
-        )
 
         tilt_sector_scenario_mapper_datamodel.write_table()
 
     # Scenario data
 
     elif table_name == "scenario_targets_IPR_datamodel":
-    elif table_name == "scenario_targets_IPR_datamodel":
 
-        scenario_targets_IPR_raw = CustomDF("scenario_targets_IPR_raw", spark_generate)
         scenario_targets_IPR_raw = CustomDF("scenario_targets_IPR_raw", spark_generate)
 
         scenario_targets_IPR_raw = scenario_targets_IPR_raw.custom_select(
             ["Scenario", "Region", "Sector", "Sub_Sector", "Year", "Value"]
         )
-        scenario_targets_IPR_raw = scenario_targets_IPR_raw.custom_select(
-            ["Scenario", "Region", "Sector", "Sub_Sector", "Year", "Value"]
-        )
 
-        rename_dict = {
-            "Scenario": "scenario",
-            "Region": "region",
-            "Sector": "ipr_sector",
-            "Sub_Sector": "ipr_subsector",
-            "Year": "year",
-            "Value": "value",
-        }
         rename_dict = {
             "Scenario": "scenario",
             "Region": "region",
@@ -988,31 +706,12 @@ def generate_table(table_name: str) -> None:
             if col_name
             not in ["tiltRecordID", "to_date", "map_scenario_targets_IPR_raw"]
         ]
-        sha_columns = [
-            F.col(col_name)
-            for col_name in scenario_targets_IPR_raw.data.columns
-            if col_name
-            not in ["tiltRecordID", "to_date", "map_scenario_targets_IPR_raw"]
-        ]
 
         # Create the SHA256 record ID by concatenating all relevant columns
         scenario_targets_IPR_raw.data = scenario_targets_IPR_raw.data.withColumn(
             "scenario_targets_ipr_id", F.sha2(F.concat_ws("|", *sha_columns), 256)
         )
-            "scenario_targets_ipr_id", F.sha2(F.concat_ws("|", *sha_columns), 256)
-        )
 
-        scenario_targets_IPR_raw = scenario_targets_IPR_raw.custom_select(
-            [
-                "scenario_targets_ipr_id",
-                "scenario",
-                "region",
-                "ipr_sector",
-                "ipr_subsector",
-                "year",
-                "value",
-            ]
-        ).custom_distinct()
         scenario_targets_IPR_raw = scenario_targets_IPR_raw.custom_select(
             [
                 "scenario_targets_ipr_id",
@@ -1030,34 +729,17 @@ def generate_table(table_name: str) -> None:
             spark_generate,
             initial_df=scenario_targets_IPR_raw.data,
         )
-            "scenario_targets_IPR_datamodel",
-            spark_generate,
-            initial_df=scenario_targets_IPR_raw.data,
-        )
 
         scenario_targets_IPR_datamodel.write_table()
 
     elif table_name == "scenario_targets_WEO_datamodel":
-    elif table_name == "scenario_targets_WEO_datamodel":
 
-        scenario_targets_WEO_raw = CustomDF("scenario_targets_WEO_raw", spark_generate)
         scenario_targets_WEO_raw = CustomDF("scenario_targets_WEO_raw", spark_generate)
 
         scenario_targets_WEO_raw = scenario_targets_WEO_raw.custom_select(
             ["SCENARIO", "REGION", "PRODUCT", "FLOW", "YEAR", "VALUE"]
         )
-        scenario_targets_WEO_raw = scenario_targets_WEO_raw.custom_select(
-            ["SCENARIO", "REGION", "PRODUCT", "FLOW", "YEAR", "VALUE"]
-        )
 
-        rename_dict = {
-            "SCENARIO": "scenario",
-            "REGION": "region",
-            "PRODUCT": "weo_sector",
-            "FLOW": "weo_subsector",
-            "YEAR": "year",
-            "VALUE": "value",
-        }
         rename_dict = {
             "SCENARIO": "scenario",
             "REGION": "region",
@@ -1076,31 +758,12 @@ def generate_table(table_name: str) -> None:
             if col_name
             not in ["tiltRecordID", "to_date", "map_scenario_targets_WEO_raw"]
         ]
-        sha_columns = [
-            F.col(col_name)
-            for col_name in scenario_targets_WEO_raw.data.columns
-            if col_name
-            not in ["tiltRecordID", "to_date", "map_scenario_targets_WEO_raw"]
-        ]
 
         # Create the SHA256 record ID by concatenating all relevant columns
         scenario_targets_WEO_raw.data = scenario_targets_WEO_raw.data.withColumn(
             "scenario_targets_weo_id", F.sha2(F.concat_ws("|", *sha_columns), 256)
         )
-            "scenario_targets_weo_id", F.sha2(F.concat_ws("|", *sha_columns), 256)
-        )
 
-        scenario_targets_WEO_raw = scenario_targets_WEO_raw.custom_select(
-            [
-                "scenario_targets_weo_id",
-                "scenario",
-                "region",
-                "weo_sector",
-                "weo_subsector",
-                "year",
-                "value",
-            ]
-        ).custom_distinct()
         scenario_targets_WEO_raw = scenario_targets_WEO_raw.custom_select(
             [
                 "scenario_targets_weo_id",
@@ -1118,27 +781,17 @@ def generate_table(table_name: str) -> None:
             spark_generate,
             initial_df=scenario_targets_WEO_raw.data,
         )
-            "scenario_targets_WEO_datamodel",
-            spark_generate,
-            initial_df=scenario_targets_WEO_raw.data,
-        )
 
         scenario_targets_WEO_datamodel.write_table()
 
     elif table_name == "isic_mapper_datamodel":
-    elif table_name == "isic_mapper_datamodel":
 
-        isic_4_digit_codes_landingzone = CustomDF("isic_mapper_raw", spark_generate)
         isic_4_digit_codes_landingzone = CustomDF("isic_mapper_raw", spark_generate)
 
         isic_4_digit_codes_landingzone = isic_4_digit_codes_landingzone.custom_select(
             ["Code", "ISIC_Rev_4_label"]
         )
-        isic_4_digit_codes_landingzone = isic_4_digit_codes_landingzone.custom_select(
-            ["Code", "ISIC_Rev_4_label"]
-        )
 
-        rename_dict = {"Code": "isic_4digit", "ISIC_Rev_4_label": "isic_4digit_name"}
         rename_dict = {"Code": "isic_4digit", "ISIC_Rev_4_label": "isic_4digit_name"}
 
         isic_4_digit_codes_landingzone.rename_columns(rename_dict)
@@ -1148,19 +801,12 @@ def generate_table(table_name: str) -> None:
             spark_generate,
             initial_df=isic_4_digit_codes_landingzone.data,
         )
-            "isic_mapper_datamodel",
-            spark_generate,
-            initial_df=isic_4_digit_codes_landingzone.data,
-        )
         isic_mapper_datamodel.write_table()
 
     elif table_name == "SBI_activities_datamodel":
-    elif table_name == "SBI_activities_datamodel":
 
         SBI_activities_raw = CustomDF("SBI_activities_raw", spark_generate)
-        SBI_activities_raw = CustomDF("SBI_activities_raw", spark_generate)
 
-        rename_dict = {"SBI": "sbi_code", "Omschrijving": "sbi_code_description"}
         rename_dict = {"SBI": "sbi_code", "Omschrijving": "sbi_code_description"}
 
         SBI_activities_raw.rename_columns(rename_dict)
@@ -1170,13 +816,8 @@ def generate_table(table_name: str) -> None:
             spark_generate,
             initial_df=SBI_activities_raw.data,
         )
-            "SBI_activities_datamodel",
-            spark_generate,
-            initial_df=SBI_activities_raw.data,
-        )
         SBI_activities_datamodel.write_table()
 
-    elif table_name == "companies_SBI_activities_datamodel":
     elif table_name == "companies_SBI_activities_datamodel":
 
         companies_companyinfo_raw = CustomDF(
@@ -1188,8 +829,6 @@ def generate_table(table_name: str) -> None:
         )
 
         rename_dict = {
-            "Kamer_van_Koophandel_nummer_12_cijferig": "company_id",
-            "SBI_code_locatie": "sbi_code",
             "Kamer_van_Koophandel_nummer_12_cijferig": "company_id",
             "SBI_code_locatie": "sbi_code",
         }
@@ -1237,44 +876,13 @@ def generate_table(table_name: str) -> None:
             "tiltLedger_datamodel", spark_generate, initial_df=tiltLedger_raw.data
         )
         tiltLedger_datamodel.write_table()
-    elif table_name == "tiltLedger_datamodel":
-
-        tiltLedger_raw = CustomDF("tiltLedger_raw", spark_generate)
-
-        rename_dict = {
-            "CPC21code": "CPC_Code",
-            "CPC21title": "CPC_Name",
-            "ISIC4code": "ISIC_4digit",
-            "Description": "ISIC_Name",
-        }
-
-        tiltLedger_raw.rename_columns(rename_dict)
-
-        final_columns = [
-            "CPC_Code",
-            "CPC_Name",
-            "ISIC_4digit",
-            "ISIC_Name",
-            "Activity_Type",
-            "Geography",
-        ]
-
-        tiltLedger_raw.custom_select(final_columns)
-
-        tiltLedger_datamodel = CustomDF(
-            "tiltLedger_datamodel", spark_generate, initial_df=tiltLedger_raw.data
-        )
-        tiltLedger_datamodel.write_table()
 
     else:
         raise ValueError(
             f"The table: {table_name} is not specified in the processing functions"
         )
-            f"The table: {table_name} is not specified in the processing functions"
-        )
 
     # If the code is run as a workflow on databricks, we do not want to shutdown the spark session.
     # This will cause the cluster to be unusable for other spark processes
-    if not "DATABRICKS_RUNTIME_VERSION" in os.environ:
     if not "DATABRICKS_RUNTIME_VERSION" in os.environ:
         spark_generate.stop()

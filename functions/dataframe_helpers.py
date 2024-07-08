@@ -4,8 +4,6 @@ from pyspark.sql import SparkSession, DataFrame
 from pyspark.sql.window import Window
 import pyspark.sql.types as T
 from pyspark.sql.functions import udf
-import pyspark.sql.types as T
-from pyspark.sql.functions import udf
 
 
 def create_map_column(dataframe: DataFrame, dataframe_name: str) -> DataFrame:
@@ -21,8 +19,6 @@ def create_map_column(dataframe: DataFrame, dataframe_name: str) -> DataFrame:
         DataFrame: The dataframe with the new map column.
     """
     dataframe = dataframe.withColumn(
-        f"map_{dataframe_name}",
-        F.create_map(F.lit(dataframe_name), F.array(F.col("tiltRecordID"))),
         f"map_{dataframe_name}",
         F.create_map(F.lit(dataframe_name), F.array(F.col("tiltRecordID"))),
     )
@@ -45,13 +41,10 @@ def create_sha_values(data_frame: DataFrame, col_list: list) -> DataFrame:
     data_frame = data_frame.withColumn(
         "shaValue", F.sha2(F.concat_ws("|", *col_list), 256)
     )
-        "shaValue", F.sha2(F.concat_ws("|", *col_list), 256)
-    )
 
     return data_frame
 
 
-def create_table_path(environment: str, schema: dict, partition_name: str = "") -> str:
 def create_table_path(environment: str, schema: dict, partition_name: str = "") -> str:
     """
     Creates a table path based on the given environment, schema, and optional partition name.
@@ -66,12 +59,10 @@ def create_table_path(environment: str, schema: dict, partition_name: str = "") 
 
     """
     if schema["container"] == "landingzone":
-    if schema["container"] == "landingzone":
         if partition_name:
             return f"abfss://{schema['container']}@storagetilt{environment}.dfs.core.windows.net/{schema['location']}/{schema['partition_column']}={partition_name}"
 
         return f"abfss://{schema['container']}@storagetilt{environment}.dfs.core.windows.net/{schema['location']}/"
-    return ""
     return ""
 
 
@@ -107,11 +98,6 @@ def clean_column_names(data_frame: DataFrame) -> DataFrame:
             new_col_name = re.sub(r"[\(\)]", "", new_col_name)
             new_col_name = re.sub(r"\s+", "_", new_col_name)
             data_frame = data_frame.withColumnRenamed(col, new_col_name)
-        if re.search(r"[-\\\/\(\)\s]", col):
-            new_col_name = re.sub(r"[-\\\/]", " ", col)
-            new_col_name = re.sub(r"[\(\)]", "", new_col_name)
-            new_col_name = re.sub(r"\s+", "_", new_col_name)
-            data_frame = data_frame.withColumnRenamed(col, new_col_name)
     return data_frame
 
 
@@ -140,7 +126,6 @@ def create_catalog_table(table_name: str, schema: dict) -> str:
     """
 
     if not schema["columns"]:
-    if not schema["columns"]:
         raise ValueError("The provided schema can not be empty")
 
     create_catalog_table_string = ""
@@ -149,17 +134,12 @@ def create_catalog_table(table_name: str, schema: dict) -> str:
     create_catalog_table_string = f"CREATE TABLE IF NOT EXISTS {table_name} ("
 
     for i in schema["columns"]:
-    for i in schema["columns"]:
         col_info = i.jsonValue()
         col_string = f"`{col_info['name']}` {col_info['type']} {'NOT NULL' if not col_info['nullable'] else ''},"
         create_catalog_table_string += col_string
 
     create_catalog_table_string = create_catalog_table_string[:-1] + ")"
     create_catalog_table_string += " USING DELTA "
-    if schema["partition_column"]:
-        create_catalog_table_string += (
-            f"PARTITIONED BY (`{schema['partition_column']}` STRING)"
-        )
     if schema["partition_column"]:
         create_catalog_table_string += (
             f"PARTITIONED BY (`{schema['partition_column']}` STRING)"
@@ -186,12 +166,6 @@ def create_catalog_schema(environment: str, schema: dict) -> str:
     create_catalog_schema_owner = (
         f'ALTER SCHEMA {environment}.{schema["container"]} SET OWNER TO tiltDevelopers;'
     )
-    create_catalog_schema_string = (
-        f'CREATE SCHEMA IF NOT EXISTS {environment}.{schema["container"]};'
-    )
-    create_catalog_schema_owner = (
-        f'ALTER SCHEMA {environment}.{schema["container"]} SET OWNER TO tiltDevelopers;'
-    )
 
     return create_catalog_schema_string, create_catalog_schema_owner
 
@@ -207,9 +181,6 @@ def create_catalog_table_owner(table_name: str) -> str:
         str: The SQL string to set the owner of the table.
     """
 
-    create_catalog_table_owner_string = (
-        f"ALTER TABLE {table_name} SET OWNER TO tiltDevelopers"
-    )
     create_catalog_table_owner_string = (
         f"ALTER TABLE {table_name} SET OWNER TO tiltDevelopers"
     )
@@ -246,21 +217,6 @@ def apply_scd_type_2(new_table: DataFrame, existing_table: DataFrame) -> DataFra
             from_to_list += [F.col(map_col)]
         else:
             map_col = "map_monitoring_values"
-    future_date = F.lit("2099-12-31")
-    map_col = ""
-    from_to_list = [F.col("from_date"), F.col("to_date")]
-
-    # Check if the new table contains a map column
-    if [col for col in new_table.columns if col.startswith("map_")]:
-        # This is supposed to check if we are creating the the monitoring_valus table
-        if not "signalling_id" in existing_table.columns:
-            map_col = [col for col in new_table.columns if col.startswith("map_")][0]
-            existing_table = existing_table.withColumn(
-                map_col, F.create_map().cast("Map<String, Array<String>>")
-            )
-            from_to_list += [F.col(map_col)]
-        else:
-            map_col = "map_monitoring_values"
 
     # Select the columns that contain values that should be compared
     value_columns = [
@@ -269,19 +225,7 @@ def apply_scd_type_2(new_table: DataFrame, existing_table: DataFrame) -> DataFra
         if col_name not in ["tiltRecordID", "from_date", "to_date"]
         and col_name != map_col
     ]
-    value_columns = [
-        F.col(col_name)
-        for col_name in new_table.columns
-        if col_name not in ["tiltRecordID", "from_date", "to_date"]
-        and col_name != map_col
-    ]
 
-    old_closed_records = existing_table.filter(F.col("to_date") != future_date).select(
-        value_columns + from_to_list
-    )
-    old_df = existing_table.filter(F.col("to_date") == future_date).select(
-        value_columns + from_to_list
-    )
     old_closed_records = existing_table.filter(F.col("to_date") != future_date).select(
         value_columns + from_to_list
     )
@@ -292,14 +236,8 @@ def apply_scd_type_2(new_table: DataFrame, existing_table: DataFrame) -> DataFra
     # Add the SHA representation of the old records and rename to unique name
     old_df = create_sha_values(old_df, value_columns)
     old_df = old_df.withColumnRenamed("shaValue", "shaValueOld")
-    old_df = old_df.withColumnRenamed("shaValue", "shaValueOld")
 
     # Add the SHA representation of the incoming records and rename to unique name
-    new_data_frame = create_sha_values(new_table, value_columns)
-    new_data_frame = new_data_frame.withColumn("from_date", processing_date).withColumn(
-        "to_date", F.to_date(future_date)
-    )
-    new_data_frame = new_data_frame.withColumnRenamed("shaValue", "shaValueNew")
     new_data_frame = create_sha_values(new_table, value_columns)
     new_data_frame = new_data_frame.withColumn("from_date", processing_date).withColumn(
         "to_date", F.to_date(future_date)
@@ -312,11 +250,6 @@ def apply_scd_type_2(new_table: DataFrame, existing_table: DataFrame) -> DataFra
         on=old_df.shaValueOld == new_data_frame.shaValueNew,
         how="full",
     )
-    combined_df = new_data_frame.select(F.col("shaValueNew")).join(
-        old_df.select("shaValueOld"),
-        on=old_df.shaValueOld == new_data_frame.shaValueNew,
-        how="full",
-    )
 
     # Set the base of all records to the already expired/ closed records
     all_records = old_closed_records
@@ -324,13 +257,7 @@ def apply_scd_type_2(new_table: DataFrame, existing_table: DataFrame) -> DataFra
     identical_records = combined_df.filter(
         (F.col("shaValueOld").isNotNull()) & (F.col("shaValueNew").isNotNull())
     )
-        (F.col("shaValueOld").isNotNull()) & (F.col("shaValueNew").isNotNull())
-    )
     if identical_records.count() > 0:
-        identical_records = combined_df.filter(
-            (F.col("shaValueOld").isNotNull()) & (F.col("shaValueNew").isNotNull())
-        ).join(old_df, on="shaValueOld", how="inner")
-        identical_records = identical_records.select(value_columns + from_to_list)
         identical_records = combined_df.filter(
             (F.col("shaValueOld").isNotNull()) & (F.col("shaValueNew").isNotNull())
         ).join(old_df, on="shaValueOld", how="inner")
@@ -342,14 +269,7 @@ def apply_scd_type_2(new_table: DataFrame, existing_table: DataFrame) -> DataFra
     closed_records = combined_df.filter(
         (F.col("shaValueOld").isNotNull()) & (F.col("shaValueNew").isNull())
     )
-        (F.col("shaValueOld").isNotNull()) & (F.col("shaValueNew").isNull())
-    )
     if closed_records.count() > 0:
-        closed_records = combined_df.filter(
-            (F.col("shaValueOld").isNotNull()) & (F.col("shaValueNew").isNull())
-        ).join(old_df, on="shaValueOld", how="inner")
-        closed_records = closed_records.select(value_columns + from_to_list)
-        closed_records = closed_records.withColumn("to_date", processing_date)
         closed_records = combined_df.filter(
             (F.col("shaValueOld").isNotNull()) & (F.col("shaValueNew").isNull())
         ).join(old_df, on="shaValueOld", how="inner")
@@ -361,12 +281,7 @@ def apply_scd_type_2(new_table: DataFrame, existing_table: DataFrame) -> DataFra
     new_records = combined_df.filter(
         (F.col("shaValueOld").isNull()) & (F.col("shaValueNew").isNotNull())
     )
-        (F.col("shaValueOld").isNull()) & (F.col("shaValueNew").isNotNull())
-    )
     if new_records.count() > 0:
-        new_records = combined_df.filter(
-            (F.col("shaValueOld").isNull()) & (F.col("shaValueNew").isNotNull())
-        ).join(new_data_frame, on="shaValueNew", how="inner")
         new_records = combined_df.filter(
             (F.col("shaValueOld").isNull()) & (F.col("shaValueNew").isNotNull())
         ).join(new_data_frame, on="shaValueNew", how="inner")
@@ -379,15 +294,7 @@ def apply_scd_type_2(new_table: DataFrame, existing_table: DataFrame) -> DataFra
 def assign_signalling_id(
     monitoring_values_df: DataFrame, existing_monitoring_df: DataFrame
 ) -> DataFrame:
-def assign_signalling_id(
-    monitoring_values_df: DataFrame, existing_monitoring_df: DataFrame
-) -> DataFrame:
 
-    max_issue = (
-        existing_monitoring_df.fillna(0, subset="signalling_id")
-        .select(F.max(F.col("signalling_id")).alias("max_signalling_id"))
-        .collect()[0]["max_signalling_id"]
-    )
     max_issue = (
         existing_monitoring_df.fillna(0, subset="signalling_id")
         .select(F.max(F.col("signalling_id")).alias("max_signalling_id"))
@@ -417,71 +324,27 @@ def assign_signalling_id(
         monitoring_values_df.check_name == existing_monitoring_df.check_name_old,
         monitoring_values_df.check_id == existing_monitoring_df.check_id_old,
     ]
-    existing_monitoring_df = (
-        existing_monitoring_df.select(
-            [F.col(c).alias(c + "_old") for c in existing_monitoring_df.columns]
-        )
-        .select(
-            [
-                "signalling_id_old",
-                "column_name_old",
-                "check_name_old",
-                "table_name_old",
-                "check_id_old",
-            ]
-        )
-        .distinct()
-    )
-    w = Window().partitionBy("table_name").orderBy(F.col("check_id"))
-    join_conditions = [
-        monitoring_values_df.table_name == existing_monitoring_df.table_name_old,
-        monitoring_values_df.column_name == existing_monitoring_df.column_name_old,
-        monitoring_values_df.check_name == existing_monitoring_df.check_name_old,
-        monitoring_values_df.check_id == existing_monitoring_df.check_id_old,
-    ]
     monitoring_values_intermediate = monitoring_values_df.join(
-        existing_monitoring_df, on=join_conditions, how="left"
-    )
         existing_monitoring_df, on=join_conditions, how="left"
     )
 
     existing_signalling_id = monitoring_values_intermediate.where(
         F.col("signalling_id_old").isNotNull()
     )
-        F.col("signalling_id_old").isNotNull()
-    )
     non_existing_signalling_id = monitoring_values_intermediate.where(
         F.col("signalling_id_old").isNull()
     )
-        F.col("signalling_id_old").isNull()
-    )
     non_existing_signalling_id = non_existing_signalling_id.withColumn(
-        "signalling_id", F.row_number().over(w) + F.lit(max_issue)
-    )
         "signalling_id", F.row_number().over(w) + F.lit(max_issue)
     )
 
     monitoring_values_intermediate = existing_signalling_id.union(
         non_existing_signalling_id
     )
-        non_existing_signalling_id
-    )
     monitoring_values_intermediate = monitoring_values_intermediate.withColumn(
         "signalling_id", F.coalesce(F.col("signalling_id_old"), F.col("signalling_id"))
     )
-        "signalling_id", F.coalesce(F.col("signalling_id_old"), F.col("signalling_id"))
-    )
     monitoring_values_df = monitoring_values_intermediate.select(
-        [
-            "signalling_id",
-            "check_id",
-            "column_name",
-            "check_name",
-            "total_count",
-            "valid_count",
-            "table_name",
-        ]
-    )
         [
             "signalling_id",
             "check_id",
@@ -510,14 +373,6 @@ def structure_postcode(postcode: str) -> str:
     num = F.regexp_extract(postcode, r"^(\d{4})", 1)
     alph = F.regexp_extract(postcode, r"([A-Za-z]{2})$", 1)
 
-    # Use regex to extract the numbers and letters from the postcode
-    num = F.regexp_extract(postcode, r"^(\d{4})", 1)
-    alph = F.regexp_extract(postcode, r"([A-Za-z]{2})$", 1)
-
-    # Format postcode into `1234 AB`
-    return F.concat(num, F.lit(" "), F.upper(alph))
-
-
     # Format postcode into `1234 AB`
     return F.concat(num, F.lit(" "), F.upper(alph))
 
@@ -544,10 +399,6 @@ def format_postcode(postcode: str, city: str) -> str:
         ~reference.isin(["etten-leur", "kruiningen"]) | reference.isNotNull(),
         structure_postcode(F.split(reference, " ")[0]),
     ).otherwise("")
-    reference = F.when(
-        ~reference.isin(["etten-leur", "kruiningen"]) | reference.isNotNull(),
-        structure_postcode(F.split(reference, " ")[0]),
-    ).otherwise("")
 
     return reference
 
@@ -567,9 +418,5 @@ def keep_one_name(default_name: str, statutory_name: str) -> str:
     name = F.when(statutory_name.isNotNull(), F.lower(statutory_name)).otherwise(
         F.lower(default_name)
     )
-    name = F.when(statutory_name.isNotNull(), F.lower(statutory_name)).otherwise(
-        F.lower(default_name)
-    )
 
     return name
-
