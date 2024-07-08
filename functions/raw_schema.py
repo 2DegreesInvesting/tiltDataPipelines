@@ -311,6 +311,7 @@ raw_schema = {
             StructField('Product_UUID', StringType(), False),
             StructField('Reference_Product_Name', StringType(), True),
             StructField('CPC_Classification', StringType(), True),
+            StructField('HS2017_Classification', StringType(), True),
             StructField('Unit', StringType(), True),
             StructField('Product_Information', StringType(), True),
             StructField('CAS_Number', StringType(), True),

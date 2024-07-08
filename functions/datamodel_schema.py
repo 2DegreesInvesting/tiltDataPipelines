@@ -225,8 +225,8 @@ datamodel_schema = {
             StructField('product_uuid', StringType(), False),
             StructField('reference_product_name', StringType(), True),
             StructField('unit', StringType(), True),
-            StructField('CPC_code', StringType(), True),
-            StructField('CPC_name', StringType(), True),
+            StructField('cpc_code', StringType(), True),
+            StructField('cpc_name', StringType(), True),
             StructField('from_date', DateType(), False),
             StructField('to_date', DateType(), False),
             StructField('tiltRecordID', StringType(), False)
@@ -336,8 +336,8 @@ datamodel_schema = {
     },
     'tiltLedger_datamodel': {
         'columns':  StructType([
-            StructField('CPC_Code', StringType(), True),
-            StructField('CPC_Name', StringType(), True),
+            StructField('cpc_code', StringType(), True),
+            StructField('cpc_name', StringType(), True),
             StructField('ISIC_4digit', StringType(), True),
             StructField('ISIC_Name', StringType(), True),
             StructField('Activity_Type', StringType(), True),

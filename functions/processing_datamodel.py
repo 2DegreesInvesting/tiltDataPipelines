@@ -131,12 +131,12 @@ def generate_table(table_name: str) -> None:
         cut_off_ao_raw.rename_columns(rename_dict)
 
         cut_off_ao_raw.data = cut_off_ao_raw.data.withColumn(
-            "CPC_code", F.trim(F.split("CPC_Classification", ":")[0]))
+            "cpc_code", F.trim(F.split("CPC_Classification", ":")[0]))
         cut_off_ao_raw.data = cut_off_ao_raw.data.withColumn(
-            "CPC_name", F.trim(F.split("CPC_Classification", ":")[1]))
+            "cpc_name", F.trim(F.split("CPC_Classification", ":")[1]))
 
         cut_off_ao_raw = cut_off_ao_raw.custom_select(
-            ['product_uuid', 'reference_product_name', 'unit', "CPC_code", "CPC_name"]).custom_distinct()
+            ['product_uuid', 'reference_product_name', 'unit', "cpc_code", "cpc_name"]).custom_distinct()
 
         ecoinvent_product_datamodel = CustomDF(
             'ecoinvent_product_datamodel', spark_generate, initial_df=cut_off_ao_raw.data)
@@ -376,14 +376,14 @@ def generate_table(table_name: str) -> None:
 
         tiltLedger_raw = CustomDF('tiltLedger_raw', spark_generate)
 
-        rename_dict = {'CPC21code': 'CPC_Code',
-                       'CPC21title': 'CPC_Name',
+        rename_dict = {'CPC21code': 'cpc_code',
+                       'CPC21title': 'cpc_name',
                        'ISIC4code': 'ISIC_4digit',
                        'Description': 'ISIC_Name'}
 
         tiltLedger_raw.rename_columns(rename_dict)
 
-        final_columns = ['CPC_Code', 'CPC_Name', 'ISIC_4digit',
+        final_columns = ['cpc_code', 'cpc_name', 'ISIC_4digit',
                          'ISIC_Name', 'Activity_Type', 'Geography']
 
         tiltLedger_raw.custom_select(final_columns)
