@@ -756,7 +756,7 @@ def generate_table(table_name: str) -> None:
             F.col(col_name)
             for col_name in scenario_targets_WEO_raw.data.columns
             if col_name
-            not in ["tiltRecordID", "to_date", "map_scenario_targets_WEO_raw"]
+            not in ["tiltRecordID", "to_date", "map_scenario_targets_WEO_raw","from_date"]
         ]
 
         # Create the SHA256 record ID by concatenating all relevant columns
