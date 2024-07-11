@@ -334,7 +334,7 @@ landingzone_schema = {
             StructField('Product UUID', StringType(), True),
             StructField('Reference Product Name', StringType(), True),
             StructField('CPC Classification', StringType(), True),
-            StructField('HS2017_Classification', StringType(), True),
+            StructField('HS2017 Classification', StringType(), True),
             StructField('Unit', StringType(), True),
             StructField('Product Information', StringType(), True),
             StructField('CAS Number', StringType(), True),
