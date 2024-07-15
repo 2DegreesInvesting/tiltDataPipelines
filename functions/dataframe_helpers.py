@@ -199,7 +199,6 @@ def apply_scd_type_2(new_table: DataFrame, existing_table: DataFrame) -> DataFra
     Returns:
         DataFrame: The merged dataframe with updated records based on SCD Type 2 logic.
     """
-
     # Determine the processing date
     processing_date = F.current_date()
     future_date = F.lit("2099-12-31")

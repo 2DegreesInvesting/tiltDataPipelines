@@ -855,7 +855,7 @@ def generate_table(table_name: str) -> None:
         rename_dict = {
             "CPC21code": "CPC_Code",
             "CPC21title": "CPC_Name",
-            "ISIC4code": "git ",
+            "ISIC4code": "ISIC_Code",
             "Description": "ISIC_Name",
         }
 
@@ -872,8 +872,6 @@ def generate_table(table_name: str) -> None:
 
         tiltLedger_raw.custom_select(final_columns)
 
-    
-
         # create tiltLedger_id
         sha_columns = [
             F.col(col_name)
@@ -883,7 +881,7 @@ def generate_table(table_name: str) -> None:
         tiltLedger_raw.data = tiltLedger_raw.data.withColumn(
             "tiltLedger_id", F.sha2(F.concat_ws("|", *sha_columns), 256)
         )
-        print(tiltLedger_raw.data.show())
+
         tiltLedger_raw_final = tiltLedger_raw.custom_select([
             'tiltLedger_id', 
             "CPC_Code",
@@ -892,9 +890,6 @@ def generate_table(table_name: str) -> None:
             "ISIC_Name",
             "Activity_Type",
             "Geography"])
-        tiltLedger_raw_final = tiltLedger_raw_final.custom_drop(['Code'])
-        
-        print(tiltLedger_raw_final.data.show())
 
         tiltLedger_datamodel = CustomDF(
             "tiltLedger_datamodel", spark_generate, initial_df=tiltLedger_raw_final.data
