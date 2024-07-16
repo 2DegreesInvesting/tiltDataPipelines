@@ -78,7 +78,7 @@ raw_schema = {
         'columns': StructType([
             StructField('main_activity_id', StringType(), False),
             StructField('main_activity', StringType(), True),
-            StructField('ei_activity_name', StringType(), True),
+            StructField('ecoinvent', StringType(), True),
             StructField('from_date', DateType(), False),
             StructField('to_date', DateType(), False),
             StructField('tiltRecordID', StringType(), False)
@@ -138,6 +138,7 @@ raw_schema = {
         'partition_column': '',
         'quality_checks': []
     },
+
     'EP_tilt_sector_unmatched_mapper_raw': {
         'columns':  StructType([
             StructField('categories_id', StringType(), False),

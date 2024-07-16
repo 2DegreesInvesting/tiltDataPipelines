@@ -244,6 +244,19 @@ def generate_table(table_name: str) -> None:
 
         EP_tilt_sector_unmatched_mapper_datamodel.write_table()
 
+    elif table_name == "main_activity_ecoinvent_mapper_datamodel":
+        main_activity_ecoinvent_mapper_raw = CustomDF(
+            "main_activity_ecoinvent_mapper_raw", spark_generate)
+        
+        main_activity_ecoinvent_mapper_raw.rename_columns({"ecoinvent":"ecoinvent_activity"})
+
+        main_activity_ecoinvent_mapper_raw = main_activity_ecoinvent_mapper_raw.custom_select(["main_activity_id","main_activity","ecoinvent_activity"])
+        
+        main_activity_ecoinvent_mapper_datamodel = CustomDF(
+            "main_activity_ecoinvent_mapper_datamodel", spark_generate, initial_df=main_activity_ecoinvent_mapper_raw.data)
+
+        main_activity_ecoinvent_mapper_datamodel.write_table()
+
     elif table_name == 'tilt_sector_isic_mapper_datamodel':
 
         tilt_sector_isic_mapper_raw = CustomDF(

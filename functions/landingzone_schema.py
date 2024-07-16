@@ -140,12 +140,12 @@ landingzone_schema = {
         'columns': StructType([
             StructField('main_activity_id', StringType(), False),
             StructField('main_activity', StringType(), True),
-            StructField('ei_activity_name', StringType(), True)
+            StructField('ecoinvent', StringType(), True)
         ]
         ),
         'container': 'landingzone',
         'location': 'mappers/main_activity_ecoinvent_mapper.csv',
-        'type': 'csv',
+        'type': 'multiline',
         'partition_column': '',
         'quality_checks': []
     },
@@ -188,6 +188,7 @@ landingzone_schema = {
         'partition_column': '',
         'quality_checks': []
     },
+    
     'EP_tilt_sector_mapper_landingzone': {
         'columns':  StructType([
             StructField('categories_id', StringType(), False),

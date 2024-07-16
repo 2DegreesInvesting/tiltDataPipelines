@@ -332,6 +332,15 @@ def generate_table(table_name: str) -> None:
 
         mapper_ep_ei_raw.write_table()
 
+    elif table_name == "main_activity_ecoinvent_mapper_raw":
+        main_activity_ecoinvent_mapper_landingzone = CustomDF(
+            "main_activity_ecoinvent_mapper_landingzone", spark_generate)
+        
+        main_activity_ecoinvent_mapper_raw = CustomDF(
+            "main_activity_ecoinvent_mapper_raw", spark_generate, initial_df=main_activity_ecoinvent_mapper_landingzone.data)
+
+        main_activity_ecoinvent_mapper_raw.write_table()
+
     elif table_name == 'emission_profile_company_raw':
 
         emission_profile_company_landingzone = CustomDF(

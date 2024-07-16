@@ -350,4 +350,20 @@ datamodel_schema = {
         'partition_column': '',
         'quality_checks': []
     },
+    'main_activity_ecoinvent_mapper_datamodel': {
+        'columns': StructType([
+            StructField('main_activity_id', StringType(), False),
+            StructField('main_activity', StringType(), True),
+            StructField('ecoinvent_activity', StringType(), True),
+            StructField('from_date', DateType(), False),
+            StructField('to_date', DateType(), False),
+            StructField('tiltRecordID', StringType(), False)
+        ]
+        ),
+        'container': 'datamodel',
+        'location': 'main_activity_ecoinvent_mapper',
+        'type': 'delta',
+        'partition_column': '',
+        'quality_checks': []
+    }
 }
