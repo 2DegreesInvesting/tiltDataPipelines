@@ -1014,10 +1014,10 @@ def generate_table(table_name: str) -> None:
         tiltledger = isic_table.custom_union(cpc_table)
 
         tiltledger.data = tiltledger.data.withColumn(
-            "embedding", get_embedding_udf(tiltledger["description"])
+            "embedding", get_embedding_udf(col("description"))
         )
 
-        tiltledger.custom_select(["attribute_type", "code", "embedding"])
+        tiltledger = tiltledger.custom_select(["attribute_type", "code", "embedding"])
 
         tiltLedger_embedding = CustomDF(
             "tiltLedger_embedding_datamodel", spark_generate, initial_df=tiltledger.data
