@@ -431,7 +431,7 @@ def keep_one_name(default_name: str, statutory_name: str) -> str:
     return name
 
 
-@F.pandas_udf(T.ArrayType(T.FloatType()), F.PandasUDFType.SCALAR)
+@F.pandas_udf(T.ArrayType(T.DoubleType()), F.PandasUDFType.SCALAR)
 def get_embedding_udf(descriptions):
     import openai
 
