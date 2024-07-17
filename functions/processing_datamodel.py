@@ -414,8 +414,9 @@ def generate_table(table_name: str) -> None:
             ),
         )
 
+        # Create embedding
         companies.data = companies.data.withColumn(
-            "embedding", get_embedding_udf(tiltledger["query"])
+            "embedding", get_embedding_udf(col("query"))
         )
 
         companies = companies.custom_select(
