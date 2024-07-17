@@ -1041,7 +1041,7 @@ landingzone_schema = {
     },
     'tiltLedger_mapping_landingzone': {
         'columns':  StructType([
-            StructField('company_id', StringType(), True),
+            StructField('company_id', StringType(), False),
             StructField('ISIC', StringType(), True),
             StructField('CPC', StringType(), True),
             StructField('Activity', StringType(), True),
