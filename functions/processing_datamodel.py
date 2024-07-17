@@ -1,12 +1,12 @@
 import os
 import pyspark.sql.functions as F
-import pyspark.sql.types as T
 
 from functions.custom_dataframes import CustomDF
 from functions.spark_session import create_spark_session
 from functions.dataframe_helpers import (
     format_postcode,
     keep_one_name,
+    get_embedding_udf,
 )
 from pyspark.sql.functions import col, substring, lpad, when, length
 from pyspark.sql.types import DoubleType
@@ -950,23 +950,6 @@ def generate_table(table_name: str) -> None:
         cpc_table.data = cpc_table.data.withColumn("attribute_type", F.lit("cpc"))
 
         tiltledger = isic_table.custom_union(cpc_table)
-
-        @F.pandas_udf(T.ArrayType(T.FloatType()), F.PandasUDFType.SCALAR)
-        def get_embedding_udf(descriptions):
-            import openai
-
-            client = openai.OpenAI(api_key=os.environ["OPENAI_API_KEY"])
-
-            def get_embedding(description):
-                response = client.embeddings.create(
-                    input=description,
-                    model=os.environ["OPENAI_MODEL"],
-                    encoding_format="float",
-                    dimensions=os.environ["OPENAI_EMBEDDING_DIM"],
-                )
-                return response.data[0].embedding
-
-            return descriptions.apply(get_embedding)
 
         tiltledger.data = tiltledger.data.withColumn(
             "embedding", get_embedding_udf(tiltledger["description"])

@@ -3,7 +3,7 @@ import pyspark.sql.functions as F
 from pyspark.sql import SparkSession, DataFrame
 from pyspark.sql.window import Window
 import pyspark.sql.types as T
-from pyspark.sql.functions import udf
+import os
 
 
 def create_map_column(dataframe: DataFrame, dataframe_name: str) -> DataFrame:
@@ -419,3 +419,21 @@ def keep_one_name(default_name: str, statutory_name: str) -> str:
     )
 
     return name
+
+
+@F.pandas_udf(T.ArrayType(T.FloatType()), F.PandasUDFType.SCALAR)
+def get_embedding_udf(descriptions):
+    import openai
+
+    client = openai.OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+
+    def get_embedding(description):
+        response = client.embeddings.create(
+            input=description,
+            model=os.environ["OPENAI_MODEL"],
+            encoding_format="float",
+            dimensions=os.environ["OPENAI_EMBEDDING_DIM"],
+        )
+        return response.data[0].embedding
+
+    return descriptions.apply(get_embedding)
