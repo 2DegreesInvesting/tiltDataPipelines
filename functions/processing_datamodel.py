@@ -365,6 +365,68 @@ def generate_table(table_name: str) -> None:
 
         companies_match_result_datamodel.write_table()
 
+    elif table_name == "companies_embedding_datamodel":
+        companies = CustomDF("companies_datamodel", spark_generate)
+        companies_sbi_activities = CustomDF(
+            "companies_sbi_activities_datamodel", spark_generate
+        )
+        companies_products = CustomDF("companies_products_datamodel", spark_generate)
+        sbi_activities = CustomDF("sbi_activities_datamodel", spark_generate)
+        EP_products = CustomDF("EP_products_datamodel", spark_generate)
+
+        companies = companies.custom_join(
+            companies_sbi_activities, "company_id", "left"
+        )
+        companies = companies.custom_join(sbi_activities, "sbi_code", "left")
+        companies = companies.custom_join(companies_products, "company_id", "left")
+        companies = companies.custom_join(EP_products, "product_id", "left")
+
+        # Create company query
+        companies.data = companies.data.withColumn(
+            "query",
+            F.when(
+                (
+                    col("sbi_code_description").isNull()
+                    & col("company_description").isNull()
+                    & col("product_name").isNull()
+                ),
+                "Not enough information available",
+            ).otherwise(
+                F.concat_ws(
+                    ";",
+                    col("sbi_code_description"),
+                    col("company_description"),
+                    col("product_name"),
+                )
+            ),
+        )
+
+        # Sanity check: all companies should have a valid query
+        companies.data = companies.data.filter(
+            col("query") != "Not enough information available"
+        )
+
+        # Create company isic section
+        companies.data = companies.data.withColumn(
+            "isic_section",
+            when(col("sbi_code").isNull(), "None").otherwise(
+                F.substring(col("sbi_code"), 1, 2)
+            ),
+        )
+
+        companies.data = companies.data.withColumn(
+            "embedding", get_embedding_udf(tiltledger["query"])
+        )
+
+        companies = companies.custom_select(
+            ["company_id", "isic_section", "query", "embedding"]
+        )
+
+        companies_embedding = CustomDF(
+            "companies_embedding_datamodel", spark_generate, initial_df=companies.data
+        )
+        companies_embedding.write_table()
+
     # Ecoinvent data
 
     elif table_name == "intermediate_exchanges_datamodel":

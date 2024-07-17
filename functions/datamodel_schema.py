@@ -38,6 +38,24 @@ datamodel_schema = {
         "partition_column": "",
         "quality_checks": [{"check": "values are unique", "columns": ["company_id"]}],
     },
+    "companies_embedding_datamodel": {
+        "columns": StructType(
+            [
+                StructField("company_id", StringType(), False),
+                StructField("isic_section", StringType(), False),
+                StructField("query", StringType(), False),
+                StructField("embedding", ArrayType(DoubleType()), False),
+                StructField("from_date", DateType(), False),
+                StructField("to_date", DateType(), False),
+                StructField("tiltRecordID", StringType(), False),
+            ]
+        ),
+        "container": "datamodel",
+        "location": "companies_embedding",
+        "type": "delta",
+        "partition_column": "",
+        "quality_checks": [],
+    },
     "companies_match_result_datamodel": {
         "columns": StructType(
             [
