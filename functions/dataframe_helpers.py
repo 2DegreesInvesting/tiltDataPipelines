@@ -135,7 +135,17 @@ def create_catalog_table(table_name: str, schema: dict) -> str:
 
     for i in schema["columns"]:
         col_info = i.jsonValue()
-        col_string = f"`{col_info['name']}` {col_info['type']} {'NOT NULL' if not col_info['nullable'] else ''},"
+
+        # If column is an array, for example
+        if isinstance(col_info["type"], dict):
+            col_type_parent = col_info["type"]["type"]
+            col_type_child = col_info["type"]["elementType"]
+
+            col_type = f"{col_type_parent}<{col_type_child}>"
+        else:
+            col_type = col_info["type"]
+
+        col_string = f"`{col_info['name']}` {col_type} {'NOT NULL' if not col_info['nullable'] else ''},"
         create_catalog_table_string += col_string
 
     create_catalog_table_string = create_catalog_table_string[:-1] + ")"
