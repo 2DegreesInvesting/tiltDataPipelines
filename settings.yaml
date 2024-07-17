@@ -2,3 +2,8 @@ databricks:
   workspace_name: workspace_name
   access_token: access_token
   cluster_id: cluster_id
+
+openai:
+  OPENAI_API_KEY: openai_api_key
+  OPENAI_EMBEDDING_DIM: 300
+  OPENAI_MODEL: text-embedding-3-small

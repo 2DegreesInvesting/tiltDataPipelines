@@ -8,6 +8,7 @@ from pyspark.sql.types import (
     StructType,
     StructField,
     DoubleType,
+    ArrayType,
     ShortType,
     DateType,
     ByteType,
@@ -417,6 +418,23 @@ datamodel_schema = {
         ),
         "container": "datamodel",
         "location": "tiltLedger",
+        "type": "delta",
+        "partition_column": "",
+        "quality_checks": [],
+    },
+    "tiltLedger_embedding_datamodel": {
+        "columns": StructType(
+            [
+                StructField("attribute_type", StringType(), False),
+                StructField("code", StringType(), False),
+                StructField("embedding", ArrayType(DoubleType()), False),
+                StructField("from_date", DateType(), False),
+                StructField("to_date", DateType(), False),
+                StructField("tiltRecordID", StringType(), False),
+            ]
+        ),
+        "container": "datamodel",
+        "location": "tiltLedger_embedding",
         "type": "delta",
         "partition_column": "",
         "quality_checks": [],
