@@ -403,9 +403,10 @@ datamodel_schema = {
     "tiltLedger_datamodel": {
         "columns": StructType(
             [
+                StructField("tiltLedger_id", StringType(), False),
                 StructField("CPC_Code", StringType(), True),
                 StructField("CPC_Name", StringType(), True),
-                StructField("ISIC_4digit", StringType(), True),
+                StructField("ISIC_Code", StringType(), True),
                 StructField("ISIC_Name", StringType(), True),
                 StructField("Activity_Type", StringType(), True),
                 StructField("Geography", StringType(), True),
