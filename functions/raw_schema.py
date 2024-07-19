@@ -899,35 +899,6 @@ raw_schema = {
         "partition_column": "",
         "quality_checks": [],
     },
-    "ecoinvent_input_data_raw": {
-        "columns": StructType(
-            [
-                StructField("activityId", StringType(), True),
-                StructField("activityName", StringType(), True),
-                StructField("geography", StringType(), True),
-                StructField("reference_product", StringType(), True),
-                StructField("group", StringType(), True),
-                StructField("exchange_name", StringType(), True),
-                StructField("activityLinkId", StringType(), True),
-                StructField("activityLink_activityName", StringType(), True),
-                StructField("activityLink_geography", StringType(), True),
-                StructField("exchange_unitName", StringType(), True),
-                StructField("exchange_amount", DecimalType(25, 10), True),
-                StructField("CPC_classificationValue", StringType(), True),
-                StructField(
-                    "By_product_classification_classificationValue", StringType(), True
-                ),
-                StructField("from_date", DateType(), False),
-                StructField("to_date", DateType(), False),
-                StructField("tiltRecordID", StringType(), False),
-            ]
-        ),
-        "container": "raw",
-        "location": "ecoinvent_input_data",
-        "type": "delta",
-        "partition_column": "",
-        "quality_checks": [],
-    },
     "ep_ei_matcher_raw": {
         "columns": StructType(
             [

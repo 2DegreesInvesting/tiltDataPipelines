@@ -405,23 +405,6 @@ def generate_table(table_name: str) -> None:
         )
         ecoinvent_co2_raw.write_table()
 
-    elif table_name == "ecoinvent_input_data_raw":
-
-        ecoinvent_input_data_relevant_columns_landingzone = CustomDF(
-            "ecoinvent_input_data_relevant_columns_landingzone", spark_generate
-        )
-
-        ecoinvent_input_data_relevant_columns_landingzone.convert_data_types(
-            ["exchange_amount"], DecimalType(25, 10)
-        )
-
-        ecoinvent_input_data_raw = CustomDF(
-            "ecoinvent_input_data_raw",
-            spark_generate,
-            initial_df=ecoinvent_input_data_relevant_columns_landingzone.data.distinct(),
-        )
-        ecoinvent_input_data_raw.write_table()
-
     elif table_name == "ep_ei_matcher_raw":
 
         ep_ei_matcher_landingzone = CustomDF(

@@ -870,33 +870,6 @@ landingzone_schema = {
         "partition_column": "",
         "quality_checks": [],
     },
-    "ecoinvent_input_data_relevant_columns_landingzone": {
-        "columns": StructType(
-            [
-                StructField("activityId", StringType(), True),
-                StructField("activityName", StringType(), True),
-                StructField("geography", StringType(), True),
-                StructField("reference product", StringType(), True),
-                StructField("group", StringType(), True),
-                StructField("exchange name", StringType(), True),
-                StructField("activityLinkId", StringType(), True),
-                StructField("activityLink_activityName", StringType(), True),
-                StructField("activityLink_geography", StringType(), True),
-                StructField("exchange unitName", StringType(), True),
-                StructField("exchange amount", StringType(), True),
-                StructField("CPC_classificationValue", StringType(), True),
-                StructField(
-                    "By-product classification_classificationValue", StringType(), True
-                ),
-            ]
-        ),
-        "container": "landingzone",
-        # extract from Ecoinvent portal (licensed)
-        "location": "ecoInvent/ecoinvent_input_data_relevant_columns.csv",
-        "type": "multiline",
-        "partition_column": "",
-        "quality_checks": [],
-    },
     "ep_ei_matcher_landingzone": {
         "columns": StructType(
             [

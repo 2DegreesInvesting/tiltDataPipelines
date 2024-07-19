@@ -37,7 +37,6 @@ if __name__ == '__main__':
 
     generate_table_raw('ecoinvent_co2_raw')
 
-    generate_table_raw('ecoinvent_input_data_raw')
     generate_table_raw('inputProducts_raw')
     generate_table_raw('emissionData_raw')
 
