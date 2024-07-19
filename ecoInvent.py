@@ -52,4 +52,5 @@ if __name__ == '__main__':
     generate_table_datamodel('ecoinvent_co2_datamodel') 
 
     generate_table_datamodel('ecoinvent_input_data_datamodel') 
+    generate_table_datamodel("ledger_ecoinvent_mapping")
 

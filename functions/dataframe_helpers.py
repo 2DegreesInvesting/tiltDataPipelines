@@ -1,9 +1,11 @@
 import re
+import ast
 import pyspark.sql.functions as F
 from pyspark.sql import SparkSession, DataFrame
 from pyspark.sql.window import Window
 import pyspark.sql.types as T
 from pyspark.sql.functions import udf
+from functools import reduce 
 
 
 def create_map_column(dataframe: DataFrame, dataframe_name: str) -> DataFrame:
@@ -302,3 +304,78 @@ def assign_signalling_id(monitoring_values_df: DataFrame, existing_monitoring_df
         ['signalling_id', 'check_id', 'column_name', 'check_name', 'total_count', 'valid_count', 'table_name'])
 
     return monitoring_values_df
+
+def ledger_corrector(tilt_ledger):
+
+    # Find the longest cpc_name within each cpc_code group
+    longest_cpc_name = tilt_ledger.groupBy("cpc_code").agg(F.max(F.length(F.col("cpc_name"))).alias("max_length"))
+
+    # Join the longest_cpc_name dataframe with the tilt_ledger dataframe
+    tilt_ledger_with_length = tilt_ledger.join(longest_cpc_name, on="cpc_code")
+
+    # Filter out the rows where the length of cpc_name is not equal to the max_length
+    filtered_tilt_ledger = tilt_ledger_with_length.filter(F.length(F.col("cpc_name")) == F.col("max_length"))
+
+    # Drop the max_length column
+    tilt_ledger = filtered_tilt_ledger.drop("max_length")
+
+    # Find the longest isic_name within each isic_4digit group
+    longest_isic_name = tilt_ledger.groupBy("isic_code").agg(F.max(F.length(F.col("isic_name"))).alias("max_length"))
+
+    # Join the isic_name dataframe with the tilt_ledger dataframe
+    tilt_ledger_with_length = tilt_ledger.join(longest_isic_name, on="isic_code")
+
+    # Filter out the rows where the length of isic_name is not equal to the max_length
+    filtered_tilt_ledger = tilt_ledger_with_length.filter(F.length(F.col("isic_name")) == F.col("max_length"))
+
+    # Drop the max_length column
+    tilt_ledger = filtered_tilt_ledger.drop("max_length")
+
+    tilt_ledger = tilt_ledger.dropDuplicates(subset=["cpc_code","isic_code","geography","activity_type"])
+    return tilt_ledger
+
+def geography_pivotter(tilt_geography, spark_session):
+    # select every 16th row in the tilt_geography dataframe but only select the columns that are needed
+    mapping_data = tilt_geography.dropDuplicates(subset=["country_un"]).select("country_un", "map_geography_ecoinvent_mapper_datamodel")
+
+    # Pivot the tilt_geography dataframe
+    geography_ecoinvent_mapper_pandas = tilt_geography.toPandas()
+
+    geo_mapper_pivot = geography_ecoinvent_mapper_pandas.pivot(index='country_un', columns='priority', values='ecoinvent_geography')
+    geo_mapper_pivot.columns = ['key_' + str(col) for col in geo_mapper_pivot.columns]
+
+    # Convert pandas DataFrame to Spark DataFrame
+    geo_mapper_pivot_spark = spark_session.createDataFrame(geo_mapper_pivot)
+
+    # Join the pivot table with the mapping_data with the keys key_1 and country_un
+    geo_mapper_pivot_spark = geo_mapper_pivot_spark.join(mapping_data, geo_mapper_pivot_spark.key_1 == mapping_data.country_un, how="left").drop("country_un")
+
+    return geo_mapper_pivot_spark
+
+def ledger_x_ecoinvent_matcher(ledger, ecoinvent):
+    ledger_cols = ["ledger."+column for column in ledger.columns]
+    init_df = ecoinvent.alias("ei").join(ledger.alias("ledger"),                     
+                (
+                    (F.col('ei.geography') == F.col(f'ledger.geography')) &
+                    (F.col('ei.isic_4digit') == F.col('ledger.isic_code')) &
+                    (F.col('ei.cpc_code') == F.col('ledger.cpc_code')) &
+                    (F.col('ei.activity_type') == F.col('ledger.ecoinvent_activity'))
+                ), how = "right")
+    complete_df = init_df.filter(init_df.activity_uuid_product_uuid.isNotNull())
+    unmatched_records = init_df.filter(init_df.activity_uuid_product_uuid.isNull()).select(ledger_cols)
+    # first do with alternative geography
+    for i in range(2,17):
+        country_column = f"key_{i}"
+        next_match = ecoinvent.alias("ei").join(unmatched_records.alias("ledger"),                     
+                (
+                    (F.col('ei.geography') == F.col(f'ledger.{country_column}')) &
+                    (F.col('ei.isic_4digit') == F.col('ledger.isic_code')) &
+                    (F.col('ei.cpc_code') == F.col("ledger.cpc_code"))&
+                    (F.col('ei.activity_type') == F.col('ledger.ecoinvent_activity'))
+                ), how = "right")
+        
+        unmatched_records = next_match.filter(next_match.activity_uuid_product_uuid.isNull()).select(ledger_cols)
+        matched_records = next_match.filter(next_match.activity_uuid_product_uuid.isNotNull())
+        complete_df = complete_df.union(matched_records)
+    
+    return complete_df

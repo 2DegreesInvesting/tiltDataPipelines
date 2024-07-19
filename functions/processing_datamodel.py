@@ -2,7 +2,7 @@ import os
 import pyspark.sql.functions as F
 from functions.custom_dataframes import CustomDF
 from functions.spark_session import create_spark_session
-from functions.dataframe_helpers import create_sha_values
+from functions.dataframe_helpers import *
 from pyspark.sql.functions import col, substring
 
 
@@ -404,6 +404,59 @@ def generate_table(table_name: str) -> None:
         tiltLedger_datamodel = CustomDF(
             'tiltLedger_datamodel', spark_generate, initial_df=tiltLedger_raw.data)
         tiltLedger_datamodel.write_table()
+
+    # ledger to ecoinvent mapping
+    elif table_name == 'ledger_ecoinvent_mapping':
+
+        tilt_ledger = CustomDF('tiltLedger_datamodel', spark_generate)
+        # ecoinvent_activity = CustomDF("ecoinvent_activity_datamodel", spark_generate, specific_date="2024-06-17")
+        # ecoinvent_co2 = CustomDF("ecoinvent_co2_datamodel", spark_generate, specific_date="2024-06-10")
+        # ecoinvent_cut_off = CustomDF("ecoinvent_cut_off_datamodel", spark_generate, specific_date="2024-06-12")
+        # ecoinvent_product = CustomDF("ecoinvent_product_datamodel", spark_generate, specific_date="2024-06-17")
+        ecoinvent_activity = CustomDF("ecoinvent_activity_datamodel", spark_generate)
+        ecoinvent_co2 = CustomDF("ecoinvent_co2_datamodel", spark_generate)
+        ecoinvent_cut_off = CustomDF("ecoinvent_cut_off_datamodel", spark_generate)
+        ecoinvent_product = CustomDF("ecoinvent_product_datamodel", spark_generate)
+        geography_ecoinvent_mapper = CustomDF("geography_ecoinvent_mapper_datamodel", spark_generate)
+        activity_mapping = CustomDF("main_activity_ecoinvent_mapper_datamodel", spark_generate)
+
+        activity_mapping.data = (activity_mapping.data.withColumn("main_activity", F.when(F.col("main_activity") == "manufacturer/ producer", "producing")
+                                                        .otherwise(F.col("main_activity")))
+                                                        .withColumn("main_activity", F.when(F.col("main_activity") == "retailer", "retail")
+                                                                    .otherwise(F.col("main_activity")))
+                                                        )
+
+        # intermediate dataframes
+        valid_countries = ['NL', 'AT', 'GB', 'DE', 'ES', 'FR', 'IT']
+        tilt_ledger.data = tilt_ledger.data.dropna(subset=["CPC_Code", "ISIC_Code", "Geography"])
+        tilt_ledger.data = tilt_ledger.data.filter(tilt_ledger.data.Geography.isin(valid_countries)).withColumn("Geography", F.lower(F.col("Geography"))).select([F.col(column).alias(column.lower()) for column in tilt_ledger.data.columns])
+        tilt_ledger.data = tilt_ledger.data.withColumn("cpc_name", F.regexp_replace(F.trim(F.lower(F.col("cpc_name"))), "<.*?>", "")).withColumn("activity_type", F.lower(F.col("activity_type")))
+        ei_record_info = ecoinvent_product.custom_join(ecoinvent_cut_off, "product_uuid").custom_join(ecoinvent_activity, "activity_uuid").custom_join(ecoinvent_co2, "activity_uuid_product_uuid").custom_select(['activity_uuid_product_uuid', 'activity_uuid', 'product_uuid', 'reference_product_name', 
+                                                                                                                                                                                                                   'unit', 'cpc_code', 'cpc_name', 'activity_name', 
+                                                                                                                                                                                                                   'activity_type', 'geography', 'isic_4digit','co2_footprint'])
+        ei_record_info.data = ei_record_info.data.withColumn("geography", F.lower(F.col("geography")))
+
+        tilt_ledger.data = ledger_corrector(tilt_ledger.data)
+
+        geography_ecoinvent_mapper.data = geography_pivotter(geography_ecoinvent_mapper.data, spark_generate) # the pivotting removes the map_geography_ecoinvent_mapper_datamodel column
+
+        emission_enriched_ledger = tilt_ledger.custom_join(geography_ecoinvent_mapper,                     
+                            (
+                                (F.col('geography') == F.col('key_1'))
+                            ), custom_how = "left").custom_join(activity_mapping,
+                                                                F.col("activity_type") == F.col("main_activity")
+                                                                , custom_how = "left").custom_drop(["main_activity"]).custom_select(['tiltledger_id','isic_code', 'cpc_code', 'cpc_name', 'isic_name', 'activity_type', 'geography', 
+                                                                                                                                     'key_1', 'key_2', 'key_3', 'key_4', 'key_5', 'key_6', 'key_7', 'key_8', 'key_9', 'key_10',
+                                                                                                                                     'key_11', 'key_12', 'key_13', 'key_14', 'key_15', 'key_16', 'ecoinvent_activity'])
+        emission_enriched_ledger.data = ledger_x_ecoinvent_matcher(emission_enriched_ledger.data, ei_record_info.data)
+        # print(emission_enriched_ledger.data.count())
+        emission_enriched_ledger = emission_enriched_ledger.custom_select(["tiltledger_id", "activity_uuid_product_uuid","ei.reference_product_name","ledger.isic_code", "activity_uuid","activity_name", "unit", "co2_footprint", "ledger.geography"])
+        enriched_ledger = CustomDF("ledger_ecoinvent_mapping_datamodel", spark_generate, initial_df=emission_enriched_ledger.data)
+        total_ledger_count = tilt_ledger.data.select("tiltledger_id").distinct().count()
+        covered_ledger_count = enriched_ledger.data.select("tiltledger_id").distinct().count()
+        print(f"Coverage: {covered_ledger_count/total_ledger_count}")
+
+        enriched_ledger.write_table()
 
     else:
         raise ValueError(

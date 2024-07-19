@@ -350,6 +350,28 @@ datamodel_schema = {
         'partition_column': '',
         'quality_checks': []
     },
+    'ledger_ecoinvent_mapping_datamodel': {
+        'columns':  StructType([
+            StructField('tiltledger_id', StringType(), True),
+            StructField('activity_uuid_product_uuid', StringType(), True),
+            StructField('reference_product_name', StringType(), True),
+            StructField('isic_code', StringType(), True),
+            StructField('activity_uuid', StringType(), True),
+            StructField('activity_name', StringType(), True),
+            StructField('unit', StringType(), True),
+            StructField('co2_footprint', StringType(), True),
+            StructField('geography', StringType(), True),
+            StructField('from_date', DateType(), False),
+            StructField('to_date', DateType(), False),
+            StructField('tiltRecordID', StringType(), False)
+        ]
+        ),
+        'container': 'datamodel',
+        'location': 'ledger_ecoinvent_mapping',
+        'type': 'delta',
+        'partition_column': '',
+        'quality_checks': []
+    },
     'main_activity_ecoinvent_mapper_datamodel': {
         'columns': StructType([
             StructField('main_activity_id', StringType(), False),
