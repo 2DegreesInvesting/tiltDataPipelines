@@ -140,7 +140,7 @@ landingzone_schema = {
         'columns': StructType([
             StructField('main_activity_id', StringType(), False),
             StructField('main_activity', StringType(), True),
-            StructField('ecoinvent', StringType(), True)
+            StructField('ei_activity_name', StringType(), True)
         ]
         ),
         'container': 'landingzone',

@@ -248,7 +248,7 @@ def generate_table(table_name: str) -> None:
         main_activity_ecoinvent_mapper_raw = CustomDF(
             "main_activity_ecoinvent_mapper_raw", spark_generate)
         
-        main_activity_ecoinvent_mapper_raw.rename_columns({"ecoinvent":"ecoinvent_activity"})
+        main_activity_ecoinvent_mapper_raw.rename_columns({"ei_activity_name":"ecoinvent_activity"})
 
         main_activity_ecoinvent_mapper_raw = main_activity_ecoinvent_mapper_raw.custom_select(["main_activity_id","main_activity","ecoinvent_activity"])
         
@@ -409,10 +409,6 @@ def generate_table(table_name: str) -> None:
     elif table_name == 'ledger_ecoinvent_mapping':
 
         tilt_ledger = CustomDF('tiltLedger_datamodel', spark_generate)
-        # ecoinvent_activity = CustomDF("ecoinvent_activity_datamodel", spark_generate, specific_date="2024-06-17")
-        # ecoinvent_co2 = CustomDF("ecoinvent_co2_datamodel", spark_generate, specific_date="2024-06-10")
-        # ecoinvent_cut_off = CustomDF("ecoinvent_cut_off_datamodel", spark_generate, specific_date="2024-06-12")
-        # ecoinvent_product = CustomDF("ecoinvent_product_datamodel", spark_generate, specific_date="2024-06-17")
         ecoinvent_activity = CustomDF("ecoinvent_activity_datamodel", spark_generate)
         ecoinvent_co2 = CustomDF("ecoinvent_co2_datamodel", spark_generate)
         ecoinvent_cut_off = CustomDF("ecoinvent_cut_off_datamodel", spark_generate)
