@@ -283,7 +283,8 @@ datamodel_schema = {
         "type": "delta",
         "partition_column": "",
         "quality_checks": [
-            {"check": "values are unique", "columns": ["activity_uuid_product_uuid"]},
+            {"check": "values are unique", "columns": [
+                "activity_uuid_product_uuid"]},
         ],
     },
     "ecoinvent_product_datamodel": {
@@ -363,16 +364,11 @@ datamodel_schema = {
     "ecoinvent_input_data_datamodel": {
         "columns": StructType(
             [
-                StructField("activityId", StringType(), True),
-                StructField("activityName", StringType(), True),
-                StructField("geography", StringType(), True),
-                StructField("reference_product", StringType(), True),
-                StructField("group", StringType(), True),
-                StructField("exchange_name", StringType(), True),
-                StructField("activityLinkId", StringType(), True),
-                StructField("activityLink_activityName", StringType(), True),
-                StructField("activityLink_geography", StringType(), True),
-                StructField("exchange_unitName", StringType(), True),
+                StructField("Activity_UUID_Product_UUID", StringType(), True),
+                StructField("Input_Activity_UUID_Product_UUID",
+                            StringType(), True),
+                StructField("Product_Name", StringType(), True),
+                StructField("Amount", DoubleType(), True),
                 StructField("from_date", DateType(), False),
                 StructField("to_date", DateType(), False),
                 StructField("tiltRecordID", StringType(), False),
