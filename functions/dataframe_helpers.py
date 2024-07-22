@@ -135,7 +135,17 @@ def create_catalog_table(table_name: str, schema: dict) -> str:
 
     for i in schema["columns"]:
         col_info = i.jsonValue()
-        col_string = f"`{col_info['name']}` {col_info['type']} {'NOT NULL' if not col_info['nullable'] else ''},"
+        print(col_info)
+        # If column is an array, for example
+        if isinstance(col_info["type"], dict):
+            col_type_parent = col_info["type"]["type"]
+            col_type_child = col_info["type"]["elementType"]
+
+            col_type = f"{col_type_parent}<{col_type_child}>"
+        else:
+            col_type = col_info["type"]
+
+        col_string = f"`{col_info['name']}` {col_type} {'NOT NULL' if not col_info['nullable'] else ''},"
         create_catalog_table_string += col_string
 
     create_catalog_table_string = create_catalog_table_string[:-1] + ")"
@@ -209,7 +219,8 @@ def apply_scd_type_2(new_table: DataFrame, existing_table: DataFrame) -> DataFra
     if [col for col in new_table.columns if col.startswith("map_")]:
         # This is supposed to check if we are creating the the monitoring_valus table
         if not "signalling_id" in existing_table.columns:
-            map_col = [col for col in new_table.columns if col.startswith("map_")][0]
+            map_col = [
+                col for col in new_table.columns if col.startswith("map_")][0]
             existing_table = existing_table.withColumn(
                 map_col, F.create_map().cast("Map<String, Array<String>>")
             )
@@ -241,7 +252,8 @@ def apply_scd_type_2(new_table: DataFrame, existing_table: DataFrame) -> DataFra
     new_data_frame = new_data_frame.withColumn("from_date", processing_date).withColumn(
         "to_date", F.to_date(future_date)
     )
-    new_data_frame = new_data_frame.withColumnRenamed("shaValue", "shaValueNew")
+    new_data_frame = new_data_frame.withColumnRenamed(
+        "shaValue", "shaValueNew")
 
     # Join the SHA values of both tables together
     combined_df = new_data_frame.select(F.col("shaValueNew")).join(
@@ -258,9 +270,11 @@ def apply_scd_type_2(new_table: DataFrame, existing_table: DataFrame) -> DataFra
     )
     if identical_records.count() > 0:
         identical_records = combined_df.filter(
-            (F.col("shaValueOld").isNotNull()) & (F.col("shaValueNew").isNotNull())
+            (F.col("shaValueOld").isNotNull()) & (
+                F.col("shaValueNew").isNotNull())
         ).join(old_df, on="shaValueOld", how="inner")
-        identical_records = identical_records.select(value_columns + from_to_list)
+        identical_records = identical_records.select(
+            value_columns + from_to_list)
         all_records = all_records.union(identical_records)
 
     # Records that do not exist anymore are taken from the existing set of data
@@ -270,7 +284,8 @@ def apply_scd_type_2(new_table: DataFrame, existing_table: DataFrame) -> DataFra
     )
     if closed_records.count() > 0:
         closed_records = combined_df.filter(
-            (F.col("shaValueOld").isNotNull()) & (F.col("shaValueNew").isNull())
+            (F.col("shaValueOld").isNotNull()) & (
+                F.col("shaValueNew").isNull())
         ).join(old_df, on="shaValueOld", how="inner")
         closed_records = closed_records.select(value_columns + from_to_list)
         closed_records = closed_records.withColumn("to_date", processing_date)
@@ -282,7 +297,8 @@ def apply_scd_type_2(new_table: DataFrame, existing_table: DataFrame) -> DataFra
     )
     if new_records.count() > 0:
         new_records = combined_df.filter(
-            (F.col("shaValueOld").isNull()) & (F.col("shaValueNew").isNotNull())
+            (F.col("shaValueOld").isNull()) & (
+                F.col("shaValueNew").isNotNull())
         ).join(new_data_frame, on="shaValueNew", how="inner")
         new_records = new_records.select(value_columns + from_to_list)
         all_records = all_records.union(new_records)
@@ -303,7 +319,8 @@ def assign_signalling_id(
         max_issue = 0
     existing_monitoring_df = (
         existing_monitoring_df.select(
-            [F.col(c).alias(c + "_old") for c in existing_monitoring_df.columns]
+            [F.col(c).alias(c + "_old")
+             for c in existing_monitoring_df.columns]
         )
         .select(
             [
@@ -341,7 +358,8 @@ def assign_signalling_id(
         non_existing_signalling_id
     )
     monitoring_values_intermediate = monitoring_values_intermediate.withColumn(
-        "signalling_id", F.coalesce(F.col("signalling_id_old"), F.col("signalling_id"))
+        "signalling_id", F.coalesce(
+            F.col("signalling_id_old"), F.col("signalling_id"))
     )
     monitoring_values_df = monitoring_values_intermediate.select(
         [
@@ -391,7 +409,8 @@ def format_postcode(postcode: str, city: str) -> str:
     # city mostly looks like: 'ab city_name'
 
     # if postcode and city are identical, take the postcode; otherwise concatenate the two into '1234ab city_name'
-    reference = F.when(postcode == city, postcode).otherwise(F.concat(postcode, city))
+    reference = F.when(postcode == city, postcode).otherwise(
+        F.concat(postcode, city))
 
     # if reference is just the city or NA, just just return empty string
     reference = F.when(

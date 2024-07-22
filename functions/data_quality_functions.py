@@ -42,7 +42,7 @@ def calculate_filled_values(dataframe: DataFrame, spark_session: SparkSession) -
 
     """
     df_cols = [col for col in dataframe.columns if ('map_' not in col) and (
-        col not in ['from_date', 'to_date', 'tiltRecordID'])]
+        col not in ['embedding', 'from_date', 'to_date', 'tiltRecordID'])]
     total_count = dataframe.count()
     df = dataframe.select([F.count(F.when((F.isnull(c)) | (F.col(c) == 'NA') | (
         F.col(c) == 'nan'), False)).alias(c) for c in df_cols])
