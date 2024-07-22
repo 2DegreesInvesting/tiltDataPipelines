@@ -1319,6 +1319,7 @@ raw_schema = {
             [
                 StructField("code", StringType(), True),
                 StructField("embedding", ArrayType(DoubleType()), True),
+                StructField("attribute_type", StringType(), True),
                 StructField("from_date", DateType(), False),
                 StructField("to_date", DateType(), False),
                 StructField("tiltRecordID", StringType(), False),

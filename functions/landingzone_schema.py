@@ -1231,6 +1231,7 @@ landingzone_schema = {
             [
                 StructField("code", StringType(), True),
                 StructField("embedding", StringType(), True),
+                StructField("attribute_type", StringType(), True),
             ]
         ),
         "container": "landingzone",
