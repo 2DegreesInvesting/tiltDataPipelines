@@ -495,3 +495,59 @@ def keep_one_name(default_name: str, statutory_name: str) -> str:
     )
 
     return name
+
+def emissions_profile_compute(enriched_ledger, output_type="combined"):
+    
+    # define a dictionary with the 6 different benchmark types
+    benchmark_types = {
+        "all": [],
+        "isic_4digit": ["isic_code"],
+        "tilt_sector": ["tilt_sector"],
+        "unit": ["unit"],
+        "unit_isic_4digit": ["unit", "isic_code"],
+        "unit_tilt_sector": ["unit", "tilt_sector"]
+    }
+
+    groups = []
+
+    if output_type == "combined":
+        for bench_type, cols in benchmark_types.items():
+            # Create a Window specification 
+            temp_df = enriched_ledger
+            if bench_type == "all":
+                length = temp_df.select("co2_footprint").distinct().count()
+                windowSpec = Window.orderBy("co2_footprint")
+                # Add the dense rank column
+                temp_df = temp_df.withColumn('dense_rank', F.dense_rank().over(windowSpec))
+                # Divide the dense rank by length and create the profile_ranking column
+                temp_df = temp_df.withColumn('profile_ranking', F.col('dense_rank') / F.lit(length)).drop(F.col('dense_rank'))
+            else:
+                all_columns = enriched_ledger.columns
+                grouping_columns = [column for column in all_columns if any(pattern in column for pattern in cols)]
+                windowSpec = Window.partitionBy(grouping_columns).orderBy(F.col('co2_footprint'))
+                temp_df = temp_df.withColumn('dense_rank', F.dense_rank().over(windowSpec))
+                temp_df = temp_df.withColumn('length', F.count('*').over(Window.partitionBy(grouping_columns)))
+                temp_df = temp_df.withColumn('profile_ranking', F.col('dense_rank') / F.col('length')).drop("dense_rank","length")
+            temp_df = temp_df.withColumn("benchmark_group", F.lit(bench_type))
+            groups.append(temp_df)
+        
+        # Concatenate the DataFrames
+        concatenated_df = reduce(lambda df1, df2: df1.unionAll(df2), groups)
+
+        # Sum the profile_ranking values for each tiltledger_id
+        average_ranking_df = concatenated_df.groupBy("tiltledger_id", "benchmark_group").agg(F.avg("profile_ranking").alias("average_profile_ranking"))
+
+        # Join the average_df with concatenated_df to add the average_profile_ranking column
+        concatenated_df = concatenated_df.join(average_ranking_df, ["tiltledger_id", "benchmark_group"])
+
+        # Drop duplicate tilt records per benchmark type
+        concatenated_df = concatenated_df.dropDuplicates(subset=["tiltledger_id", "benchmark_group"]).drop("profile_ranking", "co2_footprint")
+
+        concatenated_df = concatenated_df.withColumn(
+            "risk_category",
+            F.when(F.col("average_profile_ranking") <= 1/3, "low")
+            .when((F.col("average_profile_ranking") > 1/3) & 
+                (F.col("average_profile_ranking") <= 2/3), "medium")
+            .otherwise("high")
+        ).withColumnsRenamed({"reference_product_name": "product_name"})
+    return concatenated_df

@@ -24,6 +24,7 @@ from functions.landingzone_schema import landingzone_schema
 from functions.raw_schema import raw_schema
 from functions.monitoring_schema import monitoring_schema
 from functions.datamodel_schema import datamodel_schema
+from functions.enriched_datamodel_schema import enriched_datamodel_schema
 
 
 def get_table_definition(schema_name: str, table_name: str = '') -> dict:
@@ -33,7 +34,8 @@ def get_table_definition(schema_name: str, table_name: str = '') -> dict:
         'landingzone_layer': landingzone_schema,
         'raw_layer': raw_schema,
         'monitoring_layer': monitoring_schema,
-        'datamodel_layer': datamodel_schema
+        'datamodel_layer': datamodel_schema,
+        'enriched_layer': enriched_datamodel_schema
     }
 
     if table_name in ['monitoring_values', 'record_trace']:
