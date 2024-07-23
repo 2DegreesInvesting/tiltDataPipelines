@@ -51,6 +51,7 @@ def generate_table(table_name: str) -> None:
                                     initial_df=input_emission_profile_ledger.data)
         
         emission_profile_ledger_level.write_table()
+
     elif table_name == 'emission_profile_ledger_upstream_enriched':
         # Load in the necessary dataframes
         emission_enriched_ledger = CustomDF("ledger_ecoinvent_mapping_datamodel", spark_generate)
@@ -152,7 +153,7 @@ def generate_table(table_name: str) -> None:
         input_sector_profile_ledger.data = input_sector_profile_ledger.data.dropna(subset="scenario_name")
         input_sector_profile_ledger.data = sector_profile_compute(input_sector_profile_ledger.data)
         
-        input_sector_profile_ledger = input_sector_profile_ledger.custom_select(["tiltledger_id", "risk_category", "benchmark_group", "profile_ranking", "product_name", "tilt_sector", "scenario_name", "scenario_type", "year"]).custom_distinct()
+        input_sector_profile_ledger = input_sector_profile_ledger.custom_select(["tiltledger_id", "benchmark_group", "risk_category", "profile_ranking", "product_name", "tilt_sector", "scenario_name", "scenario_type", "year"]).custom_distinct()
 
         sector_profile_ledger_level = CustomDF("sector_profile_ledger_enriched", spark_generate, 
                                                initial_df=input_sector_profile_ledger.data)
@@ -160,6 +161,106 @@ def generate_table(table_name: str) -> None:
         # print(sector_profile_ledger_level.data.columns)
         sector_profile_ledger_level.write_table()
     
+    elif table_name == 'sector_profile_ledger_upstream_enriched':
+        # Load in the necessary dataframes
+        ledger_ecoinvent_mapping = CustomDF("ledger_ecoinvent_mapping_datamodel", spark_generate)
+        tilt_sector_isic_mapper = CustomDF("tilt_sector_isic_mapper_datamodel", spark_generate)
+        tilt_sector_scenario_mapper = CustomDF("tilt_sector_scenario_mapper_datamodel", spark_generate)
+        scenario_targets_weo = CustomDF("scenario_targets_WEO_datamodel", spark_generate)
+        scenario_targets_ipr = CustomDF("scenario_targets_IPR_datamodel", spark_generate)
+        ecoinvent_input_data = CustomDF("ecoinvent_input_data_datamodel", spark_generate)
+        input_geography_filter = CustomDF("geography_ecoinvent_mapper_datamodel", spark_generate).custom_select(["geography_id", "ecoinvent_geography", "priority", "input_priority"])
+
+        tilt_sector_isic_mapper.rename_columns({"isic_4digit": "isic_code"})
+        scenario_targets_weo.data = scenario_targets_weo.data.filter(F.col("scenario") == "Net Zero Emissions by 2050 Scenario")
+        scenario_targets_ipr.data = scenario_targets_ipr.data.filter(F.col("scenario") == "1.5C Required Policy Scenario")
+
+        ### LINKING THE SCENARIO DATA TO THE LEDGER
+        # add tilt sector and subsector to tilt ledger
+        sector_enriched_ledger = ledger_ecoinvent_mapping.custom_join(tilt_sector_isic_mapper, custom_on="isic_code", custom_how="left").custom_select(["tiltledger_id", "geography", "activity_uuid_product_uuid", "reference_product_name", "tilt_sector", "tilt_subsector"])
+        # add scenario to tilt ledger
+        scenario_enriched_ledger = sector_enriched_ledger.custom_join(tilt_sector_scenario_mapper, custom_on=["tilt_sector", "tilt_subsector"], custom_how="left")
+        scenario_enriched_ledger.rename_columns({"reference_product_name": "product_name"})
+        scenario_enriched_ledger.data = scenario_enriched_ledger.data.dropna(subset=["scenario_type"])
+        scenario_enriched_ledger = scenario_enriched_ledger.custom_distinct()
+
+        scenario_targets_weo.data = calculate_reductions(scenario_targets_weo.data, name_replace_dict = {'Net Zero Emissions by 2050 Scenario': 'NZ 2050'})
+        scenario_targets_ipr.data = calculate_reductions(scenario_targets_ipr.data, {'1.5C Required Policy Scenario': '1.5C RPS'})
+
+        scenario_targets_ipr.data = scenario_preparing(scenario_targets_ipr.data)
+        scenario_targets_ipr = scenario_targets_ipr.custom_drop(["scenario_targets_ipr_id"])
+        scenario_targets_weo.data = scenario_preparing(scenario_targets_weo.data)
+        scenario_targets_weo = scenario_targets_weo.custom_drop(["scenario_targets_weo_id"])
+        combined_scenario_targets = get_combined_targets(scenario_targets_ipr, scenario_targets_weo)
+
+        combined_scenario_targets.rename_columns(
+            {
+                "scenario_type": "scenario_type_y", "scenario_sector":"scenario_sector_y", "scenario_subsector":"scenario_subsector_y"}
+            )
+
+        input_sector_profile_ledger = scenario_enriched_ledger.custom_join(combined_scenario_targets, 
+                                                            (F.col("scenario_type") == F.col("scenario_type_y")) &
+                                                            (F.col("scenario_sector").eqNullSafe(F.col("scenario_sector_y"))) &
+                                                            (F.col("scenario_subsector").eqNullSafe(F.col("scenario_subsector_y"))),
+                                                            custom_how="left")
+
+        input_sector_profile_ledger = input_sector_profile_ledger.custom_select(["tiltledger_id","activity_uuid_product_uuid","tilt_sector", "geography", "tilt_subsector", "product_name", "scenario_type",
+                                                                                "scenario_sector", "scenario_subsector", "scenario_name", "region", "year",
+                                                                                "value", "reductions"])
+
+        input_sector_profile_ledger.data = input_sector_profile_ledger.data.dropna(subset="scenario_name")
+
+        input_scenario_enriched_ledger = input_sector_profile_ledger.custom_select([
+                    *[F.col(c).alias("input_" + c) for c in input_sector_profile_ledger.data.columns]]
+                )
+
+        intermediate_upstream_ledger = input_sector_profile_ledger.custom_join(ecoinvent_input_data,"Activity_UUID_Product_UUID", 
+                                    custom_how="left")
+
+        intermediate_upstream_ledger.data = intermediate_upstream_ledger.data.filter(F.col("input_activity_uuid_product_uuid").isNotNull())
+
+        intermediate_upstream_ledger = intermediate_upstream_ledger.custom_join(input_scenario_enriched_ledger, "input_activity_uuid_product_uuid", custom_how="left")
+
+        intermediate_upstream_ledger.data = intermediate_upstream_ledger.data.filter(F.col("input_tiltledger_id").isNotNull())
+        intermediate_upstream_ledger = intermediate_upstream_ledger.custom_select([
+                                        "input_tiltledger_id", "tiltledger_id", "geography", "input_geography","input_tilt_sector", "input_tilt_subsector", "input_product_name", "input_scenario_type",
+                                        "input_scenario_sector", "input_scenario_subsector", "input_scenario_name", "input_region", "input_year",
+                                        "input_value", "input_reductions"]
+                                    )
+
+        intermediate_upstream_ledger.rename_columns({"geography":"product_geography"})
+
+        input_data_filtered = intermediate_upstream_ledger.custom_join(input_geography_filter, (F.col("input_geography") == F.col("ecoinvent_geography")), custom_how="left")
+        # Define the window specification
+        window_spec = Window.partitionBy("tiltledger_id", "input_product_name").orderBy(F.col("input_priority").asc())
+        # Add a row number column within each group
+        input_data_filtered.data = input_data_filtered.data.withColumn("row_num", F.row_number().over(window_spec))
+
+        geography_checker(input_data_filtered.data)
+
+        input_data_filtered.data = input_data_filtered.data.filter(F.col("row_num") <= 1).drop("row_num").withColumn("index", F.monotonically_increasing_id())
+        input_data_filtered = input_data_filtered.custom_drop(["index", "priority", "geography_id", "country"])
+        sector_enriched_ledger_upstream_data = input_data_filtered.custom_select([
+                                        "input_tiltledger_id", "tiltledger_id","input_tilt_sector", "input_tilt_subsector", "input_product_name", "input_scenario_type",
+                                        "input_scenario_sector", "input_scenario_subsector", "input_scenario_name", "input_region", "input_year",
+                                        "input_value", "input_reductions"])
+        sector_enriched_ledger_upstream_data = sector_enriched_ledger_upstream_data.custom_distinct()
+
+        sector_enriched_ledger_upstream_data.data = sector_enriched_ledger_upstream_data.data.dropna(subset="input_scenario_name")
+        ## CALCULATION
+        sector_enriched_ledger_upstream_data.data = sector_profile_upstream_compute(sector_enriched_ledger_upstream_data.data)
+
+        sector_enriched_ledger_upstream_data = sector_enriched_ledger_upstream_data.custom_select([
+            'input_tiltledger_id', 'tiltledger_id', 'benchmark_group',
+            'risk_category', 'profile_ranking','input_product_name', 'input_tilt_sector', 'input_scenario_name', 'input_scenario_type', 'input_year',
+        ])
+
+        sector_profile_ledger_upstream_level = CustomDF("sector_profile_ledger_upstream_enriched", spark_generate,
+                                                        initial_df=sector_enriched_ledger_upstream_data.data)
+        print(sector_profile_ledger_upstream_level.data.count())
+        sector_profile_ledger_upstream_level.write_table()
+
+        # print(sector_enriched_ledger_upstream_data.data.columns)
     else:
         raise ValueError(
             f'The table: {table_name} is not specified in the processing functions')

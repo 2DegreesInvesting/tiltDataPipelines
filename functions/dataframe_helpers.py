@@ -704,6 +704,41 @@ def sector_profile_compute(input_sector_profile_ledger_x):
 
     return combined_df
 
+def sector_profile_upstream_compute(input_sector_profile_ledger_upstream_x):
+    # Splitting the dataframe based on year
+    df_2030 = input_sector_profile_ledger_upstream_x.filter(F.col("input_year") == 2030)
+    df_2050 = input_sector_profile_ledger_upstream_x.filter(F.col("input_year") == 2050)
+
+    # Setting different thresholds for each dataframe
+    low_threshold_2030, high_threshold_2030 = 1/9, 1/3  # thresholds for 2030
+    low_threshold_2050, high_threshold_2050 = 2/9, 2/3   # thresholds for 2050
+    
+    df_2030 = df_2030.withColumn(
+        "risk_category",
+        F.when(F.col("input_reductions") <= low_threshold_2030, "low")
+        .when((F.col("input_reductions") > low_threshold_2030) & (F.col("input_reductions") <= high_threshold_2030), "medium")
+        .otherwise("high")
+    )
+    
+    df_2050 = df_2050.withColumn(
+        "risk_category",
+        F.when(F.col("input_reductions") <= low_threshold_2050, "low")
+        .when((F.col("input_reductions") > low_threshold_2050) & (F.col("input_reductions") <= high_threshold_2050), "medium")
+        .otherwise("high")
+    )
+
+    # Joining the two dataframes together
+    combined_df = df_2030.unionByName(df_2050) 
+
+    combined_df = combined_df.withColumn(
+        "benchmark_group",
+        F.lower(F.concat_ws("_", F.col("input_scenario_type"), F.col("input_scenario_name"), F.col("input_year")))
+    )
+    # Rename specific columns
+    combined_df = combined_df.withColumnsRenamed({"input_reductions": "profile_ranking"})
+
+    return combined_df
+
 def geography_checker(emission_upstream_table):
     # Filter the rows with row number <= 2
     check_input_data = emission_upstream_table.filter(F.col("row_num") <= 2).drop("row_num")
