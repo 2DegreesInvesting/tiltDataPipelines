@@ -24,6 +24,26 @@ enriched_datamodel_schema = {
         'partition_column': '',
         'quality_checks': []
     },
+    'emission_profile_ledger_upstream_enriched': {
+        'columns': StructType([
+            StructField('input_tiltledger_id', StringType(), False),
+            StructField('tiltledger_id', StringType(), False),
+            StructField('benchmark_group', StringType(), False),
+            StructField('risk_category', StringType(), False),
+            StructField('profile_ranking', StringType(), False),
+            StructField('input_product_name', StringType(), False),
+            StructField('input_co2_footprint', StringType(), False),
+            StructField('from_date', DateType(), False),
+            StructField('to_date', DateType(), False),
+            StructField('tiltRecordID', StringType(), False)
+        ]
+        ),
+        'container': 'enriched',
+        'location': 'emission_profile_ledger_upstream',
+        'type': 'delta',
+        'partition_column': '',
+        'quality_checks': []
+    },
     'sector_profile_ledger_enriched': {
         'columns': StructType([
             StructField('tiltledger_id', StringType(), False),

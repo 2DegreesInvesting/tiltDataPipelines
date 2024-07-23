@@ -51,7 +51,60 @@ def generate_table(table_name: str) -> None:
                                     initial_df=input_emission_profile_ledger.data)
         
         emission_profile_ledger_level.write_table()
+    elif table_name == 'emission_profile_ledger_upstream_enriched':
+        # Load in the necessary dataframes
+        emission_enriched_ledger = CustomDF("ledger_ecoinvent_mapping_datamodel", spark_generate)
+        tilt_sector_isic_mapper = CustomDF("tilt_sector_isic_mapper_datamodel", spark_generate)
+        ecoinvent_input_data = CustomDF("ecoinvent_input_data_datamodel", spark_generate)
+        input_geography_filter = CustomDF("geography_ecoinvent_mapper_datamodel", spark_generate).custom_select(["geography_id", "ecoinvent_geography", "priority", "input_priority"])
 
+        # prepping
+        tilt_sector_isic_mapper.rename_columns({"isic_4digit": "isic_code"})
+        # Prefix all column names with "input_"
+        input_emission_enriched_ledger = emission_enriched_ledger.custom_select([
+            *[F.col(c).alias("input_" + c) for c in emission_enriched_ledger.data.columns[:-1]]]
+        )
+
+        intermediate_upstream_ledger = emission_enriched_ledger.custom_join(ecoinvent_input_data,"Activity_UUID_Product_UUID", 
+                                    custom_how="left")
+        intermediate_upstream_ledger.data = intermediate_upstream_ledger.data.filter(F.col("input_activity_uuid_product_uuid").isNotNull())
+   
+        intermediate_upstream_ledger = intermediate_upstream_ledger.custom_join(input_emission_enriched_ledger, "input_activity_uuid_product_uuid", custom_how="left")
+        intermediate_upstream_ledger.data = intermediate_upstream_ledger.data.filter(F.col("input_tiltledger_id").isNotNull()).filter(F.col("input_co2_footprint").isNotNull())
+        intermediate_upstream_ledger = intermediate_upstream_ledger.custom_select([
+                                        "input_tiltledger_id", "tiltledger_id", "activity_name", "geography", "input_reference_product_name", "input_co2_footprint", 
+                                        "input_geography", "input_isic_code", "input_unit"]
+                                    )
+
+        intermediate_upstream_ledger.rename_columns({"geography":"product_geography", "input_reference_product_name":"input_product_name"})
+
+        input_data_filtered = intermediate_upstream_ledger.custom_join(input_geography_filter, (F.col("input_geography") == F.col("ecoinvent_geography")), custom_how="left")
+        # Define the window specification
+        window_spec = Window.partitionBy("tiltledger_id", "input_product_name").orderBy(F.col("input_priority").asc())
+        # Add a row number column within each group
+        input_data_filtered.data = input_data_filtered.data.withColumn("row_num", F.row_number().over(window_spec))
+
+        geography_checker(input_data_filtered.data)
+
+        input_data_filtered.data = input_data_filtered.data.filter(F.col("row_num") <= 1).drop("row_num").withColumn("index", F.monotonically_increasing_id())
+        input_data_filtered = input_data_filtered.custom_drop(["index", "priority", "geography_id", "country"])
+        emission_enriched_ledger_upstream_data = input_data_filtered.custom_select(["input_tiltledger_id", "tiltledger_id", "activity_name", "product_geography", "input_product_name", "input_co2_footprint", "input_geography", "input_isic_code", "input_unit"
+                                                                                 , "input_priority"]).custom_distinct()
+
+        input_emission_profile_ledger_upstream = (emission_enriched_ledger_upstream_data.custom_join(tilt_sector_isic_mapper, 
+                                                                                        (F.col("input_isic_code") == F.col("isic_code")),
+                                                                                            custom_how='left')
+                                    .custom_distinct().custom_drop(["isic_code", "isic_section"])
+        )
+        input_emission_profile_ledger_upstream.data = emissions_profile_upstream_compute(input_emission_profile_ledger_upstream.data, "combined")
+
+        input_emission_profile_ledger_upstream = input_emission_profile_ledger_upstream.custom_select(["input_tiltledger_id", "tiltledger_id", "benchmark_group", "risk_category", "profile_ranking",
+                                                                                                        "input_product_name", "input_co2_footprint"])
+
+        emission_profile_ledger_upstream_level = CustomDF("emission_profile_ledger_upstream_enriched", spark_generate,
+                                                          initial_df=input_emission_profile_ledger_upstream.data)
+        
+        emission_profile_ledger_upstream_level.write_table()
 
     elif table_name == 'sector_profile_ledger_enriched':
         # Load in the necessary dataframes
