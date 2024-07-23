@@ -551,3 +551,104 @@ def emissions_profile_compute(enriched_ledger, output_type="combined"):
             .otherwise("high")
         ).withColumnsRenamed({"reference_product_name": "product_name"})
     return concatenated_df
+
+def calculate_reductions(reductions_dataframe, name_replace_dict):
+    # 1. Identify columns
+    sector_cols = [col for col in reductions_dataframe.columns if '_sector' in col]
+    subsector_cols = [col for col in reductions_dataframe.columns if '_subsector' in col]
+    if sector_cols and subsector_cols:
+        sector = sector_cols[0]
+        subsector = subsector_cols[0]
+
+        # 2. Sort is not needed in PySpark as Window function will handle the ordering
+        reductions_dataframe = reductions_dataframe.orderBy(['scenario', 'region', sector, subsector,'year'], 
+                        ascending=True)
+        
+        # 3. Define the window specification
+        windowSpec = Window.partitionBy("scenario", "region", sector, subsector).rowsBetween(Window.unboundedPreceding, Window.currentRow)
+
+        # 4. Calculate reductions
+        reductions_dataframe = reductions_dataframe.withColumn("first_value", F.first("value").over(windowSpec))
+        reductions_dataframe = reductions_dataframe.withColumn("reductions", (1 - (F.col("value") / F.col("first_value"))).cast("double"))
+        reductions_dataframe = reductions_dataframe.withColumn("reductions", F.round("reductions", 2))
+
+        # 5. Filter only on year 2030 and 2050 targets
+        reductions_dataframe = reductions_dataframe.filter(F.col("year").isin([2030, 2050]))
+
+        # 6. Make the scenario names more concise
+        for key, value in name_replace_dict.items():
+            reductions_dataframe = reductions_dataframe.withColumn('scenario', F.when(F.col('scenario') == key, value).otherwise(F.col('scenario')))
+
+        return reductions_dataframe
+    else:
+        raise ValueError("Required columns not found in DataFrame")
+    
+def scenario_preparing(data):
+    # 1. Identify columns containing 'sector' and extract the scenario_type
+    sector_columns = [col for col in data.columns if 'sector' in col]
+    scenario_types = list(set(col.split("_")[0] for col in sector_columns))
+
+    if scenario_types:
+        scenario_type = scenario_types[0]
+
+        # 2. Rename columns by removing the scenario_type prefix
+        for col in data.columns:
+            if col.startswith(scenario_type + "_"):
+                new_col_name = col.replace(scenario_type, "scenario")
+                data = data.withColumnRenamed(col, new_col_name)
+
+        # 3. Add a new column 'type' with the scenario_type value for each row
+        data = data.withColumn("scenario_type", F.lit(scenario_type))
+        
+        # 4. Rename columns
+        data = data.withColumnRenamed("scenario", "scenario_name").drop("first_value")
+    return data
+
+def get_combined_targets(ipr, weo):
+    # Concatenate DataFrames
+    combined_targets = ipr.custom_union(weo)
+    
+    # Check if 'reductions' column exists and its type is float64 (DoubleType in PySpark)
+    try:
+        reductions_field = [f for f in combined_targets.data.schema.fields if f.name == 'reductions'][0]
+        if not isinstance(reductions_field.dataType, T.DoubleType):
+            raise ValueError(f"`reductions` column in `combined_targets` is not `float64`")
+    except IndexError:
+        raise ValueError("`reductions` column not found in `combined_targets`")
+    
+    return combined_targets
+
+def sector_profile_compute(input_sector_profile_ledger_x):
+    # Splitting the dataframe based on year
+    df_2030 = input_sector_profile_ledger_x.filter(F.col("year") == 2030)
+    df_2050 = input_sector_profile_ledger_x.filter(F.col("year") == 2050)
+
+    # Setting different thresholds for each dataframe
+    low_threshold_2030, high_threshold_2030 = 1/9, 1/3  # thresholds for 2030
+    low_threshold_2050, high_threshold_2050 = 2/9, 2/3   # thresholds for 2050
+    
+    df_2030 = df_2030.withColumn(
+        "risk_category",
+        F.when(F.col("reductions") <= low_threshold_2030, "low")
+        .when((F.col("reductions") > low_threshold_2030) & (F.col("reductions") <= high_threshold_2030), "medium")
+        .otherwise("high")
+    )
+    
+    df_2050 = df_2050.withColumn(
+        "risk_category",
+        F.when(F.col("reductions") <= low_threshold_2050, "low")
+        .when((F.col("reductions") > low_threshold_2050) & (F.col("reductions") <= high_threshold_2050), "medium")
+        .otherwise("high")
+    )
+
+    # Joining the two dataframes together
+    combined_df = df_2030.unionByName(df_2050) 
+
+    combined_df = combined_df.withColumn(
+        "benchmark_group",
+        F.lower(F.concat_ws("_", F.col("scenario_type"), F.col("scenario_name"), F.col("year")))
+    )
+    # Rename specific columns
+    combined_df = combined_df.withColumnsRenamed({"reference_product_name": "product_name", "reductions": "profile_ranking"})
+
+    return combined_df

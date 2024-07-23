@@ -52,6 +52,61 @@ def generate_table(table_name: str) -> None:
         
         emission_profile_ledger_level.write_table()
 
+
+    elif table_name == 'sector_profile_ledger_enriched':
+        # Load in the necessary dataframes
+        tilt_ledger = CustomDF("tiltLedger_datamodel", spark_generate)
+        tilt_sector_isic_mapper = CustomDF("tilt_sector_isic_mapper_datamodel", spark_generate)
+        tilt_sector_scenario_mapper = CustomDF("tilt_sector_scenario_mapper_datamodel", spark_generate)
+        scenario_targets_weo = CustomDF("scenario_targets_WEO_datamodel", spark_generate)
+        scenario_targets_ipr = CustomDF("scenario_targets_IPR_datamodel", spark_generate)
+
+        # prepping
+        tilt_sector_isic_mapper.rename_columns({"isic_4digit": "isic_code"})
+        scenario_targets_weo.data = scenario_targets_weo.data.filter(F.col("scenario") == "Net Zero Emissions by 2050 Scenario")
+        scenario_targets_ipr.data = scenario_targets_ipr.data.filter(F.col("scenario") == "1.5C Required Policy Scenario")
+
+        # add tilt sector and subsector to tilt ledger
+        sector_enriched_ledger = tilt_ledger.custom_join(tilt_sector_isic_mapper, custom_on="isic_code", custom_how="left").custom_select(["tiltledger_id", "cpc_name", "tilt_sector", "tilt_subsector"])
+
+        # add scenario to tilt ledger
+        scenario_enriched_ledger = sector_enriched_ledger.custom_join(tilt_sector_scenario_mapper, custom_on=["tilt_sector", "tilt_subsector"], custom_how="left")
+        scenario_enriched_ledger.rename_columns({"cpc_name": "product_name"})
+        scenario_enriched_ledger.data = scenario_enriched_ledger.data.dropna(subset=["scenario_type"])
+        scenario_enriched_ledger = scenario_enriched_ledger.custom_distinct()
+
+        scenario_targets_weo.data = calculate_reductions(scenario_targets_weo.data, name_replace_dict = {'Net Zero Emissions by 2050 Scenario': 'NZ 2050'})
+        scenario_targets_ipr.data = calculate_reductions(scenario_targets_ipr.data, {'1.5C Required Policy Scenario': '1.5C RPS'})
+        
+        scenario_targets_ipr.data = scenario_preparing(scenario_targets_ipr.data)
+        scenario_targets_weo.data = scenario_preparing(scenario_targets_weo.data)
+        combined_scenario_targets = get_combined_targets(scenario_targets_ipr, scenario_targets_weo)
+        
+        combined_scenario_targets.rename_columns(
+            {"scenario_type": "scenario_type_y", "scenario_sector":"scenario_sector_y", "scenario_subsector":"scenario_subsector_y"}
+            )
+        
+        input_sector_profile_ledger = scenario_enriched_ledger.custom_join(combined_scenario_targets, 
+                                                            (F.col("scenario_type") == F.col("scenario_type_y")) &
+                                                            (F.col("scenario_sector").eqNullSafe(F.col("scenario_sector_y"))) &
+                                                            (F.col("scenario_subsector").eqNullSafe(F.col("scenario_subsector_y"))),
+                                                            custom_how="left")
+
+        input_sector_profile_ledger = input_sector_profile_ledger.custom_select(["tiltledger_id","tilt_sector", "tilt_subsector", "product_name", "scenario_type",
+                                                                                "scenario_sector", "scenario_subsector", "scenario_name", "region", "year",
+                                                                                "value", "reductions"])
+        
+        input_sector_profile_ledger.data = input_sector_profile_ledger.data.dropna(subset="scenario_name")
+        input_sector_profile_ledger.data = sector_profile_compute(input_sector_profile_ledger.data)
+        
+        input_sector_profile_ledger = input_sector_profile_ledger.custom_select(["tiltledger_id", "risk_category", "benchmark_group", "profile_ranking", "product_name", "tilt_sector", "scenario_name", "scenario_type", "year"]).custom_distinct()
+
+        sector_profile_ledger_level = CustomDF("sector_profile_ledger_enriched", spark_generate, 
+                                               initial_df=input_sector_profile_ledger.data)
+
+        # print(sector_profile_ledger_level.data.columns)
+        sector_profile_ledger_level.write_table()
+    
     else:
         raise ValueError(
             f'The table: {table_name} is not specified in the processing functions')

@@ -23,5 +23,28 @@ enriched_datamodel_schema = {
         'type': 'delta',
         'partition_column': '',
         'quality_checks': []
+    },
+    'sector_profile_ledger_enriched': {
+        'columns': StructType([
+            StructField('tiltledger_id', StringType(), False),
+            StructField('risk_category', StringType(), False),
+            StructField('benchmark_group', StringType(), False),
+            StructField('profile_ranking', StringType(), False),
+            StructField('product_name', StringType(), False),
+            StructField('tilt_sector', StringType(), True),
+            StructField('scenario_name', StringType(), True),
+            StructField('scenario_type', StringType(), True),
+            StructField('year', StringType(), True),
+            StructField('from_date', DateType(), False),
+            StructField('to_date', DateType(), False),
+            StructField('tiltRecordID', StringType(), False)
+        ]
+        ),
+        'container': 'enriched',
+        'location': 'sector_profile_ledger',
+        'type': 'delta',
+        'partition_column': '',
+        'quality_checks': []
+    },
     }
 }
