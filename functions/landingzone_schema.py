@@ -1180,17 +1180,17 @@ landingzone_schema = {
     "tiltLedger_landingzone": {
         "columns": StructType(
             [
-                StructField("CPC21code", StringType(), True),
-                StructField("CPC21title", StringType(), True),
-                StructField("ISIC4code", StringType(), True),
-                StructField("Description", StringType(), True),
-                StructField("Activity Type", StringType(), True),
+                StructField("CPC_Code", StringType(), True),
+                StructField("CPC_Name", StringType(), True),
+                StructField("ISIC_Code", StringType(), True),
+                StructField("ISIC_Name", StringType(), True),
+                StructField("Activity_Type", StringType(), True),
                 StructField("Geography", StringType(), True),
             ]
         ),
         "container": "landingzone",
-        "location": "tiltLedger/Ledger_dummy.csv",
-        "type": "multiline",
+        "location": "tiltLedger/20240722_Ledger_v5.csv",
+        "type": "csv_semi_sep",
         "partition_column": "",
         "quality_checks": [],
     },
