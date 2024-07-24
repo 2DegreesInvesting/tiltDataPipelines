@@ -57,7 +57,7 @@ class DataReader:
         This is the logic to determine which file type to read and how to read it.
         """
 
-        implemented_file_types = ['csv', 'parquet',
+        implemented_file_types = ['csv', 'csv_semi_sep', 'parquet',
                                   'delta', 'multiline']
 
         if self._schema['type'] not in implemented_file_types:
@@ -70,6 +70,7 @@ class DataReader:
 
         implemented_read_functions = {
             'csv': self.read_csv_file,
+            'csv_semi_sep': self.read_csv_semi_sep_file,
             'parquet': self.read_parquet_file,
             'delta':  self.read_delta_table,
             'multiline': self.read_multiline_file
@@ -112,6 +113,13 @@ class DataReader:
         df = self._spark_session.read.format('csv').schema(self._schema['columns']).option('header', True).option(
             "quote", '"').option("multiline", 'True').load(self._data_path)
 
+        return df
+    
+    def read_csv_semi_sep_file(self):
+
+        df = self._spark_session.read.format('csv').schema(self._schema['columns']).option(
+            'header', True).option("quote", '"').option('delimiter', ';').option("multiline", 'True').load(self._data_path)
+        
         return df
 
     def read_multiline_file(self):

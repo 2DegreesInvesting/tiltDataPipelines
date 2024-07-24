@@ -1259,10 +1259,10 @@ raw_schema = {
     "tiltLedger_raw": {
         "columns": StructType(
             [
-                StructField("CPC21code", StringType(), True),
-                StructField("CPC21title", StringType(), True),
-                StructField("ISIC4code", StringType(), True),
-                StructField("Description", StringType(), True),
+                StructField("CPC_Code", StringType(), True),
+                StructField("CPC_Name", StringType(), True),
+                StructField("ISIC_Code", StringType(), True),
+                StructField("ISIC_Name", StringType(), True),
                 StructField("Activity_Type", StringType(), True),
                 StructField("Geography", StringType(), True),
                 StructField("from_date", DateType(), False),

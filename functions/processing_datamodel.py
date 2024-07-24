@@ -852,15 +852,6 @@ def generate_table(table_name: str) -> None:
 
         tiltLedger_raw = CustomDF("tiltLedger_raw", spark_generate)
 
-        rename_dict = {
-            "CPC21code": "CPC_Code",
-            "CPC21title": "CPC_Name",
-            "ISIC4code": "ISIC_Code",
-            "Description": "ISIC_Name",
-        }
-
-        tiltLedger_raw.rename_columns(rename_dict)
-
         final_columns = [
             "CPC_Code",
             "CPC_Name",
