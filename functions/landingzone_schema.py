@@ -1189,7 +1189,7 @@ landingzone_schema = {
             ]
         ),
         "container": "landingzone",
-        "location": "tiltLedger/20240722_Ledger_v5.csv",
+        "location": "tiltLedger/20240724_Ledger_v51.csv",
         "type": "csv_semi_sep",
         "partition_column": "",
         "quality_checks": [],
