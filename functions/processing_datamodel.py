@@ -937,28 +937,24 @@ def generate_table(table_name: str) -> None:
                                                                     .otherwise(F.col("main_activity")))
                                                         )
 
-        # intermediate dataframes
+        # intermediate dataframe
         valid_countries = ['NL', 'AT', 'GB', 'DE', 'ES', 'FR', 'IT']
         tilt_ledger.data = tilt_ledger.data.dropna(subset=["CPC_Code", "ISIC_Code", "Geography"])
         tilt_ledger.data = tilt_ledger.data.filter(tilt_ledger.data.Geography.isin(valid_countries)).withColumn("Geography", F.lower(F.col("Geography"))).select([F.col(column).alias(column.lower()) for column in tilt_ledger.data.columns])
         tilt_ledger.data = tilt_ledger.data.withColumn("cpc_name", F.regexp_replace(F.trim(F.lower(F.col("cpc_name"))), "<.*?>", "")).withColumn("activity_type", F.lower(F.col("activity_type")))
-        ei_record_info = ecoinvent_product.custom_join(ecoinvent_cut_off, "product_uuid").custom_join(ecoinvent_activity, "activity_uuid").custom_join(ecoinvent_co2, "activity_uuid_product_uuid").custom_select(['activity_uuid_product_uuid', 'activity_uuid', 'product_uuid', 'reference_product_name', 
+        ei_record_info = ecoinvent_product.custom_join(ecoinvent_cut_off, "product_uuid", "left").custom_join(ecoinvent_activity, "activity_uuid", "left").custom_join(ecoinvent_co2, "activity_uuid_product_uuid", "left").custom_select(['activity_uuid_product_uuid', 'activity_uuid', 'product_uuid', 'reference_product_name', 
                                                                                                                                                                                                                    'unit', 'cpc_code', 'cpc_name', 'activity_name', 
-                                                                                                                                                                                                                   'activity_type', 'geography', 'isic_4digit','co2_footprint'])
+                                                                                                                                                                                                                         'activity_type', 'geography', 'isic_4digit','co2_footprint'])
         ei_record_info.data = ei_record_info.data.withColumn("geography", F.lower(F.col("geography")))
-
         tilt_ledger.data = ledger_corrector(tilt_ledger.data)
-
         geography_ecoinvent_mapper.data = geography_pivotter(geography_ecoinvent_mapper.data, spark_generate) # the pivotting removes the map_geography_ecoinvent_mapper_datamodel column
 
         emission_enriched_ledger = tilt_ledger.custom_join(geography_ecoinvent_mapper,                     
                             (
                                 (F.col('geography') == F.col('key_1'))
-                            ), custom_how = "left").custom_join(activity_mapping,
-                                                                F.col("activity_type") == F.col("main_activity")
-                                                                , custom_how = "left").custom_drop(["main_activity"]).custom_select(['tiltledger_id','isic_code', 'cpc_code', 'cpc_name', 'isic_name', 'activity_type', 'geography', 
+                            ), custom_how = "left").custom_select(['tiltledger_id','isic_code', 'cpc_code', 'cpc_name', 'isic_name', 'activity_type', 'geography', 
                                                                                                                                      'key_1', 'key_2', 'key_3', 'key_4', 'key_5', 'key_6', 'key_7', 'key_8', 'key_9', 'key_10',
-                                                                                                                                     'key_11', 'key_12', 'key_13', 'key_14', 'key_15', 'key_16', 'ecoinvent_activity'])
+                                                                                                                                     'key_11', 'key_12', 'key_13', 'key_14', 'key_15', 'key_16'])
         emission_enriched_ledger.data = ledger_x_ecoinvent_matcher(emission_enriched_ledger.data, ei_record_info.data)
         # print(emission_enriched_ledger.data.count())
         emission_enriched_ledger = emission_enriched_ledger.custom_select(["tiltledger_id", "activity_uuid_product_uuid","ei.reference_product_name","ledger.isic_code", "activity_uuid","activity_name", "unit", "co2_footprint", "ledger.geography"])

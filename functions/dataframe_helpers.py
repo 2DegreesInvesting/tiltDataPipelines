@@ -390,7 +390,10 @@ def ledger_corrector(tilt_ledger):
 
 def geography_pivotter(tilt_geography, spark_session):
     # select every 16th row in the tilt_geography dataframe but only select the columns that are needed
-    mapping_data = tilt_geography.dropDuplicates(subset=["country_un"]).select("country_un", "map_geography_ecoinvent_mapper_datamodel")
+    all_columns = tilt_geography.columns
+    cols = ["country_un", "map_geography_ecoinvent_mapper_datamodel"]
+    select_columns = [column for column in all_columns if any(pattern in column for pattern in cols)]
+    mapping_data = tilt_geography.dropDuplicates(subset=["country_un"]).select(*select_columns)
 
     # Pivot the tilt_geography dataframe
     geography_ecoinvent_mapper_pandas = tilt_geography.toPandas()
@@ -407,13 +410,14 @@ def geography_pivotter(tilt_geography, spark_session):
     return geo_mapper_pivot_spark
 
 def ledger_x_ecoinvent_matcher(ledger, ecoinvent):
+    print(ledger.count(), ecoinvent.count())
     ledger_cols = ["ledger."+column for column in ledger.columns]
     init_df = ecoinvent.alias("ei").join(ledger.alias("ledger"),                     
                 (
                     (F.col('ei.geography') == F.col(f'ledger.geography')) &
                     (F.col('ei.isic_4digit') == F.col('ledger.isic_code')) &
                     (F.col('ei.cpc_code') == F.col('ledger.cpc_code')) &
-                    (F.col('ei.activity_type') == F.col('ledger.ecoinvent_activity'))
+                    (F.col('ei.activity_type') == F.col('ledger.activity_type'))
                 ), how = "right")
     complete_df = init_df.filter(init_df.activity_uuid_product_uuid.isNotNull())
     unmatched_records = init_df.filter(init_df.activity_uuid_product_uuid.isNull()).select(ledger_cols)
@@ -425,7 +429,7 @@ def ledger_x_ecoinvent_matcher(ledger, ecoinvent):
                     (F.col('ei.geography') == F.col(f'ledger.{country_column}')) &
                     (F.col('ei.isic_4digit') == F.col('ledger.isic_code')) &
                     (F.col('ei.cpc_code') == F.col("ledger.cpc_code"))&
-                    (F.col('ei.activity_type') == F.col('ledger.ecoinvent_activity'))
+                    (F.col('ei.activity_type') == F.col('ledger.activity_type'))
                 ), how = "right")
         
         unmatched_records = next_match.filter(next_match.activity_uuid_product_uuid.isNull()).select(ledger_cols)
