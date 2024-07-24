@@ -14,6 +14,7 @@ from pyspark.sql.types import (
     DateType,
     ByteType,
     DecimalType,
+    ArrayType
 )
 
 raw_schema = {
@@ -70,14 +71,16 @@ raw_schema = {
         "type": "delta",
         "partition_column": "",
         "quality_checks": [
-            {"check": "values are unique", "columns": ["id", "sector", "subsector"]}
+            {"check": "values are unique", "columns": [
+                "id", "sector", "subsector"]}
         ],
     },
     "companies_companyinfo_raw": {
         "columns": StructType(
             [
                 StructField("Sizokey", StringType(), False),
-                StructField("Kamer_van_Koophandel_nummer", StringType(), False),
+                StructField("Kamer_van_Koophandel_nummer",
+                            StringType(), False),
                 StructField(
                     "Kamer_van_Koophandel_nummer_12_cijferig", StringType(), False
                 ),
@@ -109,7 +112,8 @@ raw_schema = {
                 StructField(
                     "Aantal_medewerkers_van_concern_op_locatie", StringType(), False
                 ),
-                StructField("Klasse_aantal_medewerkers_locatie", StringType(), False),
+                StructField("Klasse_aantal_medewerkers_locatie",
+                            StringType(), False),
                 StructField(
                     "Klasse_aantal_medewerkers_locatie_Omschrijving",
                     StringType(),
@@ -118,14 +122,18 @@ raw_schema = {
                 StructField("SBI_code", StringType(), False),
                 StructField("SBI_code_Omschrijving", StringType(), False),
                 StructField("SBI_code_2_cijferig", StringType(), False),
-                StructField("SBI_code_2_cijferig_Omschrijving", StringType(), False),
+                StructField("SBI_code_2_cijferig_Omschrijving",
+                            StringType(), False),
                 StructField("SBI_code_segment", StringType(), False),
-                StructField("SBI_code_segment_Omschrijving", StringType(), False),
+                StructField("SBI_code_segment_Omschrijving",
+                            StringType(), False),
                 StructField("NACE_code", StringType(), False),
                 StructField("NACE_code_Omschrijving", StringType(), False),
                 StructField("SBI_code_locatie", StringType(), False),
-                StructField("SBI_code_locatie_Omschrijving", StringType(), False),
-                StructField("SBI_code_2_cijferig_locatie", StringType(), False),
+                StructField("SBI_code_locatie_Omschrijving",
+                            StringType(), False),
+                StructField("SBI_code_2_cijferig_locatie",
+                            StringType(), False),
                 StructField(
                     "SBI_code_2_cijferig_locatie_Omschrijving", StringType(), False
                 ),
@@ -133,27 +141,35 @@ raw_schema = {
                 StructField(
                     "SBI_code_segment_locatie_Omschrijving", StringType(), False
                 ),
-                StructField("Concernrelatie_Omschrijving", StringType(), False),
+                StructField("Concernrelatie_Omschrijving",
+                            StringType(), False),
                 StructField("Sizokey_ultimate_parent", StringType(), False),
-                StructField("Instellingsnaam_ultimate_parent", StringType(), False),
-                StructField("Aantal_instellingen_in_concern", StringType(), False),
-                StructField("Aantal_locaties_van_concern", StringType(), False),
-                StructField("Klasse_aantal_locaties_van_concern", StringType(), False),
+                StructField("Instellingsnaam_ultimate_parent",
+                            StringType(), False),
+                StructField("Aantal_instellingen_in_concern",
+                            StringType(), False),
+                StructField("Aantal_locaties_van_concern",
+                            StringType(), False),
+                StructField("Klasse_aantal_locaties_van_concern",
+                            StringType(), False),
                 StructField(
                     "Klasse_aantal_locaties_van_concern_Omschrijving",
                     StringType(),
                     False,
                 ),
                 StructField("Aantal_medewerkers_concern", StringType(), False),
-                StructField("Klasse_aantal_medewerkers_concern", StringType(), False),
+                StructField("Klasse_aantal_medewerkers_concern",
+                            StringType(), False),
                 StructField(
                     "Klasse_aantal_medewerkers_concern_Omschrijving",
                     StringType(),
                     False,
                 ),
                 StructField("SBI_code_concern", StringType(), False),
-                StructField("SBI_code_concern_Omschrijving", StringType(), False),
-                StructField("SBI_code_2_cijferig_concern", StringType(), False),
+                StructField("SBI_code_concern_Omschrijving",
+                            StringType(), False),
+                StructField("SBI_code_2_cijferig_concern",
+                            StringType(), False),
                 StructField(
                     "SBI_code_2_cijferig_concern_Omschrijving", StringType(), False
                 ),
@@ -162,7 +178,8 @@ raw_schema = {
                     "SBI_code_segment_concern_Omschrijving", StringType(), False
                 ),
                 StructField("Subsidie_bedrag_concern", StringType(), False),
-                StructField("Klasse_subsidie_bedrag_concern", StringType(), False),
+                StructField("Klasse_subsidie_bedrag_concern",
+                            StringType(), False),
                 StructField(
                     "Klasse_subsidie_bedrag_concern_Omschrijving", StringType(), False
                 ),
@@ -194,12 +211,14 @@ raw_schema = {
                 ),
                 StructField("Jaar_laatste_jaarverslag", StringType(), True),
                 StructField("Geconsolideerd_resultaat", StringType(), True),
-                StructField("Klasse_geconsolideerd_resultaat", StringType(), True),
+                StructField("Klasse_geconsolideerd_resultaat",
+                            StringType(), True),
                 StructField(
                     "Klasse_geconsolideerd_resultaat_Omschrijving", StringType(), True
                 ),
                 StructField("Omzet_geconsolideerd", StringType(), True),
-                StructField("Klasse_geconsolideerde_omzet", StringType(), True),
+                StructField("Klasse_geconsolideerde_omzet",
+                            StringType(), True),
                 StructField(
                     "Klasse_geconsolideerde_omzet_Omschrijving", StringType(), True
                 ),
@@ -209,7 +228,8 @@ raw_schema = {
                 StructField(
                     "Totaal_aantal_lichte_bedrijfswagens_locatie", StringType(), False
                 ),
-                StructField("Totaal_aantal_vrachtwagens_locatie", StringType(), False),
+                StructField("Totaal_aantal_vrachtwagens_locatie",
+                            StringType(), False),
                 StructField(
                     "Voorspelling_waarde_totaal_aantal_personenwagens_locatie",
                     StringType(),
@@ -305,7 +325,8 @@ raw_schema = {
                 StructField(
                     "Totaal_aantal_lichte_bedrijfswagens_concern", StringType(), False
                 ),
-                StructField("Totaal_aantal_vrachtwagens_concern", StringType(), False),
+                StructField("Totaal_aantal_vrachtwagens_concern",
+                            StringType(), False),
                 StructField(
                     "Voorspelling_waarde_totaal_aantal_personenwagens_concern",
                     StringType(),
@@ -655,7 +676,8 @@ raw_schema = {
     "cut_off_ao_raw": {
         "columns": StructType(
             [
-                StructField("Activity_UUID_&_Product_UUID", StringType(), False),
+                StructField("Activity_UUID_&_Product_UUID",
+                            StringType(), False),
                 StructField("Activity_UUID", StringType(), False),
                 StructField("EcoQuery_URL", StringType(), True),
                 StructField("Activity_Name", StringType(), True),
@@ -682,13 +704,15 @@ raw_schema = {
         "type": "delta",
         "partition_column": "",
         "quality_checks": [
-            {"check": "values are unique", "columns": ["Activity_UUID_&_Product_UUID"]},
+            {"check": "values are unique", "columns": [
+                "Activity_UUID_&_Product_UUID"]},
         ],
     },
     "en15804_ao_raw": {
         "columns": StructType(
             [
-                StructField("Activity_UUID_&_Product_UUID", StringType(), False),
+                StructField("Activity_UUID_&_Product_UUID",
+                            StringType(), False),
                 StructField("Activity_UUID", StringType(), False),
                 StructField("EcoQuery_URL", StringType(), True),
                 StructField("Activity_Name", StringType(), True),
@@ -715,13 +739,15 @@ raw_schema = {
         "type": "delta",
         "partition_column": "",
         "quality_checks": [
-            {"check": "values are unique", "columns": ["Activity_UUID_&_Product_UUID"]},
+            {"check": "values are unique", "columns": [
+                "Activity_UUID_&_Product_UUID"]},
         ],
     },
     "consequential_ao_raw": {
         "columns": StructType(
             [
-                StructField("Activity_UUID_&_Product_UUID", StringType(), False),
+                StructField("Activity_UUID_&_Product_UUID",
+                            StringType(), False),
                 StructField("Activity_UUID", StringType(), False),
                 StructField("EcoQuery_URL", StringType(), True),
                 StructField("Activity_Name", StringType(), True),
@@ -748,7 +774,8 @@ raw_schema = {
         "type": "delta",
         "partition_column": "",
         "quality_checks": [
-            {"check": "values are unique", "columns": ["Activity_UUID_&_Product_UUID"]},
+            {"check": "values are unique", "columns": [
+                "Activity_UUID_&_Product_UUID"]},
         ],
     },
     "lcia_methods_raw": {
@@ -777,7 +804,8 @@ raw_schema = {
             [
                 StructField("Resources_Emissions_Total", StringType(), True),
                 StructField("Main_impact_damage_category", StringType(), True),
-                StructField("Inventory_Midpoint_Endpoint_AoP", StringType(), True),
+                StructField("Inventory_Midpoint_Endpoint_AoP",
+                            StringType(), True),
                 StructField("Area_of_Protection_AoP", StringType(), True),
                 StructField("Used_in_EN15804", StringType(), True),
                 StructField("Method", StringType(), True),
@@ -970,7 +998,8 @@ raw_schema = {
                 StructField("emission_profile_share", DoubleType(), True),
                 StructField("emission_profile", StringType(), True),
                 StructField("benchmark", StringType(), True),
-                StructField("matching_certainty_company_average", StringType(), True),
+                StructField("matching_certainty_company_average",
+                            StringType(), True),
                 StructField("company_city", StringType(), True),
                 StructField("postcode", StringType(), True),
                 StructField("address", StringType(), True),
@@ -1000,7 +1029,8 @@ raw_schema = {
                 StructField("unit", StringType(), True),
                 StructField("multi_match", BooleanType(), True),
                 StructField("matching_certainty", StringType(), True),
-                StructField("matching_certainty_company_average", StringType(), True),
+                StructField("matching_certainty_company_average",
+                            StringType(), True),
                 StructField("tilt_sector", StringType(), True),
                 StructField("tilt_subsector", StringType(), True),
                 StructField("isic_4digit", StringType(), True),
@@ -1030,10 +1060,12 @@ raw_schema = {
                 StructField("company_name", StringType(), True),
                 StructField("company_city", StringType(), True),
                 StructField("country", StringType(), True),
-                StructField("emission_upstream_profile_share", DoubleType(), True),
+                StructField("emission_upstream_profile_share",
+                            DoubleType(), True),
                 StructField("emission_upstream_profile", StringType(), True),
                 StructField("benchmark", StringType(), True),
-                StructField("matching_certainty_company_average", StringType(), True),
+                StructField("matching_certainty_company_average",
+                            StringType(), True),
                 StructField("postcode", StringType(), True),
                 StructField("address", StringType(), True),
                 StructField("main_activity", StringType(), True),
@@ -1062,7 +1094,8 @@ raw_schema = {
                 StructField("unit", StringType(), True),
                 StructField("multi_match", BooleanType(), True),
                 StructField("matching_certainty", StringType(), True),
-                StructField("matching_certainty_company_average", StringType(), True),
+                StructField("matching_certainty_company_average",
+                            StringType(), True),
                 StructField("input_name", StringType(), True),
                 StructField("input_unit", StringType(), True),
                 StructField("input_tilt_sector", StringType(), True),
@@ -1096,7 +1129,8 @@ raw_schema = {
                 StructField("sector_profile", StringType(), True),
                 StructField("scenario", StringType(), True),
                 StructField("year", StringType(), True),
-                StructField("matching_certainty_company_average", StringType(), True),
+                StructField("matching_certainty_company_average",
+                            StringType(), True),
                 StructField("company_city", StringType(), True),
                 StructField("postcode", StringType(), True),
                 StructField("address", StringType(), True),
@@ -1129,7 +1163,8 @@ raw_schema = {
                 StructField("tilt_subsector", StringType(), True),
                 StructField("multi_match", BooleanType(), True),
                 StructField("matching_certainty", StringType(), True),
-                StructField("matching_certainty_company_average", StringType(), True),
+                StructField("matching_certainty_company_average",
+                            StringType(), True),
                 StructField("company_city", StringType(), True),
                 StructField("postcode", StringType(), True),
                 StructField("address", StringType(), True),
@@ -1157,11 +1192,13 @@ raw_schema = {
                 StructField("companies_id", StringType(), True),
                 StructField("company_name", StringType(), True),
                 StructField("country", StringType(), True),
-                StructField("sector_profile_upstream_share", DoubleType(), True),
+                StructField("sector_profile_upstream_share",
+                            DoubleType(), True),
                 StructField("sector_profile_upstream", StringType(), True),
                 StructField("scenario", StringType(), True),
                 StructField("year", StringType(), True),
-                StructField("matching_certainty_company_average", StringType(), True),
+                StructField("matching_certainty_company_average",
+                            StringType(), True),
                 StructField("company_city", StringType(), True),
                 StructField("postcode", StringType(), True),
                 StructField("address", StringType(), True),
@@ -1193,7 +1230,8 @@ raw_schema = {
                 StructField("tilt_sector", StringType(), True),
                 StructField("multi_match", BooleanType(), True),
                 StructField("matching_certainty", StringType(), True),
-                StructField("matching_certainty_company_average", StringType(), True),
+                StructField("matching_certainty_company_average",
+                            StringType(), True),
                 StructField("input_name", StringType(), True),
                 StructField("input_unit", StringType(), True),
                 StructField("input_tilt_sector", StringType(), True),
@@ -1272,6 +1310,39 @@ raw_schema = {
         ),
         "container": "raw",
         "location": "tiltLedger",
+        "type": "delta",
+        "partition_column": "",
+        "quality_checks": [],
+    },
+    "tiltledger_embedding_raw": {
+        "columns": StructType(
+            [
+                StructField("code", StringType(), True),
+                StructField("embedding", ArrayType(DoubleType()), True),
+                StructField("attribute_type", StringType(), True),
+                StructField("from_date", DateType(), False),
+                StructField("to_date", DateType(), False),
+                StructField("tiltRecordID", StringType(), False),
+            ]
+        ),
+        "container": "raw",
+        "location": "tiltledger_embedding",
+        "type": "delta",
+        "partition_column": "",
+        "quality_checks": [],
+    },
+    "companies_embedding_raw": {
+        "columns": StructType(
+            [
+                StructField("company_id", StringType(), True),
+                StructField("embedding", ArrayType(DoubleType()), True),
+                StructField("from_date", DateType(), False),
+                StructField("to_date", DateType(), False),
+                StructField("tiltRecordID", StringType(), False),
+            ]
+        ),
+        "container": "raw",
+        "location": "companies_embedding",
         "type": "delta",
         "partition_column": "",
         "quality_checks": [],

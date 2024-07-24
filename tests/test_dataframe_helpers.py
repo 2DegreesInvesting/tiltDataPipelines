@@ -1,5 +1,6 @@
 import pytest
-from functions.dataframe_helpers import create_catalog_table, create_catalog_schema, create_catalog_table_owner, clean_column_names, create_sha_values, create_map_column, create_table_path, apply_scd_type_2, assign_signalling_id
+from functions.dataframe_helpers import clean_column_names, create_sha_values, create_map_column, create_table_path, apply_scd_type_2, assign_signalling_id
+from functions.sql_string_builders import create_catalog_table, create_catalog_schema, create_catalog_table_owner
 import pyspark.sql.types as T
 import pyspark.sql.functions as F
 

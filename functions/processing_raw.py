@@ -45,7 +45,8 @@ def generate_table(table_name: str) -> None:
 
         column_names = ["min_headcount", "max_headcount", "year_established"]
 
-        companies_europages_landingzone.convert_data_types(column_names, IntegerType())
+        companies_europages_landingzone.convert_data_types(
+            column_names, IntegerType())
 
         companies_europages_landingzone.convert_data_types(
             ["verified_by_europages"], BooleanType()
@@ -62,7 +63,7 @@ def generate_table(table_name: str) -> None:
         )
 
         companies_europages_landingzone.data = companies_europages_landingzone.data.withColumn(
-        "postcode",
+            "postcode",
             regexp_replace(
                 regexp_replace(col("postcode"), r"\.0$", ""), r"^0+", "").cast("string")
         )
@@ -143,7 +144,8 @@ def generate_table(table_name: str) -> None:
 
         column_names = ["priority", "input_priority"]
 
-        geography_mapper_landingzone.convert_data_types(column_names, ByteType())
+        geography_mapper_landingzone.convert_data_types(
+            column_names, ByteType())
 
         geography_ecoinvent_mapper_raw = CustomDF(
             "geography_ecoinvent_mapper_raw",
@@ -201,14 +203,17 @@ def generate_table(table_name: str) -> None:
             "scenario_targets_IPR_NEW_landingzone", spark_generate
         )
 
-        scenario_targets_IPR_NEW_landingzone.convert_data_types(["Year"], ShortType())
+        scenario_targets_IPR_NEW_landingzone.convert_data_types(
+            ["Year"], ShortType())
 
-        scenario_targets_IPR_NEW_landingzone.convert_data_types(["Value"], DoubleType())
+        scenario_targets_IPR_NEW_landingzone.convert_data_types(
+            ["Value"], DoubleType())
         # Removing reductions in this step, because the column is incorrect and not used anymore
         scenario_targets_IPR_raw = CustomDF(
             "scenario_targets_IPR_raw",
             spark_generate,
-            initial_df=scenario_targets_IPR_NEW_landingzone.data.drop("Reductions"),
+            initial_df=scenario_targets_IPR_NEW_landingzone.data.drop(
+                "Reductions"),
         )
 
         scenario_targets_IPR_raw.write_table()
@@ -219,14 +224,17 @@ def generate_table(table_name: str) -> None:
             "scenario_targets_WEO_NEW_landingzone", spark_generate
         )
 
-        scenario_targets_WEO_NEW_landingzone.convert_data_types(["YEAR"], ShortType())
+        scenario_targets_WEO_NEW_landingzone.convert_data_types(
+            ["YEAR"], ShortType())
 
-        scenario_targets_WEO_NEW_landingzone.convert_data_types(["VALUE"], DoubleType())
+        scenario_targets_WEO_NEW_landingzone.convert_data_types(
+            ["VALUE"], DoubleType())
         # Removing reductions in this step, because the column is incorrect and not used anymore
         scenario_targets_WEO_raw = CustomDF(
             "scenario_targets_WEO_raw",
             spark_generate,
-            initial_df=scenario_targets_WEO_NEW_landingzone.data.drop("REDUCTIONS"),
+            initial_df=scenario_targets_WEO_NEW_landingzone.data.drop(
+                "REDUCTIONS"),
         )
 
         scenario_targets_WEO_raw.write_table()
@@ -243,7 +251,8 @@ def generate_table(table_name: str) -> None:
 
     elif table_name == "geographies_raw":
 
-        geographies_landingzone = CustomDF("geographies_landingzone", spark_generate)
+        geographies_landingzone = CustomDF(
+            "geographies_landingzone", spark_generate)
 
         # Filter out the empty values in the ID column, as empty records are read in from the source data.
         geographies_landingzone.data = geographies_landingzone.data.filter(
@@ -277,7 +286,8 @@ def generate_table(table_name: str) -> None:
 
     elif table_name == "undefined_ao_raw":
 
-        undefined_ao_landingzone = CustomDF("undefined_ao_landingzone", spark_generate)
+        undefined_ao_landingzone = CustomDF(
+            "undefined_ao_landingzone", spark_generate)
 
         undefined_ao_landingzone.data = undefined_ao_landingzone.data.distinct()
 
@@ -288,7 +298,8 @@ def generate_table(table_name: str) -> None:
 
     elif table_name == "cut_off_ao_raw":
 
-        cut_off_ao_landingzone = CustomDF("cut_off_ao_landingzone", spark_generate)
+        cut_off_ao_landingzone = CustomDF(
+            "cut_off_ao_landingzone", spark_generate)
 
         cut_off_ao_raw = CustomDF(
             "cut_off_ao_raw", spark_generate, initial_df=cut_off_ao_landingzone.data
@@ -297,7 +308,8 @@ def generate_table(table_name: str) -> None:
 
     elif table_name == "en15804_ao_raw":
 
-        en15804_ao_landingzone = CustomDF("en15804_ao_landingzone", spark_generate)
+        en15804_ao_landingzone = CustomDF(
+            "en15804_ao_landingzone", spark_generate)
 
         en15804_ao_raw = CustomDF(
             "en15804_ao_raw", spark_generate, initial_df=en15804_ao_landingzone.data
@@ -319,7 +331,8 @@ def generate_table(table_name: str) -> None:
 
     elif table_name == "lcia_methods_raw":
 
-        lcia_methods_landingzone = CustomDF("lcia_methods_landingzone", spark_generate)
+        lcia_methods_landingzone = CustomDF(
+            "lcia_methods_landingzone", spark_generate)
 
         lcia_methods_raw = CustomDF(
             "lcia_methods_raw", spark_generate, initial_df=lcia_methods_landingzone.data
@@ -415,7 +428,8 @@ def generate_table(table_name: str) -> None:
             "ep_ei_matcher_landingzone", spark_generate
         )
 
-        ep_ei_matcher_landingzone.convert_data_types(["multi_match"], BooleanType())
+        ep_ei_matcher_landingzone.convert_data_types(
+            ["multi_match"], BooleanType())
 
         ep_ei_matcher_raw = CustomDF(
             "ep_ei_matcher_raw",
@@ -427,9 +441,11 @@ def generate_table(table_name: str) -> None:
 
     elif table_name == "mapper_ep_ei_raw":
 
-        mapper_ep_ei_landingzone = CustomDF("mapper_ep_ei_landingzone", spark_generate)
+        mapper_ep_ei_landingzone = CustomDF(
+            "mapper_ep_ei_landingzone", spark_generate)
 
-        mapper_ep_ei_landingzone.convert_data_types(["multi_match"], BooleanType())
+        mapper_ep_ei_landingzone.convert_data_types(
+            ["multi_match"], BooleanType())
 
         mapper_ep_ei_raw = CustomDF(
             "mapper_ep_ei_raw", spark_generate, initial_df=mapper_ep_ei_landingzone.data
@@ -605,7 +621,8 @@ def generate_table(table_name: str) -> None:
             cast_to_float, DoubleType()
         )
 
-        sector_profile_company_landingzone.convert_data_types(["year"], IntegerType())
+        sector_profile_company_landingzone.convert_data_types(
+            ["year"], IntegerType())
 
         sector_profile_company_landingzone.data = (
             sector_profile_company_landingzone.data.drop("batch")
@@ -629,7 +646,8 @@ def generate_table(table_name: str) -> None:
             "sector_profile_product_landingzone", spark_generate
         )
 
-        sector_profile_product_landingzone.convert_data_types(["year"], IntegerType())
+        sector_profile_product_landingzone.convert_data_types(
+            ["year"], IntegerType())
         sector_profile_product_landingzone.data = (
             sector_profile_product_landingzone.data.withColumn(
                 "multi_match",
@@ -745,7 +763,8 @@ def generate_table(table_name: str) -> None:
 
     elif table_name == "tiltLedger_raw":
 
-        tiltLedger_landingzone = CustomDF("tiltLedger_landingzone", spark_generate)
+        tiltLedger_landingzone = CustomDF(
+            "tiltLedger_landingzone", spark_generate)
 
         tiltLedger_landingzone.data = tiltLedger_landingzone.data.distinct()
 
@@ -753,6 +772,38 @@ def generate_table(table_name: str) -> None:
             "tiltLedger_raw", spark_generate, initial_df=tiltLedger_landingzone.data
         )
         tiltLedger_raw.write_table()
+
+    elif table_name == "tiltledger_embedding_raw":
+
+        tiltledger_embedding_landingzone = CustomDF(
+            'tiltledger_embedding_landingzone', spark_generate)
+
+        tiltledger_embedding_landingzone.data = tiltledger_embedding_landingzone.data.withColumn(
+            'embedding', F.regexp_replace(F.col('embedding'), r'\[|\]', ''))
+        tiltledger_embedding_landingzone.data = tiltledger_embedding_landingzone.data.withColumn(
+            "embedding", F.split(tiltledger_embedding_landingzone.data["embedding"], ","))
+        tiltledger_embedding_landingzone.data = tiltledger_embedding_landingzone.data.withColumn(
+            "embedding", F.transform("embedding", lambda x: x.cast("double")))
+
+        tiltledger_embedding_raw = CustomDF(
+            'tiltledger_embedding_raw', spark_generate, initial_df=tiltledger_embedding_landingzone.data)
+        tiltledger_embedding_raw.write_table()
+
+    elif table_name == 'companies_embedding_raw':
+
+        companies_embedding_landingzone = CustomDF(
+            'companies_embedding_landingzone', spark_generate)
+
+        companies_embedding_landingzone.data = companies_embedding_landingzone.data.withColumn(
+            'embedding', F.regexp_replace(F.col('embedding'), r'\[|\]', ''))
+        companies_embedding_landingzone.data = companies_embedding_landingzone.data.withColumn(
+            "embedding", F.split(companies_embedding_landingzone.data["embedding"], ","))
+        companies_embedding_landingzone.data = companies_embedding_landingzone.data.withColumn(
+            "embedding", F.transform("embedding", lambda x: x.cast("double")))
+
+        companies_embedding_raw = CustomDF(
+            'companies_embedding_raw', spark_generate, initial_df=companies_embedding_landingzone.data)
+        companies_embedding_raw.write_table()
 
     else:
         raise ValueError(

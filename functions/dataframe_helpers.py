@@ -1,9 +1,7 @@
 import re
 import pyspark.sql.functions as F
-from pyspark.sql import SparkSession, DataFrame
+from pyspark.sql import DataFrame
 from pyspark.sql.window import Window
-import pyspark.sql.types as T
-from pyspark.sql.functions import udf
 
 
 def create_map_column(dataframe: DataFrame, dataframe_name: str) -> DataFrame:
@@ -11,7 +9,6 @@ def create_map_column(dataframe: DataFrame, dataframe_name: str) -> DataFrame:
     Creates a new column in the dataframe with a map containing the dataframe name as the key and the 'tiltRecordID' column as the value.
 
     Args:
-        spark_session (SparkSession): The Spark session.
         dataframe (DataFrame): The input dataframe.
         dataframe_name (str): The name of the dataframe.
 
@@ -30,7 +27,6 @@ def create_sha_values(data_frame: DataFrame, col_list: list) -> DataFrame:
     Creates SHA values for the specified columns in the DataFrame.
 
     Args:
-        spark_session (SparkSession): The SparkSession object.
         data_frame (DataFrame): The input DataFrame.
         col_list (list): The list of column names to create SHA values for.
 
@@ -101,93 +97,6 @@ def clean_column_names(data_frame: DataFrame) -> DataFrame:
     return data_frame
 
 
-def create_catalog_table(table_name: str, schema: dict) -> str:
-    """
-    Creates a SQL string to recreate a table in Delta Lake format.
-
-    This function constructs a SQL string that can be used to create a table in Delta Lake format.
-    The table is created with the provided name and schema. If the schema includes a partition column,
-    the table is partitioned by that column.
-
-    Parameters
-    ----------
-    table_name : str
-        The name of the table to be created.
-    schema : dict
-        The schema of the table to be created. The schema should be a dictionary with a 'columns' key
-        containing a list of dictionaries, each representing a column. Each column dictionary should
-        have 'name', 'type', and 'nullable' keys. The schema can optionally include a 'partition_column'
-        key with the name of the column to partition the table by.
-
-    Returns
-    -------
-    str
-        A SQL string that can be used to create the table in Delta Lake format.
-    """
-
-    if not schema["columns"]:
-        raise ValueError("The provided schema can not be empty")
-
-    create_catalog_table_string = ""
-
-    # Build a SQL string to recreate the table in the most up to date format
-    create_catalog_table_string = f"CREATE TABLE IF NOT EXISTS {table_name} ("
-
-    for i in schema["columns"]:
-        col_info = i.jsonValue()
-        col_string = f"`{col_info['name']}` {col_info['type']} {'NOT NULL' if not col_info['nullable'] else ''},"
-        create_catalog_table_string += col_string
-
-    create_catalog_table_string = create_catalog_table_string[:-1] + ")"
-    create_catalog_table_string += " USING DELTA "
-    if schema["partition_column"]:
-        create_catalog_table_string += (
-            f"PARTITIONED BY (`{schema['partition_column']}` STRING)"
-        )
-
-    return create_catalog_table_string
-
-
-def create_catalog_schema(environment: str, schema: dict) -> str:
-    """
-    Creates a catalog schema if it doesn't already exist.
-
-    Args:
-        environment (str): The environment in which the schema should be created.
-        schema (dict): A dictionary containing the schema details, including the container name.
-
-    Returns:
-        str: The SQL string for creating the catalog schema.
-    """
-
-    create_catalog_schema_string = (
-        f'CREATE SCHEMA IF NOT EXISTS {environment}.{schema["container"]};'
-    )
-    create_catalog_schema_owner = (
-        f'ALTER SCHEMA {environment}.{schema["container"]} SET OWNER TO tiltDevelopers;'
-    )
-
-    return create_catalog_schema_string, create_catalog_schema_owner
-
-
-def create_catalog_table_owner(table_name: str) -> str:
-    """
-    Creates a SQL string to set the owner of a table.
-
-    Args:
-        table_name (str): The name of the table.
-
-    Returns:
-        str: The SQL string to set the owner of the table.
-    """
-
-    create_catalog_table_owner_string = (
-        f"ALTER TABLE {table_name} SET OWNER TO tiltDevelopers"
-    )
-
-    return create_catalog_table_owner_string
-
-
 def apply_scd_type_2(new_table: DataFrame, existing_table: DataFrame) -> DataFrame:
     """
     Applies Slowly Changing Dimension (SCD) Type 2 logic to merge new and existing dataframes.
@@ -209,7 +118,8 @@ def apply_scd_type_2(new_table: DataFrame, existing_table: DataFrame) -> DataFra
     if [col for col in new_table.columns if col.startswith("map_")]:
         # This is supposed to check if we are creating the the monitoring_valus table
         if not "signalling_id" in existing_table.columns:
-            map_col = [col for col in new_table.columns if col.startswith("map_")][0]
+            map_col = [
+                col for col in new_table.columns if col.startswith("map_")][0]
             existing_table = existing_table.withColumn(
                 map_col, F.create_map().cast("Map<String, Array<String>>")
             )
@@ -241,7 +151,8 @@ def apply_scd_type_2(new_table: DataFrame, existing_table: DataFrame) -> DataFra
     new_data_frame = new_data_frame.withColumn("from_date", processing_date).withColumn(
         "to_date", F.to_date(future_date)
     )
-    new_data_frame = new_data_frame.withColumnRenamed("shaValue", "shaValueNew")
+    new_data_frame = new_data_frame.withColumnRenamed(
+        "shaValue", "shaValueNew")
 
     # Join the SHA values of both tables together
     combined_df = new_data_frame.select(F.col("shaValueNew")).join(
@@ -258,9 +169,11 @@ def apply_scd_type_2(new_table: DataFrame, existing_table: DataFrame) -> DataFra
     )
     if identical_records.count() > 0:
         identical_records = combined_df.filter(
-            (F.col("shaValueOld").isNotNull()) & (F.col("shaValueNew").isNotNull())
+            (F.col("shaValueOld").isNotNull()) & (
+                F.col("shaValueNew").isNotNull())
         ).join(old_df, on="shaValueOld", how="inner")
-        identical_records = identical_records.select(value_columns + from_to_list)
+        identical_records = identical_records.select(
+            value_columns + from_to_list)
         all_records = all_records.union(identical_records)
 
     # Records that do not exist anymore are taken from the existing set of data
@@ -270,7 +183,8 @@ def apply_scd_type_2(new_table: DataFrame, existing_table: DataFrame) -> DataFra
     )
     if closed_records.count() > 0:
         closed_records = combined_df.filter(
-            (F.col("shaValueOld").isNotNull()) & (F.col("shaValueNew").isNull())
+            (F.col("shaValueOld").isNotNull()) & (
+                F.col("shaValueNew").isNull())
         ).join(old_df, on="shaValueOld", how="inner")
         closed_records = closed_records.select(value_columns + from_to_list)
         closed_records = closed_records.withColumn("to_date", processing_date)
@@ -282,7 +196,8 @@ def apply_scd_type_2(new_table: DataFrame, existing_table: DataFrame) -> DataFra
     )
     if new_records.count() > 0:
         new_records = combined_df.filter(
-            (F.col("shaValueOld").isNull()) & (F.col("shaValueNew").isNotNull())
+            (F.col("shaValueOld").isNull()) & (
+                F.col("shaValueNew").isNotNull())
         ).join(new_data_frame, on="shaValueNew", how="inner")
         new_records = new_records.select(value_columns + from_to_list)
         all_records = all_records.union(new_records)
@@ -303,7 +218,8 @@ def assign_signalling_id(
         max_issue = 0
     existing_monitoring_df = (
         existing_monitoring_df.select(
-            [F.col(c).alias(c + "_old") for c in existing_monitoring_df.columns]
+            [F.col(c).alias(c + "_old")
+             for c in existing_monitoring_df.columns]
         )
         .select(
             [
@@ -341,7 +257,8 @@ def assign_signalling_id(
         non_existing_signalling_id
     )
     monitoring_values_intermediate = monitoring_values_intermediate.withColumn(
-        "signalling_id", F.coalesce(F.col("signalling_id_old"), F.col("signalling_id"))
+        "signalling_id", F.coalesce(
+            F.col("signalling_id_old"), F.col("signalling_id"))
     )
     monitoring_values_df = monitoring_values_intermediate.select(
         [
@@ -391,7 +308,8 @@ def format_postcode(postcode: str, city: str) -> str:
     # city mostly looks like: 'ab city_name'
 
     # if postcode and city are identical, take the postcode; otherwise concatenate the two into '1234ab city_name'
-    reference = F.when(postcode == city, postcode).otherwise(F.concat(postcode, city))
+    reference = F.when(postcode == city, postcode).otherwise(
+        F.concat(postcode, city))
 
     # if reference is just the city or NA, just just return empty string
     reference = F.when(
