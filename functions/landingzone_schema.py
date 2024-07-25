@@ -1246,7 +1246,7 @@ landingzone_schema = {
                 StructField("company_id", StringType(), True),
                 StructField("query", StringType(), True),
                 StructField("isic_section", StringType(), True),
-                StructField("embedding", ArrayType(StringType), True),
+                StructField("embedding", StringType(), True),
             ]
         ),
         "container": "landingzone",
