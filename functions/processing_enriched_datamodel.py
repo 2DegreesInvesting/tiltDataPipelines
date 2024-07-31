@@ -152,58 +152,81 @@ def generate_table(table_name: str) -> None:
         emission_profile_ledger_upstream_level.write_table()
 
     elif table_name == 'sector_profile_ledger_enriched':
-        # Load in the necessary dataframes
+        print(f"Loading data for {table_name}")
+        ## LOAD
+        # tilt data
         tilt_ledger = CustomDF("tiltLedger_datamodel", spark_generate)
+        # mappers
         tilt_sector_isic_mapper = CustomDF("tilt_sector_isic_mapper_datamodel", spark_generate)
         tilt_sector_scenario_mapper = CustomDF("tilt_sector_scenario_mapper_datamodel", spark_generate)
+        # scenario data
         scenario_targets_weo = CustomDF("scenario_targets_WEO_datamodel", spark_generate)
         scenario_targets_ipr = CustomDF("scenario_targets_IPR_datamodel", spark_generate)
 
-        # prepping
+        print(f"Preparing data for {table_name}")
+        ## PREPPING
+        valid_countries = ['NL', 'AT', 'GB', 'DE', 'ES', 'FR', 'IT']
+        tilt_ledger.data = tilt_ledger.data.dropna(subset=["CPC_Code", "isic_code", "Geography"])
+        tilt_ledger.data = tilt_ledger.data.filter(tilt_ledger.data.Geography.isin(valid_countries)).withColumn("Geography", F.lower(F.col("Geography"))).select([F.col(column).alias(column.lower()) for column in tilt_ledger.data.columns])
+        tilt_ledger.data = tilt_ledger.data.withColumn("cpc_name", F.regexp_replace(F.trim(F.lower(F.col("cpc_name"))), "<.*?>", "")).withColumn("activity_type", F.lower(F.col("activity_type")))
         tilt_sector_isic_mapper.rename_columns({"isic_4digit": "isic_code"})
         scenario_targets_weo.data = scenario_targets_weo.data.filter(F.col("scenario") == "Net Zero Emissions by 2050 Scenario")
         scenario_targets_ipr.data = scenario_targets_ipr.data.filter(F.col("scenario") == "1.5C Required Policy Scenario")
 
-        # add tilt sector and subsector to tilt ledger
+        ## PREPPING
         sector_enriched_ledger = tilt_ledger.custom_join(tilt_sector_isic_mapper, custom_on="isic_code", custom_how="left").custom_select(["tiltledger_id", "cpc_name", "tilt_sector", "tilt_subsector"])
 
-        # add scenario to tilt ledger
+        ## PREPPING
         scenario_enriched_ledger = sector_enriched_ledger.custom_join(tilt_sector_scenario_mapper, custom_on=["tilt_sector", "tilt_subsector"], custom_how="left")
         scenario_enriched_ledger.rename_columns({"cpc_name": "product_name"})
         scenario_enriched_ledger.data = scenario_enriched_ledger.data.dropna(subset=["scenario_type"])
         scenario_enriched_ledger = scenario_enriched_ledger.custom_distinct()
 
+        ## PREPPING
         scenario_targets_weo.data = calculate_reductions(scenario_targets_weo.data, name_replace_dict = {'Net Zero Emissions by 2050 Scenario': 'NZ 2050'})
         scenario_targets_ipr.data = calculate_reductions(scenario_targets_ipr.data, {'1.5C Required Policy Scenario': '1.5C RPS'})
         
+        ## PREPPING
         scenario_targets_ipr.data = scenario_preparing(scenario_targets_ipr.data)
         scenario_targets_weo.data = scenario_preparing(scenario_targets_weo.data)
         combined_scenario_targets = get_combined_targets(scenario_targets_ipr, scenario_targets_weo)
         
+        ## PREPPING
         combined_scenario_targets.rename_columns(
             {"scenario_type": "scenario_type_y", "scenario_sector":"scenario_sector_y", "scenario_subsector":"scenario_subsector_y"}
             )
         
+        ## PREPPING
         input_sector_profile_ledger = scenario_enriched_ledger.custom_join(combined_scenario_targets, 
                                                             (F.col("scenario_type") == F.col("scenario_type_y")) &
                                                             (F.col("scenario_sector").eqNullSafe(F.col("scenario_sector_y"))) &
                                                             (F.col("scenario_subsector").eqNullSafe(F.col("scenario_subsector_y"))),
                                                             custom_how="left")
-
+        ## PREPPING
         input_sector_profile_ledger = input_sector_profile_ledger.custom_select(["tiltledger_id","tilt_sector", "tilt_subsector", "product_name", "scenario_type",
                                                                                 "scenario_sector", "scenario_subsector", "scenario_name", "region", "year",
                                                                                 "value", "reductions"])
         
+        print("Running checks...")
+        ## CHECK 
+        check_null_product_name_pyspark(input_sector_profile_ledger.data)
+
+        print(f"Calculating indicators for {table_name}")
+        ## CALCULATION
         input_sector_profile_ledger.data = input_sector_profile_ledger.data.dropna(subset="scenario_name")
         input_sector_profile_ledger.data = sector_profile_compute(input_sector_profile_ledger.data)
         
+        print(f"Preparing data for {table_name}")
+        ## PREPPING
         input_sector_profile_ledger = input_sector_profile_ledger.custom_select(["tiltledger_id", "benchmark_group", "risk_category", "profile_ranking", "product_name", "tilt_sector", "scenario_name", "scenario_type", "year"]).custom_distinct()
 
+        ## DF CREATION
         sector_profile_ledger_level = CustomDF("sector_profile_ledger_enriched", spark_generate, 
                                                initial_df=input_sector_profile_ledger.data)
-
-        # print(sector_profile_ledger_level.data.columns)
+        print(f"Writing data for {table_name}")
+        ## WRITE
         sector_profile_ledger_level.write_table()
+        print("Data written successfully!\n")
     
     elif table_name == 'sector_profile_ledger_upstream_enriched':
         # Load in the necessary dataframes

@@ -693,7 +693,7 @@ def get_combined_targets(ipr, weo):
     except IndexError:
         raise ValueError("`reductions` column not found in `combined_targets`")
     
-    return combined_targets
+    return combined_targets.custom_drop(["scenario_targets_ipr_id", "scenario_targets_weo_id"])
 
 def sector_profile_compute(input_sector_profile_ledger_x):
     # Splitting the dataframe based on year
