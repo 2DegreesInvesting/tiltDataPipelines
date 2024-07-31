@@ -406,16 +406,55 @@ def ledger_x_ecoinvent_matcher(ledger, ecoinvent):
     return ledger_ecoinvent_mapping
 
 def check_nonempty_tiltsectors_for_nonempty_isic_pyspark(df):
-                    (F.col('ei.isic_4digit') == F.col('ledger.isic_code')) &
-                    (F.col('ei.cpc_code') == F.col("ledger.cpc_code"))&
-                    (F.col('ei.activity_type') == F.col('ledger.activity_type'))
-                ), how = "right")
-        
-        unmatched_records = next_match.filter(next_match.activity_uuid_product_uuid.isNull()).select(ledger_cols)
-        matched_records = next_match.filter(next_match.activity_uuid_product_uuid.isNotNull())
-        complete_df = complete_df.union(matched_records)
+    isic = df.select(df.colRegex("`.*isic_code.*`")).columns[0]
+    tilt_sec = df.select(df.colRegex("`.*tilt_sector.*`")).columns[0]
+    tilt_subsec = df.select(df.colRegex("`.*tilt_subsector.*`")).columns[0]
+    test_null_tiltsec = df.filter(df[isic].isNotNull()).select(tilt_sec, tilt_subsec)
+
+    # Check for null rows in tilt_sec column
+    null_tiltsec = test_null_tiltsec.filter(F.col(tilt_sec).isNull())
+    # Check for null rows in tilt_subsec column
+    null_tiltsubsec = test_null_tiltsec.filter(F.col(tilt_subsec).isNull())
+    # Check if both columns have no null rows
+    if null_tiltsec.count() == 0 and null_tiltsubsec.count() != 0:
+        raise ValueError("For every isic there should be a tilt_sector & tilt_subsector")
+    print("Non-empty tiltsector for non-empty isic_code check passed")
+
+def check_null_product_name_pyspark(df):
+    product_name = df.select(df.colRegex("`.*product_name.*`")).columns[0]
+    if df.filter(df[product_name].isNull()).count() > 0:
+        raise ValueError("`product_name` can't have any null value")
+    print("Empty product name check passed")
+
+def sanitize_co2(df):
+    # first check if the isic_4digit column exists
+    if "isic_code" not in df.columns:
+        # throw an error stating that the column is missing
+        raise ValueError('isic_code column is missing')
+    df = df.withColumn('isic_code',F.lpad(F.regexp_replace("isic_code", "'", ""), 4, '0'))
+    return df
+
+def column_check(df1):
+    important_cols = ["co2_footprint", "tilt_sector", "unit"]
+    # raise error if the df1 or df2 is empty
+    if df1.isEmpty():
+        raise ValueError('Dataframe is empty')
     
-    return complete_df
+    # check if the important columns needed for the calculation are present in the dataframe
+    for col in important_cols:
+        if not any(re.match(col, column) for column in df1.columns):
+            raise ValueError('Missing column: ' + col)
+
+    print("Column presence check passed")
+
+def prepare_co2(co2_df):
+    isic = co2_df.select(co2_df.colRegex("`.*isic_code.*`")).columns[0]
+    tilt_sec = co2_df.select(co2_df.colRegex("`.*tilt_sector.*`")).columns[0]
+    co2_footprint = co2_df.select(co2_df.colRegex("`.*co2_footprint.*`")).columns[0]
+    co2_df = co2_df.filter(co2_df[tilt_sec].isNotNull())
+    co2_df = co2_df.filter(co2_df[isic].isNotNull())
+    co2_df = co2_df.filter(co2_df[co2_footprint].isNotNull())    
+    return co2_df
 
 def structure_postcode(postcode: str) -> str:
     """Structure raw postcode to be in the format '1234 AB'.
@@ -479,7 +518,7 @@ def keep_one_name(default_name: str, statutory_name: str) -> str:
 
     return name
 
-def emissions_profile_compute(enriched_ledger, output_type="combined"):
+def emissions_profile_compute(emission_data, ledger_ecoinvent_mapping,  output_type="combined"):
     
     # define a dictionary with the 6 different benchmark types
     benchmark_types = {
@@ -496,7 +535,7 @@ def emissions_profile_compute(enriched_ledger, output_type="combined"):
     if output_type == "combined":
         for bench_type, cols in benchmark_types.items():
             # Create a Window specification 
-            temp_df = enriched_ledger
+            temp_df = emission_data
             if bench_type == "all":
                 length = temp_df.select("co2_footprint").distinct().count()
                 windowSpec = Window.orderBy("co2_footprint")
@@ -505,7 +544,7 @@ def emissions_profile_compute(enriched_ledger, output_type="combined"):
                 # Divide the dense rank by length and create the profile_ranking column
                 temp_df = temp_df.withColumn('profile_ranking', F.col('dense_rank') / F.lit(length)).drop(F.col('dense_rank'))
             else:
-                all_columns = enriched_ledger.columns
+                all_columns = emission_data.columns
                 grouping_columns = [column for column in all_columns if any(pattern in column for pattern in cols)]
                 windowSpec = Window.partitionBy(grouping_columns).orderBy(F.col('co2_footprint'))
                 temp_df = temp_df.withColumn('dense_rank', F.dense_rank().over(windowSpec))
@@ -515,16 +554,20 @@ def emissions_profile_compute(enriched_ledger, output_type="combined"):
             groups.append(temp_df)
         
         # Concatenate the DataFrames
-        concatenated_df = reduce(lambda df1, df2: df1.unionAll(df2), groups)
+        concatenated_df = reduce(lambda df1, df2: df1.unionAll(df2), groups).withColumnsRenamed({"reference_product_name": "product_name"})
+
+        concatenated_df = ledger_ecoinvent_mapping.join(concatenated_df, on="activity_uuid_product_uuid", how="left").filter(F.col("benchmark_group").isNotNull())
 
         # Sum the profile_ranking values for each tiltledger_id
-        average_ranking_df = concatenated_df.groupBy("tiltledger_id", "benchmark_group").agg(F.avg("profile_ranking").alias("average_profile_ranking"))
+        average_df = concatenated_df.groupBy("tiltledger_id", "benchmark_group").agg(F.avg("profile_ranking").alias("average_profile_ranking"))
+
+        average_co2_df = concatenated_df.groupBy("tiltledger_id", "benchmark_group").agg(F.avg("co2_footprint").alias("average_co2_footprint"))
 
         # Join the average_df with concatenated_df to add the average_profile_ranking column
-        concatenated_df = concatenated_df.join(average_ranking_df, ["tiltledger_id", "benchmark_group"])
+        concatenated_df = concatenated_df.join(average_df, ["tiltledger_id", "benchmark_group"]).join(average_co2_df, ["tiltledger_id", "benchmark_group"])
 
         # Drop duplicate tilt records per benchmark type
-        concatenated_df = concatenated_df.dropDuplicates(subset=["tiltledger_id", "benchmark_group"]).drop("profile_ranking", "co2_footprint")
+        concatenated_df = concatenated_df.dropDuplicates(subset=["tiltledger_id", "benchmark_group"]).drop("profile_ranking")
 
         concatenated_df = concatenated_df.withColumn(
             "risk_category",
@@ -532,7 +575,7 @@ def emissions_profile_compute(enriched_ledger, output_type="combined"):
             .when((F.col("average_profile_ranking") > 1/3) & 
                 (F.col("average_profile_ranking") <= 2/3), "medium")
             .otherwise("high")
-        ).withColumnsRenamed({"reference_product_name": "product_name"})
+        )
     return concatenated_df
 
 def emissions_profile_upstream_compute(enriched_ledger, output_type="combined"):
@@ -722,9 +765,26 @@ def sector_profile_upstream_compute(input_sector_profile_ledger_upstream_x):
 
     return combined_df
 
-def geography_checker(emission_upstream_table):
+def ei_geography_checker(upstream_data):
     # Filter the rows with row number <= 2
-    check_input_data = emission_upstream_table.filter(F.col("row_num") <= 2).drop("row_num")
+    check_input_data = upstream_data.filter(F.col("row_num") <= 2).drop("row_num")
+    # Reset the index
+    check_input_data = check_input_data.withColumn("index", F.monotonically_increasing_id()).drop("index")
+
+    check_different_geo_at_same_priority = check_input_data[check_input_data["input_priority"] == 16].dropDuplicates(subset=["input_activity_uuid_product_uuid", "input_geography"])
+
+    # Check if any input product belongs to different geographies at the same priority
+    if check_different_geo_at_same_priority.dropDuplicates(["input_activity_uuid_product_uuid"]).count() != check_different_geo_at_same_priority.count():
+        raise ValueError("Any input product should not belong to different geographies at the same priority `16`")
+
+    check_multiple_NA = check_input_data.filter(F.col("input_priority").isNull()).dropDuplicates(subset=["input_activity_uuid_product_uuid", "input_product_name"])
+
+    if check_multiple_NA.dropDuplicates(["input_activity_uuid_product_uuid"]).count() != check_multiple_NA.count():
+        raise ValueError("Any input product should not have more than one NA input priority for an NA input geography")
+
+def ledger_geography_checker(upstream_data):
+    # Filter the rows with row number <= 2
+    check_input_data = upstream_data.filter(F.col("row_num") <= 2).drop("row_num")
     # Reset the index
     check_input_data = check_input_data.withColumn("index", F.monotonically_increasing_id()).drop("index")
 
