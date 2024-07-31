@@ -12,7 +12,7 @@ enriched_datamodel_schema = {
             StructField('risk_category', StringType(), False),
             StructField('average_profile_ranking', StringType(), False),
             StructField('product_name', StringType(), False),
-            StructField('activity_name', StringType(), True),
+            StructField('average_co2_footprint', StringType(), True),
             StructField('from_date', DateType(), False),
             StructField('to_date', DateType(), False),
             StructField('tiltRecordID', StringType(), False)

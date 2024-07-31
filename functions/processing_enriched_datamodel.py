@@ -32,25 +32,69 @@ def generate_table(table_name: str) -> None:
     # Companies data
 
     if table_name == 'emission_profile_ledger_enriched':
-        # Load in the necessary dataframes
-        emission_enriched_ledger = CustomDF("ledger_ecoinvent_mapping_datamodel", spark_generate)
+        print(f"Loading data for {table_name}")
+        ## LOAD
+        # ecoinvent
+        ecoinvent_product = CustomDF("ecoinvent_product_datamodel", spark_generate)
+        ecoinvent_activity = CustomDF("ecoinvent_activity_datamodel", spark_generate)
+        ecoinvent_co2 = CustomDF("ecoinvent_co2_datamodel", spark_generate)
+        ecoinvent_cut_off = CustomDF("ecoinvent_cut_off_datamodel", spark_generate)
+        # mappers
+        ledger_ecoinvent_mapping = CustomDF("ledger_ecoinvent_mapping_datamodel", spark_generate)
         tilt_sector_isic_mapper = CustomDF("tilt_sector_isic_mapper_datamodel", spark_generate)
 
-        # prepping
+        print(f"Preparing data for {table_name}")
+        ## PREPPING
+        ei_record_info = ecoinvent_product.custom_join(ecoinvent_cut_off, "product_uuid", custom_how="left").custom_join(ecoinvent_activity, "activity_uuid", custom_how="left").custom_join(ecoinvent_co2, "activity_uuid_product_uuid", custom_how="left").custom_select(
+            ['activity_uuid_product_uuid','activity_uuid','product_uuid','reference_product_name','unit','cpc_code','cpc_name','activity_name','activity_type','geography','isic_4digit','co2_footprint']
+        )
+        ei_record_info.data = ei_record_info.data.withColumn("geography", F.lower(F.col("geography")))
+        ei_record_info.rename_columns({"isic_4digit": "isic_code"})
+
+        ## PREPPING
         tilt_sector_isic_mapper.rename_columns({"isic_4digit": "isic_code"})
-        input_emission_profile_ledger = emission_enriched_ledger.custom_join(tilt_sector_isic_mapper, custom_on="isic_code", custom_how="left").custom_drop("isic_section")
-        # convert co2 column to decimal
-        co2_column = [s for s in input_emission_profile_ledger.data.columns if "co2_footprint" in s][0]
-        input_emission_profile_ledger.data = input_emission_profile_ledger.data.withColumn(co2_column, F.col(co2_column).cast("decimal(10,5)"))
+        sector_enriched_ecoinvent_co2 = ei_record_info.custom_join(tilt_sector_isic_mapper, custom_on="isic_code", custom_how="left").custom_drop("isic_section")
 
-        input_emission_profile_ledger = input_emission_profile_ledger.custom_select(["tiltledger_id", "co2_footprint", "reference_product_name", "activity_name", "geography", "isic_code", "tilt_sector", "tilt_subsector", "unit"])
-        input_emission_profile_ledger.data = emissions_profile_compute(input_emission_profile_ledger.data, "combined")
-        input_emission_profile_ledger = input_emission_profile_ledger.custom_select(["tiltledger_id","benchmark_group", "risk_category", "average_profile_ranking", "product_name", "activity_name"])
+        print("Running checks...")
+        ## CHECK
+        check_nonempty_tiltsectors_for_nonempty_isic_pyspark(sector_enriched_ecoinvent_co2.data)
 
+        ## CHECK 
+        check_null_product_name_pyspark(sector_enriched_ecoinvent_co2.data)
+
+        ## CHECK
+        column_check(sector_enriched_ecoinvent_co2.data)
+
+        print(f"Preparing data for {table_name}")
+        ## PREPPING
+        co2_column = [s for s in sector_enriched_ecoinvent_co2.data.columns if "co2_footprint" in s][0]
+        sector_enriched_ecoinvent_co2.data = sector_enriched_ecoinvent_co2.data.withColumn(co2_column, F.col(co2_column).cast("decimal(10,5)"))
+
+        ## PREPPING
+        sector_enriched_ecoinvent_co2.data = sanitize_co2(sector_enriched_ecoinvent_co2.data)
+
+        ## PREPPING
+        sector_enriched_ecoinvent_co2 = sector_enriched_ecoinvent_co2.custom_distinct()
+        sector_enriched_ecoinvent_co2.data = prepare_co2(sector_enriched_ecoinvent_co2.data)
+
+        ## PREPPING
+        emission_profile_ledger_level = sector_enriched_ecoinvent_co2.custom_select(["activity_uuid_product_uuid", "co2_footprint", "reference_product_name", "activity_name", "geography", "isic_code", "tilt_sector", "tilt_subsector", "unit"])
+
+        print(f"Calculating indicators for {table_name}")
+        ## CALCULATION
+        emission_profile_ledger_level.data = emissions_profile_compute(emission_profile_ledger_level.data, ledger_ecoinvent_mapping.data, "combined")
+
+        ## PREPPING
+        emission_profile_ledger_level = emission_profile_ledger_level.custom_select(["tiltledger_id","benchmark_group", "risk_category", "average_profile_ranking", "product_name", "average_co2_footprint"])
+
+        ## DF CREATION
         emission_profile_ledger_level = CustomDF("emission_profile_ledger_enriched", spark_generate,
-                                    initial_df=input_emission_profile_ledger.data)
+                                    initial_df=emission_profile_ledger_level.data)
         
+        print(f"Writing data for {table_name}")
+        ## WRITE
         emission_profile_ledger_level.write_table()
+        print("Data written successfully!\n")
 
     elif table_name == 'emission_profile_ledger_upstream_enriched':
         # Load in the necessary dataframes
