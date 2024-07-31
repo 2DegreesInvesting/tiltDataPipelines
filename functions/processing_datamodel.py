@@ -929,13 +929,6 @@ def generate_table(table_name: str) -> None:
         ecoinvent_cut_off = CustomDF("ecoinvent_cut_off_datamodel", spark_generate)
         ecoinvent_product = CustomDF("ecoinvent_product_datamodel", spark_generate)
         geography_ecoinvent_mapper = CustomDF("geography_ecoinvent_mapper_datamodel", spark_generate)
-        activity_mapping = CustomDF("main_activity_ecoinvent_mapper_datamodel", spark_generate)
-
-        activity_mapping.data = (activity_mapping.data.withColumn("main_activity", F.when(F.col("main_activity") == "manufacturer/ producer", "producing")
-                                                        .otherwise(F.col("main_activity")))
-                                                        .withColumn("main_activity", F.when(F.col("main_activity") == "retailer", "retail")
-                                                                    .otherwise(F.col("main_activity")))
-                                                        )
 
         # intermediate dataframe
         valid_countries = ['NL', 'AT', 'GB', 'DE', 'ES', 'FR', 'IT']
@@ -947,21 +940,18 @@ def generate_table(table_name: str) -> None:
                                                                                                                                                                                                                          'activity_type', 'geography', 'isic_4digit','co2_footprint'])
         ei_record_info.data = ei_record_info.data.withColumn("geography", F.lower(F.col("geography")))
         tilt_ledger.data = ledger_corrector(tilt_ledger.data)
-        geography_ecoinvent_mapper.data = geography_pivotter(geography_ecoinvent_mapper.data, spark_generate) # the pivotting removes the map_geography_ecoinvent_mapper_datamodel column
+        geography_ecoinvent_mapper.data = geography_ecoinvent_mapper.data.withColumn("country_un", F.lower(F.col("country_un")))
 
-        emission_enriched_ledger = tilt_ledger.custom_join(geography_ecoinvent_mapper,                     
-                            (
-                                (F.col('geography') == F.col('key_1'))
-                            ), custom_how = "left").custom_select(['tiltledger_id','isic_code', 'cpc_code', 'cpc_name', 'isic_name', 'activity_type', 'geography', 
-                                                                                                                                     'key_1', 'key_2', 'key_3', 'key_4', 'key_5', 'key_6', 'key_7', 'key_8', 'key_9', 'key_10',
-                                                                                                                                     'key_11', 'key_12', 'key_13', 'key_14', 'key_15', 'key_16'])
+        emission_enriched_ledger = tilt_ledger.custom_join(geography_ecoinvent_mapper.custom_select(["country_un", "ecoinvent_geography", "priority"]),                     
+                    (
+                        (F.col('geography') == F.col('country_un'))
+                    ), custom_how = "left").custom_drop(["country_un"])
         emission_enriched_ledger.data = ledger_x_ecoinvent_matcher(emission_enriched_ledger.data, ei_record_info.data)
-        # print(emission_enriched_ledger.data.count())
-        emission_enriched_ledger = emission_enriched_ledger.custom_select(["tiltledger_id", "activity_uuid_product_uuid","ei.reference_product_name","ledger.isic_code", "activity_uuid","activity_name", "unit", "co2_footprint", "ledger.geography"])
+        emission_enriched_ledger = emission_enriched_ledger.custom_select(["tiltledger_id", "activity_uuid_product_uuid"])
         enriched_ledger = CustomDF("ledger_ecoinvent_mapping_datamodel", spark_generate, initial_df=emission_enriched_ledger.data)
         total_ledger_count = tilt_ledger.data.select("tiltledger_id").distinct().count()
         covered_ledger_count = enriched_ledger.data.select("tiltledger_id").distinct().count()
-        print(f"Coverage: {covered_ledger_count/total_ledger_count}")
+        print(f"Coverage: {(covered_ledger_count/total_ledger_count)*100}")
 
         enriched_ledger.write_table()
 

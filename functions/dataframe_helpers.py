@@ -388,45 +388,24 @@ def ledger_corrector(tilt_ledger):
     tilt_ledger = tilt_ledger.dropDuplicates(subset=["cpc_code","isic_code","geography","activity_type"])
     return tilt_ledger
 
-def geography_pivotter(tilt_geography, spark_session):
-    # select every 16th row in the tilt_geography dataframe but only select the columns that are needed
-    all_columns = tilt_geography.columns
-    cols = ["country_un", "map_geography_ecoinvent_mapper_datamodel"]
-    select_columns = [column for column in all_columns if any(pattern in column for pattern in cols)]
-    mapping_data = tilt_geography.dropDuplicates(subset=["country_un"]).select(*select_columns)
-
-    # Pivot the tilt_geography dataframe
-    geography_ecoinvent_mapper_pandas = tilt_geography.toPandas()
-
-    geo_mapper_pivot = geography_ecoinvent_mapper_pandas.pivot(index='country_un', columns='priority', values='ecoinvent_geography')
-    geo_mapper_pivot.columns = ['key_' + str(col) for col in geo_mapper_pivot.columns]
-
-    # Convert pandas DataFrame to Spark DataFrame
-    geo_mapper_pivot_spark = spark_session.createDataFrame(geo_mapper_pivot)
-
-    # Join the pivot table with the mapping_data with the keys key_1 and country_un
-    geo_mapper_pivot_spark = geo_mapper_pivot_spark.join(mapping_data, geo_mapper_pivot_spark.key_1 == mapping_data.country_un, how="left").drop("country_un")
-
-    return geo_mapper_pivot_spark
-
 def ledger_x_ecoinvent_matcher(ledger, ecoinvent):
-    print(ledger.count(), ecoinvent.count())
+    
     ledger_cols = ["ledger."+column for column in ledger.columns]
     init_df = ecoinvent.alias("ei").join(ledger.alias("ledger"),                     
                 (
-                    (F.col('ei.geography') == F.col(f'ledger.geography')) &
+                    (F.col('ei.geography') == F.col(f'ledger.ecoinvent_geography')) &
                     (F.col('ei.isic_4digit') == F.col('ledger.isic_code')) &
                     (F.col('ei.cpc_code') == F.col('ledger.cpc_code')) &
                     (F.col('ei.activity_type') == F.col('ledger.activity_type'))
                 ), how = "right")
-    complete_df = init_df.filter(init_df.activity_uuid_product_uuid.isNotNull())
+    complete_df = init_df.filter(init_df.activity_uuid_product_uuid.isNotNull()).drop(F.col("ei.geography"), F.col("ei.cpc_code"), F.col("ei.activity_type"))
     unmatched_records = init_df.filter(init_df.activity_uuid_product_uuid.isNull()).select(ledger_cols)
-    # first do with alternative geography
-    for i in range(2,17):
-        country_column = f"key_{i}"
-        next_match = ecoinvent.alias("ei").join(unmatched_records.alias("ledger"),                     
-                (
-                    (F.col('ei.geography') == F.col(f'ledger.{country_column}')) &
+    windowSpec = Window.partitionBy("geography", "isic_4digit", "cpc_code", "activity_type").orderBy("priority")
+
+    ledger_ecoinvent_mapping = complete_df.withColumn("row_number", F.row_number().over(windowSpec)).filter("row_number = 1").drop("row_number")
+    return ledger_ecoinvent_mapping
+
+def check_nonempty_tiltsectors_for_nonempty_isic_pyspark(df):
                     (F.col('ei.isic_4digit') == F.col('ledger.isic_code')) &
                     (F.col('ei.cpc_code') == F.col("ledger.cpc_code"))&
                     (F.col('ei.activity_type') == F.col('ledger.activity_type'))

@@ -421,13 +421,6 @@ datamodel_schema = {
         'columns':  StructType([
             StructField('tiltledger_id', StringType(), True),
             StructField('activity_uuid_product_uuid', StringType(), True),
-            StructField('reference_product_name', StringType(), True),
-            StructField('isic_code', StringType(), True),
-            StructField('activity_uuid', StringType(), True),
-            StructField('activity_name', StringType(), True),
-            StructField('unit', StringType(), True),
-            StructField('co2_footprint', StringType(), True),
-            StructField('geography', StringType(), True),
             StructField('from_date', DateType(), False),
             StructField('to_date', DateType(), False),
             StructField('tiltRecordID', StringType(), False)
