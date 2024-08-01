@@ -435,15 +435,18 @@ def sanitize_co2(df):
     return df
 
 def column_check(df1):
-    important_cols = ["co2_footprint", "tilt_sector", "unit"]
+    co2_footprint = df1.select(df1.colRegex("`.*co2_footprint.*`")).columns[0]
+    tilt_sec = df1.select(df1.colRegex("`.*tilt_sector.*`")).columns[0]
+    unit = df1.select(df1.colRegex("`.*unit.*`")).columns[0]
+
+    important_cols = [co2_footprint, tilt_sec, unit]
     # raise error if the df1 or df2 is empty
     if df1.isEmpty():
         raise ValueError('Dataframe is empty')
     
     # check if the important columns needed for the calculation are present in the dataframe
-    for col in important_cols:
-        if not any(re.match(col, column) for column in df1.columns):
-            raise ValueError('Missing column: ' + col)
+    if len(important_cols) != 3:
+        raise ValueError('Important columns are missing')
 
     print("Column presence check passed")
 
