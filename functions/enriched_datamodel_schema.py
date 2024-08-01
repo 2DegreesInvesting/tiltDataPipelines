@@ -26,7 +26,7 @@ enriched_datamodel_schema = {
     },
     'emission_profile_ledger_upstream_enriched': {
         'columns': StructType([
-            StructField('input_tiltledger_id', StringType(), False),
+            StructField('input_activity_uuid_product_uuid', StringType(), False),
             StructField('tiltledger_id', StringType(), False),
             StructField('benchmark_group', StringType(), False),
             StructField('risk_category', StringType(), False),

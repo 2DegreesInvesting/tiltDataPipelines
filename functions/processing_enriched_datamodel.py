@@ -97,59 +97,118 @@ def generate_table(table_name: str) -> None:
         print("Data written successfully!\n")
 
     elif table_name == 'emission_profile_ledger_upstream_enriched':
-        # Load in the necessary dataframes
-        emission_enriched_ledger = CustomDF("ledger_ecoinvent_mapping_datamodel", spark_generate)
-        tilt_sector_isic_mapper = CustomDF("tilt_sector_isic_mapper_datamodel", spark_generate)
+        print(f"Loading data for {table_name}")
+        ## LOAD
+        # tilt data
+        tilt_ledger = CustomDF("tiltLedger_datamodel", spark_generate)
+        # ecoinvent
         ecoinvent_input_data = CustomDF("ecoinvent_input_data_datamodel", spark_generate)
-        input_geography_filter = CustomDF("geography_ecoinvent_mapper_datamodel", spark_generate).custom_select(["geography_id", "ecoinvent_geography", "priority", "input_priority"])
+        ecoinvent_product = CustomDF("ecoinvent_product_datamodel", spark_generate)
+        ecoinvent_activity = CustomDF("ecoinvent_activity_datamodel", spark_generate)
+        ecoinvent_co2 = CustomDF("ecoinvent_co2_datamodel", spark_generate)
+        ecoinvent_cut_off = CustomDF("ecoinvent_cut_off_datamodel", spark_generate)
+        # mappers
+        ledger_ecoinvent_mapping = CustomDF("ledger_ecoinvent_mapping_datamodel", spark_generate)
+        tilt_sector_isic_mapper = CustomDF("tilt_sector_isic_mapper_datamodel", spark_generate)
+        geography_ecoinvent_mapper = CustomDF("geography_ecoinvent_mapper_datamodel", spark_generate).custom_select(["geography_id", "ecoinvent_geography", "priority", "input_priority"])
 
-        # prepping
+        print(f"Preparing data for {table_name}")
+        ## PREPPING
+        valid_countries = ['NL', 'AT', 'GB', 'DE', 'ES', 'FR', 'IT']
+        tilt_ledger.data = tilt_ledger.data.dropna(subset=["CPC_Code", "isic_code", "Geography"])
+        tilt_ledger.data = tilt_ledger.data.filter(tilt_ledger.data.Geography.isin(valid_countries)).withColumn("Geography", F.lower(F.col("Geography"))).select([F.col(column).alias(column.lower()) for column in tilt_ledger.data.columns])
+        tilt_ledger.data = tilt_ledger.data.withColumn("cpc_name", F.regexp_replace(F.trim(F.lower(F.col("cpc_name"))), "<.*?>", "")).withColumn("activity_type", F.lower(F.col("activity_type")))
         tilt_sector_isic_mapper.rename_columns({"isic_4digit": "isic_code"})
-        # Prefix all column names with "input_"
-        input_emission_enriched_ledger = emission_enriched_ledger.custom_select([
-            *[F.col(c).alias("input_" + c) for c in emission_enriched_ledger.data.columns[:-1]]]
+        ei_record_info = ecoinvent_product.custom_join(ecoinvent_cut_off, "product_uuid", custom_how="left").custom_join(ecoinvent_activity, "activity_uuid", custom_how="left").custom_join(ecoinvent_co2, "activity_uuid_product_uuid", custom_how="left").custom_select(
+            ['activity_uuid_product_uuid','activity_uuid','product_uuid','reference_product_name','unit','cpc_code','cpc_name','activity_name','activity_type','geography','isic_4digit','co2_footprint']
         )
+        ei_record_info.data = ei_record_info.data.withColumn("geography", F.lower(F.col("geography")))
+        ei_record_info.rename_columns({"isic_4digit": "isic_code"})
 
-        intermediate_upstream_ledger = emission_enriched_ledger.custom_join(ecoinvent_input_data,"Activity_UUID_Product_UUID", 
+        ## PREPPING
+        input_ei_record_info = ei_record_info.custom_select([
+            *[F.col(c).alias("input_" + c) for c in ei_record_info.data.columns[:-1]]]
+        )
+        
+        ## PREPPING
+        input_ei_mapping = ei_record_info.custom_join(ecoinvent_input_data,"Activity_UUID_Product_UUID", 
                                     custom_how="left")
-        intermediate_upstream_ledger.data = intermediate_upstream_ledger.data.filter(F.col("input_activity_uuid_product_uuid").isNotNull())
-   
-        intermediate_upstream_ledger = intermediate_upstream_ledger.custom_join(input_emission_enriched_ledger, "input_activity_uuid_product_uuid", custom_how="left")
-        intermediate_upstream_ledger.data = intermediate_upstream_ledger.data.filter(F.col("input_tiltledger_id").isNotNull()).filter(F.col("input_co2_footprint").isNotNull())
-        intermediate_upstream_ledger = intermediate_upstream_ledger.custom_select([
-                                        "input_tiltledger_id", "tiltledger_id", "activity_name", "geography", "input_reference_product_name", "input_co2_footprint", 
+        input_ei_mapping.data = input_ei_mapping.data.filter(F.col("input_activity_uuid_product_uuid").isNotNull())
+
+        ## PREPPING
+        input_ei_mapping = input_ei_mapping.custom_join(input_ei_record_info, "input_activity_uuid_product_uuid", custom_how="left")
+        input_ei_mapping.data = input_ei_mapping.data.filter(F.col("input_activity_uuid_product_uuid").isNotNull())
+        input_ei_mapping.data = input_ei_mapping.data.filter(F.col("input_co2_footprint").isNotNull())
+        input_ei_mapping = input_ei_mapping.custom_select([
+                                        "input_activity_uuid_product_uuid", "activity_uuid_product_uuid", "activity_name", "geography", "input_reference_product_name", "input_co2_footprint", 
                                         "input_geography", "input_isic_code", "input_unit"]
                                     )
 
-        intermediate_upstream_ledger.rename_columns({"geography":"product_geography", "input_reference_product_name":"input_product_name"})
+        ## PREPPING
+        input_ei_mapping.rename_columns({"geography":"product_geography", "input_reference_product_name":"input_product_name"})
 
-        input_data_filtered = intermediate_upstream_ledger.custom_join(input_geography_filter, (F.col("input_geography") == F.col("ecoinvent_geography")), custom_how="left")
-        # Define the window specification
-        window_spec = Window.partitionBy("tiltledger_id", "input_product_name").orderBy(F.col("input_priority").asc())
-        # Add a row number column within each group
-        input_data_filtered.data = input_data_filtered.data.withColumn("row_num", F.row_number().over(window_spec))
+        ## PREPPING
+        input_ei_mapping_w_geography = input_ei_mapping.custom_join(geography_ecoinvent_mapper, (F.col("input_geography") == F.col("ecoinvent_geography")), custom_how="left")
+        window_spec = Window.partitionBy("activity_uuid_product_uuid", "input_product_name").orderBy(F.col("input_priority").asc())
+        input_ei_mapping_w_geography.data = input_ei_mapping_w_geography.data.withColumn("row_num", F.row_number().over(window_spec))
 
-        geography_checker(input_data_filtered.data)
+        print("Running checks...")
+        ## CHECK
+        ei_geography_checker(input_ei_mapping_w_geography.data)
 
-        input_data_filtered.data = input_data_filtered.data.filter(F.col("row_num") <= 1).drop("row_num").withColumn("index", F.monotonically_increasing_id())
-        input_data_filtered = input_data_filtered.custom_drop(["index", "priority", "geography_id", "country"])
-        emission_enriched_ledger_upstream_data = input_data_filtered.custom_select(["input_tiltledger_id", "tiltledger_id", "activity_name", "product_geography", "input_product_name", "input_co2_footprint", "input_geography", "input_isic_code", "input_unit"
-                                                                                 , "input_priority"]).custom_distinct()
-
-        input_emission_profile_ledger_upstream = (emission_enriched_ledger_upstream_data.custom_join(tilt_sector_isic_mapper, 
-                                                                                        (F.col("input_isic_code") == F.col("isic_code")),
-                                                                                            custom_how='left')
-                                    .custom_distinct().custom_drop(["isic_code", "isic_section"])
+        print(f"Preparing data for {table_name}")
+        ## PREPPING
+        input_ei_mapping_w_geography.data = input_ei_mapping_w_geography.data.filter(F.col("row_num") <= 1)
+        input_ei_mapping_geo_filtered = input_ei_mapping_w_geography.custom_drop(["row_num","priority", "geography_id", "country"])
+        emission_enriched_ledger_upstream_data = input_ei_mapping_geo_filtered.custom_select(["input_activity_uuid_product_uuid", "activity_uuid_product_uuid", "activity_name", "product_geography", "input_product_name", "input_co2_footprint", "input_geography", "input_isic_code", "input_unit"
+                                                                                 , "input_priority"])
+        ## PREPPING
+        input_tilt_sector_isic_mapper = tilt_sector_isic_mapper.custom_select([
+            *[F.col(c).alias("input_" + c) for c in tilt_sector_isic_mapper.data.columns[:-1]]
+            ]
         )
-        input_emission_profile_ledger_upstream.data = emissions_profile_upstream_compute(input_emission_profile_ledger_upstream.data, "combined")
 
-        input_emission_profile_ledger_upstream = input_emission_profile_ledger_upstream.custom_select(["input_tiltledger_id", "tiltledger_id", "benchmark_group", "risk_category", "profile_ranking",
+        ## PREPPING
+        emission_enriched_ledger_upstream_data = (emission_enriched_ledger_upstream_data.custom_join(input_tilt_sector_isic_mapper, 
+                                                                                   "input_isic_code",
+                                                                                    custom_how='left')
+        )
+        emission_enriched_ledger_upstream_data.data = prepare_co2(emission_enriched_ledger_upstream_data.data)
+
+        print("Running checks...")
+        ## CHECK
+        check_nonempty_tiltsectors_for_nonempty_isic_pyspark(emission_enriched_ledger_upstream_data.data)
+
+        ## CHECK 
+        check_null_product_name_pyspark(emission_enriched_ledger_upstream_data.data)
+
+        ## CHECK
+        column_check(emission_enriched_ledger_upstream_data.data)
+
+        print(f"Calculating indicators for {table_name}")
+
+        ## CALCULATION
+        emission_enriched_ledger_upstream_data.data = emissions_profile_upstream_compute(emission_enriched_ledger_upstream_data.data, ledger_ecoinvent_mapping.data, "combined")
+
+        print(f"Preparing data for {table_name}")
+        ## PREPPING
+        emission_enriched_ledger_upstream_data = emission_enriched_ledger_upstream_data.custom_select(["input_activity_uuid_product_uuid", "tiltledger_id", "benchmark_group", "risk_category", "profile_ranking",
                                                                                                         "input_product_name", "input_co2_footprint"])
-
-        emission_profile_ledger_upstream_level = CustomDF("emission_profile_ledger_upstream_enriched", spark_generate,
-                                                          initial_df=input_emission_profile_ledger_upstream.data)
         
+        
+        path = "abfss://landingzone@storagetiltdevelop.dfs.core.windows.net/test/"
+        emission_enriched_ledger_upstream_data.data.write.mode("overwrite").parquet(path)
+
+        df = spark_generate.read.format("parquet").load(path)
+
+        df.show()
+        print(f"Writing data for {table_name}")
+        # DF CREATION
+        emission_profile_ledger_upstream_level = CustomDF("emission_profile_ledger_upstream_enriched", spark_generate,
+                                                          initial_df=df)
+        ## WRITE
         emission_profile_ledger_upstream_level.write_table()
+        print("Data written successfully!")
 
     elif table_name == 'sector_profile_ledger_enriched':
         print(f"Loading data for {table_name}")
@@ -250,13 +309,13 @@ def generate_table(table_name: str) -> None:
         
         ## PREPPING
         input_sector_profile = sector_profile.custom_select([
-                    *[F.col(c).alias("input_" + c) for c in sector_profile.data.columns]]
+                    *[F.col(c).alias("input_" + c) for c in sector_profile.data.columns[:-1]]]
                 )
         
         ## PREPPING
         ledger_ecoinvent_mapping_w_geography = ledger_ecoinvent_mapping.custom_join(tilt_ledger,"tiltledger_id", custom_how="left").custom_select(["tiltledger_id", "activity_uuid_product_uuid", "geography"])
         ledger_ecoinvent_mapping_w_geography = ledger_ecoinvent_mapping_w_geography.custom_select([
-            *[F.col(c).alias("input_" + c) for c in ledger_ecoinvent_mapping_w_geography.data.columns]
+            *[F.col(c).alias("input_" + c) for c in ledger_ecoinvent_mapping_w_geography.data.columns[:-1]]
             ]
         )
 

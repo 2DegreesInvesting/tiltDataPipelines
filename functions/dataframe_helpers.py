@@ -581,7 +581,7 @@ def emissions_profile_compute(emission_data, ledger_ecoinvent_mapping,  output_t
         )
     return concatenated_df
 
-def emissions_profile_upstream_compute(enriched_ledger, output_type="combined"):
+def emissions_profile_upstream_compute(emission_data_upstream, ledger_ecoinvent_mapping, output_type="combined"):
     
     # define a dictionary with the 6 different benchmark types
     benchmark_types = {
@@ -595,10 +595,11 @@ def emissions_profile_upstream_compute(enriched_ledger, output_type="combined"):
 
     groups = []
 
+    # do not aggregate the records by the tiltrecordid group. better to just leave the table untouched, calculate for every row the profile ranking, then take the average of the combined profile ranking value and then assign the average to the tiltrecordid, then compute the risk category.
     if output_type == "combined":
         for bench_type, cols in benchmark_types.items():
             # Create a Window specification 
-            temp_df = enriched_ledger
+            temp_df = emission_data_upstream
             if bench_type == "all":
                 length = temp_df.select("input_co2_footprint").distinct().count()
                 windowSpec = Window.orderBy("input_co2_footprint")
@@ -607,7 +608,7 @@ def emissions_profile_upstream_compute(enriched_ledger, output_type="combined"):
                 # Divide the dense rank by length and create the profile_ranking column
                 temp_df = temp_df.withColumn('profile_ranking', F.col('dense_rank') / F.lit(length)).drop(F.col('dense_rank'))
             else:
-                all_columns = enriched_ledger.columns
+                all_columns = emission_data_upstream.columns
                 grouping_columns = [column for column in all_columns if any(pattern in column for pattern in cols)]
                 windowSpec = Window.partitionBy(grouping_columns).orderBy(F.col('input_co2_footprint'))
                 temp_df = temp_df.withColumn('dense_rank', F.dense_rank().over(windowSpec))
@@ -619,8 +620,18 @@ def emissions_profile_upstream_compute(enriched_ledger, output_type="combined"):
         # Concatenate the DataFrames
         concatenated_df = reduce(lambda df1, df2: df1.unionAll(df2), groups)
 
+        concatenated_df = ledger_ecoinvent_mapping.join(concatenated_df, on="activity_uuid_product_uuid", how="left").filter(F.col("benchmark_group").isNotNull())
+
+        # if we want to only cover all mapped output_product then comment the lines till the *
+        # input_ledger_ecoinvent_mapping = ledger_ecoinvent_mapping.select(
+        #     *[F.col(c).alias("input_" + c) for c in ledger_ecoinvent_mapping.columns]
+        # )
+
+        # concatenated_df = concatenated_df.join(input_ledger_ecoinvent_mapping, on="input_activity_uuid_product_uuid", how="left").filter(F.col("input_tiltledger_id").isNotNull())
+        #*
+
         # Drop duplicate tilt records per benchmark type
-        concatenated_df = concatenated_df.dropDuplicates(subset=["input_tiltledger_id","tiltledger_id", "benchmark_group"])
+        concatenated_df = concatenated_df.dropDuplicates(subset=["input_activity_uuid_product_uuid","tiltledger_id", "benchmark_group"])
 
         concatenated_df = concatenated_df.withColumn(
             "risk_category",
