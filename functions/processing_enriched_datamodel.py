@@ -368,6 +368,49 @@ def generate_table(table_name: str) -> None:
         sector_profile_ledger_upstream_level.write_table()
         print("Data written successfully!\n")
 
+    elif table_name == 'transition_risk_ledger_enriched':
+        print(f"Loading data for {table_name}")
+        # LOAD
+        emission_profile_ledger = CustomDF("emission_profile_ledger_enriched", spark_generate)
+        sector_profile_ledger = CustomDF("sector_profile_ledger_enriched", spark_generate)
+
+        print(f"Preparing data for {table_name}")
+        # PREPPING
+        emission_profile_ledger = emission_profile_ledger.custom_select(["tiltledger_id", "benchmark_group", "risk_category", "average_profile_ranking", "product_name"])
+        sector_profile_ledger = sector_profile_ledger.custom_select(["tiltledger_id","scenario_name", "year", "profile_ranking", "product_name"])
+
+        # PREPPING
+        sector_profile_ledger.data = sector_profile_ledger.data.withColumn(
+                "scenario_year",
+                F.lower(F.concat_ws("_", F.col("scenario_name"), F.col("year")))
+            )
+        sector_profile_ledger = sector_profile_ledger.custom_drop(["scenario_name", "year", "product_name"])
+
+        # PREPPING
+        trs_product = emission_profile_ledger.custom_join(sector_profile_ledger, custom_on="tiltledger_id", custom_how="inner")
+
+        print(f"Calculating indicators for {table_name}")
+        # CALCULATION
+        trs_product.data = transition_risk_compute(trs_product.data)
+
+        print(f"Preparing data for {table_name}")
+        ## PREPPING
+        trs_product = trs_product.custom_drop(["scenario_year", "risk_category"])
+
+        ## PREPPING
+        trs_product.rename_columns({"profile_ranking":"reductions"})
+
+        ## PREPPING
+        trs_product = trs_product.custom_select(["tiltledger_id", "benchmark_group", "average_profile_ranking","product_name", "reductions", "transition_risk_score"])
+
+        # DF CREATION
+        transition_risk_ledger_level = CustomDF("transition_risk_ledger_enriched", spark_generate,
+                                                initial_df=trs_product.data)
+        
+        print(f"Writing data for {table_name}")
+        # WRITE
+        transition_risk_ledger_level.write_table()
+        print("Data written successfully!\n")
     else:
         raise ValueError(
             f'The table: {table_name} is not specified in the processing functions')

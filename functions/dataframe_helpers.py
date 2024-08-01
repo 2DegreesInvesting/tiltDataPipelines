@@ -808,7 +808,34 @@ def ledger_geography_checker(upstream_data):
     if check_different_geo_at_same_priority.dropDuplicates(["input_tiltledger_id"]).count() != check_different_geo_at_same_priority.count():
         raise ValueError("Any input product should not belong to different geographies at the same priority `16`")
     
-    check_multiple_NA = check_input_data.filter(F.col("input_priority").isNull()).dropDuplicates(subset=["input_tiltledger_id", "input_product_name"])
 
     if check_multiple_NA.dropDuplicates(["input_tiltledger_id"]).count() != check_multiple_NA.count():
         raise ValueError("Any input product should not have more than one NA input priority for an NA input geography")
+    
+def transition_risk_compute(transition_risk_product_level_data):
+    trs_product = transition_risk_product_level_data.withColumn(
+        "transition_risk_score",
+        F.when(
+            F.isnull(transition_risk_product_level_data["average_profile_ranking"]) | F.isnull(transition_risk_product_level_data["profile_ranking"]),
+            None
+        ).otherwise(
+            (transition_risk_product_level_data["average_profile_ranking"] + transition_risk_product_level_data["profile_ranking"]) / 2
+        )
+    ).withColumn(
+        "benchmark_group",
+        F.when(
+            F.isnull(transition_risk_product_level_data["average_profile_ranking"]) | F.isnull(transition_risk_product_level_data["profile_ranking"]),
+            None
+        ).otherwise(
+            F.concat_ws("_", transition_risk_product_level_data["scenario_year"], transition_risk_product_level_data["benchmark_group"])
+        )
+    )
+    trs_product = trs_product.withColumn(
+        "transition_risk_score",
+        F.when(
+            (trs_product["transition_risk_score"] < 0), 0
+        ).when(
+            (trs_product["transition_risk_score"] > 1), 1
+        ).otherwise(trs_product["transition_risk_score"])
+    )
+    return trs_product
