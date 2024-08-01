@@ -858,7 +858,7 @@ def generate_table(table_name: str) -> None:
             "ISIC_Code",
             "ISIC_Name",
             "Activity_Type",
-            "Geography",
+            "Geography"
         ]
 
         tiltLedger_raw.custom_select(final_columns)
@@ -880,7 +880,12 @@ def generate_table(table_name: str) -> None:
             "ISIC_Code",
             "ISIC_Name",
             "Activity_Type",
-            "Geography"])
+            "Geography",
+            "Distance",
+            "Manual_Review",
+            "Verified_Source"
+            ])
+        
 
         tiltLedger_datamodel = CustomDF(
             "tiltLedger_datamodel", spark_generate, initial_df=tiltLedger_raw_final.data
