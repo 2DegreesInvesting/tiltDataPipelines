@@ -122,7 +122,8 @@ landingzone_schema = {
         "columns": StructType(
             [
                 StructField("Sizokey", StringType(), False),
-                StructField("Kamer_van_Koophandel_nummer", StringType(), False),
+                StructField("Kamer_van_Koophandel_nummer",
+                            StringType(), False),
                 StructField(
                     "Kamer_van_Koophandel_nummer_12-cijferig", StringType(), False
                 ),
@@ -154,20 +155,24 @@ landingzone_schema = {
                 StructField(
                     "Aantal_medewerkers_van_concern_op_locatie", StringType(), True
                 ),
-                StructField("Klasse_aantal_medewerkers_locatie", StringType(), True),
+                StructField("Klasse_aantal_medewerkers_locatie",
+                            StringType(), True),
                 StructField(
                     "Klasse_aantal_medewerkers_locatie_Omschrijving", StringType(), True
                 ),
                 StructField("SBI-code", StringType(), True),
                 StructField("SBI-code_Omschrijving", StringType(), True),
                 StructField("SBI-code_2-cijferig", StringType(), True),
-                StructField("SBI-code_2-cijferig_Omschrijving", StringType(), True),
+                StructField("SBI-code_2-cijferig_Omschrijving",
+                            StringType(), True),
                 StructField("SBI-code_segment", StringType(), True),
-                StructField("SBI-code_segment_Omschrijving", StringType(), True),
+                StructField("SBI-code_segment_Omschrijving",
+                            StringType(), True),
                 StructField("NACE-code", StringType(), True),
                 StructField("NACE-code_Omschrijving", StringType(), True),
                 StructField("SBI-code_locatie", StringType(), True),
-                StructField("SBI-code_locatie_Omschrijving", StringType(), True),
+                StructField("SBI-code_locatie_Omschrijving",
+                            StringType(), True),
                 StructField("SBI-code_2-cijferig_locatie", StringType(), True),
                 StructField(
                     "SBI-code_2-cijferig_locatie_Omschrijving", StringType(), True
@@ -178,22 +183,27 @@ landingzone_schema = {
                 ),
                 StructField("Concernrelatie_Omschrijving", StringType(), True),
                 StructField("Sizokey_ultimate_parent", StringType(), True),
-                StructField("Instellingsnaam_ultimate_parent", StringType(), True),
-                StructField("Aantal_instellingen_in_concern", StringType(), True),
+                StructField("Instellingsnaam_ultimate_parent",
+                            StringType(), True),
+                StructField("Aantal_instellingen_in_concern",
+                            StringType(), True),
                 StructField("Aantal_locaties_van_concern", StringType(), True),
-                StructField("Klasse_aantal_locaties_van_concern", StringType(), True),
+                StructField("Klasse_aantal_locaties_van_concern",
+                            StringType(), True),
                 StructField(
                     "Klasse_aantal_locaties_van_concern_Omschrijving",
                     StringType(),
                     True,
                 ),
                 StructField("Aantal_medewerkers_concern", StringType(), True),
-                StructField("Klasse_aantal_medewerkers_concern", StringType(), True),
+                StructField("Klasse_aantal_medewerkers_concern",
+                            StringType(), True),
                 StructField(
                     "Klasse_aantal_medewerkers_concern_Omschrijving", StringType(), True
                 ),
                 StructField("SBI-code_concern", StringType(), True),
-                StructField("SBI-code_concern_Omschrijving", StringType(), True),
+                StructField("SBI-code_concern_Omschrijving",
+                            StringType(), True),
                 StructField("SBI-code_2-cijferig_concern", StringType(), True),
                 StructField(
                     "SBI-code_2-cijferig_concern_Omschrijving", StringType(), True
@@ -203,7 +213,8 @@ landingzone_schema = {
                     "SBI-code_segment_concern_Omschrijving", StringType(), True
                 ),
                 StructField("Subsidie_bedrag_concern", StringType(), True),
-                StructField("Klasse_subsidie_bedrag_concern", StringType(), True),
+                StructField("Klasse_subsidie_bedrag_concern",
+                            StringType(), True),
                 StructField(
                     "Klasse_subsidie_bedrag_concern_Omschrijving", StringType(), True
                 ),
@@ -235,20 +246,24 @@ landingzone_schema = {
                 ),
                 StructField("Jaar_laatste_jaarverslag", StringType(), True),
                 StructField("Geconsolideerd_resultaat", StringType(), True),
-                StructField("Klasse_geconsolideerd_resultaat", StringType(), True),
+                StructField("Klasse_geconsolideerd_resultaat",
+                            StringType(), True),
                 StructField(
                     "Klasse_geconsolideerd_resultaat_Omschrijving", StringType(), True
                 ),
                 StructField("Omzet_geconsolideerd", StringType(), True),
-                StructField("Klasse_geconsolideerde_omzet", StringType(), True),
+                StructField("Klasse_geconsolideerde_omzet",
+                            StringType(), True),
                 StructField(
                     "Klasse_geconsolideerde_omzet_Omschrijving", StringType(), True
                 ),
-                StructField("Totaal_aantal_personenwagens_locatie", StringType(), True),
+                StructField("Totaal_aantal_personenwagens_locatie",
+                            StringType(), True),
                 StructField(
                     "Totaal_aantal_lichte_bedrijfswagens_locatie", StringType(), True
                 ),
-                StructField("Totaal_aantal_vrachtwagens_locatie", StringType(), True),
+                StructField("Totaal_aantal_vrachtwagens_locatie",
+                            StringType(), True),
                 StructField(
                     "Voorspelling_waarde_totaal_aantal_personenwagens_locatie",
                     StringType(),
@@ -338,11 +353,13 @@ landingzone_schema = {
                     StringType(),
                     True,
                 ),
-                StructField("Totaal_aantal_personenwagens_concern", StringType(), True),
+                StructField("Totaal_aantal_personenwagens_concern",
+                            StringType(), True),
                 StructField(
                     "Totaal_aantal_lichte_bedrijfswagens_concern", StringType(), True
                 ),
-                StructField("Totaal_aantal_vrachtwagens_concern", StringType(), True),
+                StructField("Totaal_aantal_vrachtwagens_concern",
+                            StringType(), True),
                 StructField(
                     "Voorspelling_waarde_totaal_aantal_personenwagens_concern",
                     StringType(),
@@ -615,17 +632,17 @@ landingzone_schema = {
         "partition_column": "",
         "quality_checks": [],
     },
-    "geographies_landingzone": {
-        "columns": StructType(
-            [
-                StructField("ID", StringType(), False),
-                StructField("Name", StringType(), True),
-                StructField("Shortname", StringType(), True),
-                StructField("Geographical_Classification", StringType(), True),
-                StructField(
-                    "Contained_and_Overlapping_Geographies", StringType(), True
-                ),
-            ]
+    'geographies_landingzone': {
+        'columns':  StructType([
+            StructField('ID', StringType(), False),
+            StructField('Name', StringType(), True),
+            StructField('Shortname', StringType(), True),
+            StructField('Latitude', StringType(), True),
+            StructField('Longitude', StringType(), True),
+            StructField('Geographical_Classification', StringType(), True),
+            StructField('Contained_and_Overlapping_Geographies',
+                        StringType(), True),
+        ]
         ),
         "container": "landingzone",
         "location": "ecoInvent/Geographies.csv",
@@ -660,55 +677,57 @@ landingzone_schema = {
         "partition_column": "",
         "quality_checks": [],
     },
-    "cut_off_ao_landingzone": {
-        "columns": StructType(
-            [
-                StructField("Activity UUID & Product UUID", StringType(), True),
-                StructField("Activity UUID", StringType(), True),
-                StructField("EcoQuery URL", StringType(), True),
-                StructField("Activity Name", StringType(), True),
-                StructField("Geography", StringType(), True),
-                StructField("Time Period", StringType(), True),
-                StructField("Special Activity Type", StringType(), True),
-                StructField("Sector", StringType(), True),
-                StructField("ISIC Classification", StringType(), True),
-                StructField("ISIC Section", StringType(), True),
-                StructField("Product UUID", StringType(), True),
-                StructField("Reference Product Name", StringType(), True),
-                StructField("CPC Classification", StringType(), True),
-                StructField("Unit", StringType(), True),
-                StructField("Product Information", StringType(), True),
-                StructField("CAS Number", StringType(), True),
-                StructField("Cut-Off Classification", StringType(), True),
-            ]
+    'cut_off_ao_landingzone': {
+        'columns':  StructType([
+            StructField('Activity UUID & Product UUID',
+                        StringType(), True),
+            StructField('Activity UUID', StringType(), True),
+            StructField('EcoQuery URL', StringType(), True),
+            StructField('Activity Name', StringType(), True),
+            StructField('Geography', StringType(), True),
+            StructField('Time Period', StringType(), True),
+            StructField('Special Activity Type', StringType(), True),
+            StructField('Sector', StringType(), True),
+            StructField('ISIC Classification', StringType(), True),
+            StructField('ISIC Section', StringType(), True),
+            StructField('Product UUID', StringType(), True),
+            StructField('Reference Product Name', StringType(), True),
+            StructField('CPC Classification', StringType(), True),
+            StructField('HS2017 Classification', StringType(), True),
+            StructField('Unit', StringType(), True),
+            StructField('Product Information', StringType(), True),
+            StructField('CAS Number', StringType(), True),
+            StructField('Cut-Off Classification', StringType(), True)
+        ]
         ),
-        "container": "landingzone",
-        "location": "ecoInvent/Cut-OFF AO.csv",
-        "type": "multiline",
-        "partition_column": "",
-        "quality_checks": [],
+        'container': 'landingzone',
+        'location': 'ecoInvent/Cut-Off AO.csv',
+        'type': 'multiline',
+        'partition_column': '',
+        'quality_checks': []
     },
-    "en15804_ao_landingzone": {
-        "columns": StructType(
-            [
-                StructField("Activity UUID & Product UUID", StringType(), True),
-                StructField("Activity UUID", StringType(), True),
-                StructField("EcoQuery URL", StringType(), True),
-                StructField("Activity Name", StringType(), True),
-                StructField("Geography", StringType(), True),
-                StructField("Time Period", StringType(), True),
-                StructField("Special Activity Type", StringType(), True),
-                StructField("Sector", StringType(), True),
-                StructField("ISIC Classification", StringType(), True),
-                StructField("ISIC Section", StringType(), True),
-                StructField("Product UUID", StringType(), True),
-                StructField("Reference Product Name", StringType(), True),
-                StructField("CPC Classification", StringType(), True),
-                StructField("Unit", StringType(), True),
-                StructField("Product Information", StringType(), True),
-                StructField("CAS Number", StringType(), True),
-                StructField("Cut-Off Classification", StringType(), True),
-            ]
+    'en15804_ao_landingzone': {
+        'columns':  StructType([
+            StructField('Activity UUID & Product UUID',
+                        StringType(), True),
+            StructField('Activity UUID', StringType(), True),
+            StructField('EcoQuery URL', StringType(), True),
+            StructField('Activity Name', StringType(), True),
+            StructField('Geography', StringType(), True),
+            StructField('Time Period', StringType(), True),
+            StructField('Special Activity Type', StringType(), True),
+            StructField('Sector', StringType(), True),
+            StructField('ISIC Classification', StringType(), True),
+            StructField('ISIC Section', StringType(), True),
+            StructField('Product UUID', StringType(), True),
+            StructField('Reference Product Name', StringType(), True),
+            StructField('CPC Classification', StringType(), True),
+            StructField('HS2017_Classification', StringType(), True),
+            StructField('Unit', StringType(), True),
+            StructField('Product Information', StringType(), True),
+            StructField('CAS Number', StringType(), True),
+            StructField('Cut-Off Classification', StringType(), True)
+        ]
         ),
         "container": "landingzone",
         "location": "ecoInvent/EN15804 AO.csv",
@@ -716,27 +735,57 @@ landingzone_schema = {
         "partition_column": "",
         "quality_checks": [],
     },
-    "consequential_ao_landingzone": {
-        "columns": StructType(
-            [
-                StructField("Activity UUID & Product UUID", StringType(), True),
-                StructField("Activity UUID", StringType(), True),
-                StructField("EcoQuery URL", StringType(), True),
-                StructField("Activity Name", StringType(), True),
-                StructField("Geography", StringType(), True),
-                StructField("Time Period", StringType(), True),
-                StructField("Special Activity Type", StringType(), True),
-                StructField("Technology Level", StringType(), True),
-                StructField("Sector", StringType(), True),
-                StructField("ISIC Classification", StringType(), True),
-                StructField("ISIC Section", StringType(), True),
-                StructField("Product UUID", StringType(), True),
-                StructField("Reference Product Name", StringType(), True),
-                StructField("CPC Classification", StringType(), True),
-                StructField("Unit", StringType(), True),
-                StructField("Product Information", StringType(), True),
-                StructField("CAS Number", StringType(), True),
-            ]
+    'apos_ao_landingzone': {
+        'columns':  StructType([
+            StructField('Activity UUID & Product UUID',
+                        StringType(), True),
+            StructField('Activity UUID', StringType(), True),
+            StructField('EcoQuery URL', StringType(), True),
+            StructField('Activity Name', StringType(), True),
+            StructField('Geography', StringType(), True),
+            StructField('Time Period', StringType(), True),
+            StructField('Special Activity Type', StringType(), True),
+            StructField('Sector', StringType(), True),
+            StructField('ISIC Classification', StringType(), True),
+            StructField('ISIC Section', StringType(), True),
+            StructField('Product UUID', StringType(), True),
+            StructField('Reference Product Name', StringType(), True),
+            StructField('CPC Classification', StringType(), True),
+            StructField('HS2017_Classification', StringType(), True),
+            StructField('Unit', StringType(), True),
+            StructField('Product Information', StringType(), True),
+            StructField('CAS Number', StringType(), True),
+            StructField('APOS Classification', StringType(), True)
+
+        ]
+        ),
+        'container': 'landingzone',
+        'location': 'ecoInvent/APOS AO.csv',
+        'type': 'multiline',
+        'partition_column': '',
+        'quality_checks': []
+    },
+    'consequential_ao_landingzone': {
+        'columns':  StructType([
+            StructField('Activity UUID & Product UUID',
+                        StringType(), True),
+            StructField('Activity UUID', StringType(), True),
+            StructField('EcoQuery URL', StringType(), True),
+            StructField('Activity Name', StringType(), True),
+            StructField('Geography', StringType(), True),
+            StructField('Time Period', StringType(), True),
+            StructField('Special Activity Type', StringType(), True),
+            StructField('Technology Level', StringType(), True),
+            StructField('Sector', StringType(), True),
+            StructField('ISIC Classification', StringType(), True),
+            StructField('ISIC Section', StringType(), True),
+            StructField('Product UUID', StringType(), True),
+            StructField('Reference Product Name', StringType(), True),
+            StructField('CPC Classification', StringType(), True),
+            StructField('Unit', StringType(), True),
+            StructField('Product Information', StringType(), True),
+            StructField('CAS Number', StringType(), True)
+        ]
         ),
         "container": "landingzone",
         "location": "ecoInvent/Consequential AO.csv",
@@ -765,7 +814,8 @@ landingzone_schema = {
     "impact_categories_landingzone": {
         "columns": StructType(
             [
-                StructField("Resources - Emissions - Total", StringType(), True),
+                StructField("Resources - Emissions - Total",
+                            StringType(), True),
                 StructField("Main impact/damage category", StringType(), True),
                 StructField(
                     "Inventory - Midpoint - Endpoint - AoP", StringType(), True
@@ -827,7 +877,7 @@ landingzone_schema = {
         "partition_column": "",
         "quality_checks": [],
     },
-    "cut-off_cumulative_LCIA_v3.9.1_landingzone": {
+    "cut-off_cumulative_LCIA_v_X_landingzone": {
         "columns": StructType(
             [
                 StructField("Activity UUID_Product UUID", StringType(), False),
@@ -844,7 +894,8 @@ landingzone_schema = {
         ),
         "container": "landingzone",
         # file that is created by extracting certain columns from the licensed data
-        "location": "ecoInvent/cut-off_cumulative_LCIA_v3.9.1.csv",
+        # the file name will change based on the availability of the new version
+        "location": "ecoInvent/cut-off_cumulative_LCIA_v10.csv",
         "type": "multiline",
         "partition_column": "",
         "quality_checks": [],
@@ -921,7 +972,8 @@ landingzone_schema = {
                 StructField("emission_profile_share", DoubleType(), True),
                 StructField("emission_profile", StringType(), True),
                 StructField("benchmark", StringType(), True),
-                StructField("matching_certainty_company_average", StringType(), True),
+                StructField("matching_certainty_company_average",
+                            StringType(), True),
                 StructField("company_city", StringType(), True),
                 StructField("postcode", StringType(), True),
                 StructField("address", StringType(), True),
@@ -948,7 +1000,8 @@ landingzone_schema = {
                 StructField("unit", StringType(), True),
                 StructField("multi_match", BooleanType(), True),
                 StructField("matching_certainty", StringType(), True),
-                StructField("matching_certainty_company_average", StringType(), True),
+                StructField("matching_certainty_company_average",
+                            StringType(), True),
                 StructField("tilt_sector", StringType(), True),
                 StructField("tilt_subsector", StringType(), True),
                 StructField("isic_4digit", StringType(), True),
@@ -975,10 +1028,12 @@ landingzone_schema = {
                 StructField("company_name", StringType(), True),
                 StructField("company_city", StringType(), True),
                 StructField("country", StringType(), True),
-                StructField("emission_usptream_profile_share", DoubleType(), True),
+                StructField("emission_usptream_profile_share",
+                            DoubleType(), True),
                 StructField("emission_usptream_profile", StringType(), True),
                 StructField("benchmark", StringType(), True),
-                StructField("matching_certainty_company_average", StringType(), True),
+                StructField("matching_certainty_company_average",
+                            StringType(), True),
                 StructField("postcode", StringType(), True),
                 StructField("address", StringType(), True),
                 StructField("main_activity", StringType(), True),
@@ -1004,7 +1059,8 @@ landingzone_schema = {
                 StructField("unit", StringType(), True),
                 StructField("multi_match", BooleanType(), True),
                 StructField("matching_certainty", StringType(), True),
-                StructField("matching_certainty_company_average", StringType(), True),
+                StructField("matching_certainty_company_average",
+                            StringType(), True),
                 StructField("input_name", StringType(), True),
                 StructField("input_unit", StringType(), True),
                 StructField("input_tilt_sector", StringType(), True),
@@ -1035,7 +1091,8 @@ landingzone_schema = {
                 StructField("sector_profile", StringType(), True),
                 StructField("scenario", StringType(), True),
                 StructField("year", StringType(), True),
-                StructField("matching_certainty_company_average", StringType(), True),
+                StructField("matching_certainty_company_average",
+                            StringType(), True),
                 StructField("company_city", StringType(), True),
                 StructField("postcode", StringType(), True),
                 StructField("address", StringType(), True),
@@ -1065,7 +1122,8 @@ landingzone_schema = {
                 StructField("tilt_subsector", StringType(), True),
                 StructField("multi_match", BooleanType(), True),
                 StructField("matching_certainty", StringType(), True),
-                StructField("matching_certainty_company_average", StringType(), True),
+                StructField("matching_certainty_company_average",
+                            StringType(), True),
                 StructField("company_city", StringType(), True),
                 StructField("postcode", StringType(), True),
                 StructField("address", StringType(), True),
@@ -1090,11 +1148,13 @@ landingzone_schema = {
                 StructField("companies_id", StringType(), True),
                 StructField("company_name", StringType(), True),
                 StructField("country", StringType(), True),
-                StructField("sector_profile_upstream_share", DoubleType(), True),
+                StructField("sector_profile_upstream_share",
+                            DoubleType(), True),
                 StructField("sector_profile_upstream", StringType(), True),
                 StructField("scenario", StringType(), True),
                 StructField("year", StringType(), True),
-                StructField("matching_certainty_company_average", StringType(), True),
+                StructField("matching_certainty_company_average",
+                            StringType(), True),
                 StructField("company_city", StringType(), True),
                 StructField("postcode", StringType(), True),
                 StructField("address", StringType(), True),
@@ -1123,7 +1183,8 @@ landingzone_schema = {
                 StructField("tilt_sector", StringType(), True),
                 StructField("multi_match", BooleanType(), True),
                 StructField("matching_certainty", StringType(), True),
-                StructField("matching_certainty_company_average", StringType(), True),
+                StructField("matching_certainty_company_average",
+                            StringType(), True),
                 StructField("input_name", StringType(), True),
                 StructField("input_unit", StringType(), True),
                 StructField("input_tilt_sector", StringType(), True),
