@@ -938,7 +938,6 @@ def generate_table(table_name: str) -> None:
                                                                                                                                                                                                                    'unit', 'cpc_code', 'cpc_name', 'activity_name', 
                                                                                                                                                                                                                          'activity_type', 'geography', 'isic_4digit'])
         ei_record_info.data = ei_record_info.data.withColumn("geography", F.lower(F.col("geography"))).dropna()
-        tilt_ledger.data = ledger_corrector(tilt_ledger.data)
         geography_ecoinvent_mapper.data = geography_ecoinvent_mapper.data.withColumn("country_un", F.lower(F.col("country_un")))
 
         emission_enriched_ledger = tilt_ledger.custom_join(geography_ecoinvent_mapper.custom_select(["country_un", "ecoinvent_geography", "priority"]),                     

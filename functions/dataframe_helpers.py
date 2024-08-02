@@ -359,35 +359,6 @@ def assign_signalling_id(
 
     return monitoring_values_df
 
-def ledger_corrector(tilt_ledger):
-
-    # Find the longest cpc_name within each cpc_code group
-    longest_cpc_name = tilt_ledger.groupBy("cpc_code").agg(F.max(F.length(F.col("cpc_name"))).alias("max_length"))
-
-    # Join the longest_cpc_name dataframe with the tilt_ledger dataframe
-    tilt_ledger_with_length = tilt_ledger.join(longest_cpc_name, on="cpc_code")
-
-    # Filter out the rows where the length of cpc_name is not equal to the max_length
-    filtered_tilt_ledger = tilt_ledger_with_length.filter(F.length(F.col("cpc_name")) == F.col("max_length"))
-
-    # Drop the max_length column
-    tilt_ledger = filtered_tilt_ledger.drop("max_length")
-
-    # Find the longest isic_name within each isic_4digit group
-    longest_isic_name = tilt_ledger.groupBy("isic_code").agg(F.max(F.length(F.col("isic_name"))).alias("max_length"))
-
-    # Join the isic_name dataframe with the tilt_ledger dataframe
-    tilt_ledger_with_length = tilt_ledger.join(longest_isic_name, on="isic_code")
-
-    # Filter out the rows where the length of isic_name is not equal to the max_length
-    filtered_tilt_ledger = tilt_ledger_with_length.filter(F.length(F.col("isic_name")) == F.col("max_length"))
-
-    # Drop the max_length column
-    tilt_ledger = filtered_tilt_ledger.drop("max_length")
-
-    tilt_ledger = tilt_ledger.dropDuplicates(subset=["cpc_code","isic_code","geography","activity_type"])
-    return tilt_ledger
-
 def ledger_x_ecoinvent_matcher(ledger, ecoinvent):
     
     ledger_cols = ["ledger."+column for column in ledger.columns]
