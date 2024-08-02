@@ -756,7 +756,7 @@ def generate_table(table_name: str) -> None:
         cast_to_int = ["Distance", "Manual_Review", "Verified_Source"]
 
         tiltLedger_raw.convert_data_types(
-            cast_to_int, DoubleType()
+            cast_to_int, IntegerType()
         )
 
         tiltLedger_raw.write_table()
