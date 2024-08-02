@@ -1186,11 +1186,14 @@ landingzone_schema = {
                 StructField("ISIC_Name", StringType(), True),
                 StructField("Activity_Type", StringType(), True),
                 StructField("Geography", StringType(), True),
+                StructField("Distance", StringType(), True),
+                StructField("Manual_Review", StringType(), True),
+                StructField("Verified_Source", StringType(), True)
             ]
         ),
         "container": "landingzone",
-        "location": "tiltLedger/20240724_Ledger_v51.csv",
-        "type": "csv_semi_sep",
+        "location": "tiltLedger/20240729_Ledger_v53.csv",
+        "type": "csv_pipe_sep",
         "partition_column": "",
         "quality_checks": [],
     },

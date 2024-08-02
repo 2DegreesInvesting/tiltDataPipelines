@@ -752,6 +752,13 @@ def generate_table(table_name: str) -> None:
         tiltLedger_raw = CustomDF(
             "tiltLedger_raw", spark_generate, initial_df=tiltLedger_landingzone.data
         )
+
+        cast_to_int = ["Distance", "Manual_Review", "Verified_Source"]
+
+        tiltLedger_raw.convert_data_types(
+            cast_to_int, IntegerType()
+        )
+
         tiltLedger_raw.write_table()
 
     else:

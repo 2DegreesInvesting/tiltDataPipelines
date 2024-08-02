@@ -12,6 +12,7 @@ from pyspark.sql.types import (
     DateType,
     ByteType,
     DecimalType,
+    IntegerType
 )
 
 datamodel_schema = {
@@ -410,6 +411,9 @@ datamodel_schema = {
                 StructField("ISIC_Name", StringType(), True),
                 StructField("Activity_Type", StringType(), True),
                 StructField("Geography", StringType(), True),
+                StructField("Distance", IntegerType(), True),
+                StructField("Manual_Review", IntegerType(), True),
+                StructField("Verified_Source", IntegerType(), True),
                 StructField("from_date", DateType(), False),
                 StructField("to_date", DateType(), False),
                 StructField("tiltRecordID", StringType(), False),
