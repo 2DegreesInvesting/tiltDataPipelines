@@ -127,9 +127,11 @@ def generate_table(table_name: str) -> None:
         ei_record_info.rename_columns({"isic_4digit": "isic_code"})
 
         ## PREPPING
-        input_ei_record_info = ei_record_info.custom_select([
-            *[F.col(c).alias("input_" + c) for c in ei_record_info.data.columns[:-1]]]
+        input_ei_record_info = ei_record_info.custom_select(
+            ['activity_uuid_product_uuid','activity_uuid','product_uuid','reference_product_name','unit','cpc_code','cpc_name','activity_name','activity_type','geography','isic_code','co2_footprint']
         )
+        input_ei_record_info.rename_columns({"activity_uuid_product_uuid":"input_activity_uuid_product_uuid", "activity_uuid":"input_activity_uuid", "product_uuid":"input_product_uuid", "reference_product_name":"input_reference_product_name",
+                                              "unit":"input_unit", "cpc_code":"input_cpc_code", "cpc_name":"input_cpc_name", "activity_name":"input_activity_name", "activity_type":"input_activity_type", "geography":"input_geography", "isic_code":"input_isic_code", "co2_footprint":"input_co2_footprint"})
         
         ## PREPPING
         input_ei_mapping = ei_record_info.custom_join(ecoinvent_input_data,"Activity_UUID_Product_UUID", 
@@ -164,10 +166,8 @@ def generate_table(table_name: str) -> None:
         emission_enriched_ledger_upstream_data = input_ei_mapping_geo_filtered.custom_select(["input_activity_uuid_product_uuid", "activity_uuid_product_uuid", "activity_name", "product_geography", "input_product_name", "input_co2_footprint", "input_geography", "input_isic_code", "input_unit"
                                                                                  , "input_priority"])
         ## PREPPING
-        input_tilt_sector_isic_mapper = tilt_sector_isic_mapper.custom_select([
-            *[F.col(c).alias("input_" + c) for c in tilt_sector_isic_mapper.data.columns[:-1]]
-            ]
-        )
+        input_tilt_sector_isic_mapper = tilt_sector_isic_mapper.custom_select(["tilt_sector", "tilt_subsector", "isic_code"])
+        input_tilt_sector_isic_mapper.rename_columns({"isic_code":"input_isic_code", "tilt_sector":"input_tilt_sector", "tilt_subsector":"input_tilt_subsector"})          
 
         ## PREPPING
         emission_enriched_ledger_upstream_data = (emission_enriched_ledger_upstream_data.custom_join(input_tilt_sector_isic_mapper, 
@@ -202,7 +202,6 @@ def generate_table(table_name: str) -> None:
 
         df = spark_generate.read.format("parquet").load(path)
 
-        df.show()
         print(f"Writing data for {table_name}")
         # DF CREATION
         emission_profile_ledger_upstream_level = CustomDF("emission_profile_ledger_upstream_enriched", spark_generate,
@@ -310,16 +309,13 @@ def generate_table(table_name: str) -> None:
         tilt_ledger.data = tilt_ledger.data.withColumn("cpc_name", F.regexp_replace(F.trim(F.lower(F.col("cpc_name"))), "<.*?>", "")).withColumn("activity_type", F.lower(F.col("activity_type")))
         
         ## PREPPING
-        input_sector_profile = sector_profile.custom_select([
-                    *[F.col(c).alias("input_" + c) for c in sector_profile.data.columns[:-1]]]
-                )
+        input_sector_profile = sector_profile.custom_select(["tiltledger_id", "benchmark_group", "risk_category", "profile_ranking", "product_name", "tilt_sector", "scenario_name", "scenario_type", "year"])
+        input_sector_profile.rename_columns({"tiltledger_id": "input_tiltledger_id","benchmark_group": "input_benchmark_group", "risk_category": "input_risk_category", "profile_ranking": "input_profile_ranking", "product_name": "input_product_name",
+                                              "tilt_sector": "input_tilt_sector", "scenario_name": "input_scenario_name", "scenario_type": "input_scenario_type", "year": "input_year"})
         
         ## PREPPING
         ledger_ecoinvent_mapping_w_geography = ledger_ecoinvent_mapping.custom_join(tilt_ledger,"tiltledger_id", custom_how="left").custom_select(["tiltledger_id", "activity_uuid_product_uuid", "geography"])
-        ledger_ecoinvent_mapping_w_geography = ledger_ecoinvent_mapping_w_geography.custom_select([
-            *[F.col(c).alias("input_" + c) for c in ledger_ecoinvent_mapping_w_geography.data.columns[:-1]]
-            ]
-        )
+        ledger_ecoinvent_mapping_w_geography.rename_columns({"geography":"input_geography", "tiltledger_id":"input_tiltledger_id", "activity_uuid_product_uuid":"input_activity_uuid_product_uuid"})
 
         ## PREPPING
         input_ledger_mapping = ledger_ecoinvent_mapping.custom_select(
