@@ -399,7 +399,7 @@ def ledger_x_ecoinvent_matcher(ledger, ecoinvent):
                     (F.col('ei.activity_type') == F.col('ledger.activity_type'))
                 ), how = "right")
     complete_df = init_df.filter(init_df.activity_uuid_product_uuid.isNotNull()).drop(F.col("ei.geography"), F.col("ei.cpc_code"), F.col("ei.activity_type"))
-    unmatched_records = init_df.filter(init_df.activity_uuid_product_uuid.isNull()).select(ledger_cols)
+    # unmatched_records = init_df.filter(init_df.activity_uuid_product_uuid.isNull()).select(ledger_cols)
     windowSpec = Window.partitionBy("geography", "isic_4digit", "cpc_code", "activity_type").orderBy("priority")
 
     ledger_ecoinvent_mapping = complete_df.withColumn("row_number", F.row_number().over(windowSpec)).filter("row_number = 1").drop("row_number")

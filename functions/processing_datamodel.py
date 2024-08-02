@@ -925,7 +925,6 @@ def generate_table(table_name: str) -> None:
 
         tilt_ledger = CustomDF('tiltLedger_datamodel', spark_generate)
         ecoinvent_activity = CustomDF("ecoinvent_activity_datamodel", spark_generate)
-        ecoinvent_co2 = CustomDF("ecoinvent_co2_datamodel", spark_generate)
         ecoinvent_cut_off = CustomDF("ecoinvent_cut_off_datamodel", spark_generate)
         ecoinvent_product = CustomDF("ecoinvent_product_datamodel", spark_generate)
         geography_ecoinvent_mapper = CustomDF("geography_ecoinvent_mapper_datamodel", spark_generate)
@@ -935,10 +934,10 @@ def generate_table(table_name: str) -> None:
         tilt_ledger.data = tilt_ledger.data.dropna(subset=["CPC_Code", "ISIC_Code", "Geography"])
         tilt_ledger.data = tilt_ledger.data.filter(tilt_ledger.data.Geography.isin(valid_countries)).withColumn("Geography", F.lower(F.col("Geography"))).select([F.col(column).alias(column.lower()) for column in tilt_ledger.data.columns])
         tilt_ledger.data = tilt_ledger.data.withColumn("cpc_name", F.regexp_replace(F.trim(F.lower(F.col("cpc_name"))), "<.*?>", "")).withColumn("activity_type", F.lower(F.col("activity_type")))
-        ei_record_info = ecoinvent_product.custom_join(ecoinvent_cut_off, "product_uuid", "left").custom_join(ecoinvent_activity, "activity_uuid", "left").custom_join(ecoinvent_co2, "activity_uuid_product_uuid", "left").custom_select(['activity_uuid_product_uuid', 'activity_uuid', 'product_uuid', 'reference_product_name', 
+        ei_record_info = ecoinvent_cut_off.custom_join(ecoinvent_product, "product_uuid", "left").custom_join(ecoinvent_activity, "activity_uuid", "left").custom_select(['activity_uuid_product_uuid', 'activity_uuid', 'product_uuid', 'reference_product_name', 
                                                                                                                                                                                                                    'unit', 'cpc_code', 'cpc_name', 'activity_name', 
-                                                                                                                                                                                                                         'activity_type', 'geography', 'isic_4digit','co2_footprint'])
-        ei_record_info.data = ei_record_info.data.withColumn("geography", F.lower(F.col("geography")))
+                                                                                                                                                                                                                         'activity_type', 'geography', 'isic_4digit'])
+        ei_record_info.data = ei_record_info.data.withColumn("geography", F.lower(F.col("geography"))).dropna()
         tilt_ledger.data = ledger_corrector(tilt_ledger.data)
         geography_ecoinvent_mapper.data = geography_ecoinvent_mapper.data.withColumn("country_un", F.lower(F.col("country_un")))
 
