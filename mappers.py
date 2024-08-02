@@ -29,4 +29,8 @@ if __name__ == '__main__':
 
     generate_table_datamodel('isic_mapper_datamodel')
 
+# tiltLedger
+    generate_table_raw('tiltLedger_raw')
+    generate_table_datamodel('tiltLedger_datamodel')
+
 

@@ -1,5 +1,6 @@
 from pyspark.sql import SparkSession, DataFrame
 from pyspark.sql import functions as F
+from time import time
 
 
 from functions.dataframe_helpers import create_sha_values, create_catalog_schema, create_catalog_table, create_catalog_table_owner, apply_scd_type_2, assign_signalling_id
@@ -40,12 +41,19 @@ class CustomDF(DataReader):
         self._partition_name = partition_name
         self._history = history
         self._env = 'develop'
+        self._salt = str(time())[-10:].replace('.', '')
         DataReader.__init__(self, self._spark_session, self._env,
                             self._schema, self._partition_name, self._history)
         if initial_df:
             self._df = initial_df
         else:
             self._df = self.read_source()
+
+        if [col for col in self._df.columns if col.startswith('map_')]:
+            map_col = [
+                col for col in self._df.columns if col.startswith('map_')][0]
+            self._df = self._df.withColumnRenamed(
+                map_col, f'map_{self._name}_{self._salt}')
 
     def rename_columns(self, rename_dict):
         for name in rename_dict:
@@ -286,7 +294,7 @@ class CustomDF(DataReader):
         This method creates a Delta table and dumps the map column from the DataFrame into it.
         The process happens when writing the table, so the map column is dumped to the record_trace table.
         Here we use the new recordID of the generated record and explode the valus in the map column.
-        This process also include the creation and generation of the record trace table in case it does not exist yet. 
+        This process also include the creation and generation of the record trace table in case it does not exist yet.
 
         Returns:
             None
@@ -339,8 +347,11 @@ class CustomDF(DataReader):
         # Filter the DataFrame to only include rows where for the current table
         df = df.filter(F.col('target_table_name') == self._name)
 
+        # Eliminate the duplicate records from dump_df
+        dump_df = dump_df.drop_duplicates()
+
         # Union the two DataFrames and write the result to the table, partitioned by the name of the table
-        dump_df.union(df).write.partitionBy('target_table_name').mode(
+        dump_df.union(df).distinct().write.partitionBy('target_table_name').mode(
             'overwrite').format('delta').saveAsTable(table_name)
 
         # Drop the map column from the original DataFrame
@@ -376,15 +387,29 @@ class CustomDF(DataReader):
         Returns:
             CustomDF: A new CustomDF instance that is the result of the join.
         """
-        copy_df = custom_other.data
-        self._df = self._df.join(copy_df, custom_on, custom_how)
-        self._df = self._df.withColumn(
-            f'map_{self._name}', F.map_concat(
-                F.col(f'map_{self._name}'), F.col(f'map_{custom_other.name}'))
-        )
-        self._df = self._df.drop(F.col(f'map_{custom_other.name}'))
 
-        return CustomDF(self._name, self._spark_session, self._df, self._partition_name, self._history)
+        if not custom_how:
+            raise ValueError(
+                "Please specify the type of join (inner, outer, left, right)")
+
+        copy_self_df = self._df
+        copy_other_df = custom_other.data
+        copy_df = copy_self_df.join(
+            copy_other_df, on=custom_on, how=custom_how)
+        copy_df = copy_df.withColumn(
+            'map_temp', F.create_map().cast('map<string,array<String>>'))
+        for map_col in [col for col in copy_df.columns if col.startswith('map_')]:
+            copy_df = copy_df.withColumn(
+                map_col, F.coalesce(F.col(map_col), F.col('map_temp')))
+        copy_df = copy_df.drop(F.col('map_temp'))
+        copy_df = copy_df.withColumn(
+            f'map_{self._name}_{self._salt}', F.map_zip_with(
+                f'map_{self._name}_{self._salt}', f'map_{custom_other.name}_{custom_other._salt}', lambda k, v1, v2: F.when(v1.isNull(), v2).when(v2.isNull(), v1).otherwise(F.array_union(v1, v2)))
+        )
+        copy_df = copy_df.drop(
+            F.col(f'map_{custom_other.name}_{custom_other._salt}'))
+
+        return CustomDF(self._name, self._spark_session, copy_df, self._partition_name, self._history)
 
     def custom_select(self, columns: list):
         """
@@ -396,14 +421,14 @@ class CustomDF(DataReader):
         Returns:
             CustomDF: A new CustomDF object with the selected columns.
         """
-
+        copy_df = self._df
         if self._schema['container'] not in ['landingzone']:
-            self._df = self._df.select(
-                *columns, F.col(f"map_{self._schema['location']}_{self._schema['container']}"))
+            copy_df = copy_df.select(
+                *columns, F.col(f"map_{self._name}_{self._salt}"))
         else:
-            self._df = self._df.select(*columns)
+            copy_df = copy_df.select(*columns)
 
-        return CustomDF(self._name, self._spark_session, self._df, self._partition_name, self._history)
+        return CustomDF(self._name, self._spark_session, copy_df, self._partition_name, self._history)
 
     def custom_distinct(self):
         """
@@ -412,17 +437,20 @@ class CustomDF(DataReader):
         Returns:
             CustomDF: A new CustomDF instance with distinct rows.
         """
+        replace_na_value = str(time())
+        copy_df = self._df
+        copy_df = copy_df.fillna(replace_na_value)
         cols = [F.col(col)
                 for col in self._df.columns if not col.startswith('map_')]
 
         map_col = [
             col for col in self._df.columns if col.startswith('map_')][0]
 
-        df = self._df.select(*cols, F.explode(
+        copy_df = copy_df.select(*cols, F.explode(
             F.col(map_col)).alias('exploded_table', 'exploded_list'))\
             .select(*cols, F.col('exploded_table'), F.explode(F.col('exploded_list')).alias('exploded'))
 
-        self._df = df\
+        copy_df = copy_df\
             .groupBy(cols + ['exploded_table'])\
             .agg(F.collect_set(F.col('exploded')).alias('exploded_fold'))\
             .groupBy(cols)\
@@ -430,7 +458,8 @@ class CustomDF(DataReader):
             .withColumn(map_col, F.map_from_arrays(F.col('table_list'), F.col('fold_list')))\
             .select(*cols, F.col(map_col))
 
-        return CustomDF(self._name, self._spark_session, self._df, self._partition_name, self._history)
+        copy_df = copy_df.replace(replace_na_value, None)
+        return CustomDF(self._name, self._spark_session, copy_df, self._partition_name, self._history)
 
     def custom_union(self, custom_other: 'CustomDF'):
         """
@@ -450,19 +479,25 @@ class CustomDF(DataReader):
             col for col in self._df.columns if col.startswith('map_')][0]
 
         copy_df = custom_other.data
+        copy_df = copy_df.withColumnRenamed(
+            [col for col in copy_df.columns if col.startswith('map_')][0], map_col)
         copy_df = self._df.unionAll(copy_df)
 
-        df = copy_df.select(*cols, F.explode(
-            F.col(map_col)).alias('exploded_table', 'exploded_list'))\
+        df = (
+            copy_df.select(*cols, F.explode(
+                F.col(map_col)).alias('exploded_table', 'exploded_list'))
             .select(*cols, F.col('exploded_table'), F.explode(F.col('exploded_list')).alias('exploded'))
+        )
 
-        self._df = df\
-            .groupBy(cols + ['exploded_table'])\
-            .agg(F.collect_set(F.col('exploded')).alias('exploded_fold'))\
-            .groupBy(cols)\
-            .agg(F.collect_list(F.col('exploded_table')).alias('table_list'), F.collect_list(F.col('exploded_fold')).alias('fold_list'))\
-            .withColumn(map_col, F.map_from_arrays(F.col('table_list'), F.col('fold_list')))\
+        self._df = (
+            df
+            .groupBy(cols + ['exploded_table'])
+            .agg(F.collect_set(F.col('exploded')).alias('exploded_fold'))
+            .groupBy(cols)
+            .agg(F.collect_list(F.col('exploded_table')).alias('table_list'), F.collect_list(F.col('exploded_fold')).alias('fold_list'))
+            .withColumn(map_col, F.map_from_arrays(F.col('table_list'), F.col('fold_list')))
             .select(*cols, F.col(map_col))
+        )
 
         return CustomDF(self._name, self._spark_session, self._df, self._partition_name, self._history)
 
@@ -476,8 +511,9 @@ class CustomDF(DataReader):
         Returns:
             CustomDF: A new CustomDF instance with the specified columns dropped.
         """
-        self._df = self._df.drop(*columns)
-        return CustomDF(self._name, self._spark_session, self._df, self._partition_name, self._history)
+        copy_df = self._df
+        copy_df = copy_df.drop(*columns)
+        return CustomDF(self._name, self._spark_session, copy_df, self._partition_name, self._history)
 
     @ property
     def data(self):
