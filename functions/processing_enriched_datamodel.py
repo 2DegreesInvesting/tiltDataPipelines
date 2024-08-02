@@ -45,15 +45,16 @@ def generate_table(table_name: str) -> None:
 
         print(f"Preparing data for {table_name}")
         ## PREPPING
-        ei_record_info = ecoinvent_product.custom_join(ecoinvent_cut_off, "product_uuid", custom_how="left").custom_join(ecoinvent_activity, "activity_uuid", custom_how="left").custom_join(ecoinvent_co2, "activity_uuid_product_uuid", custom_how="left").custom_select(
+        ei_record_info = ecoinvent_cut_off.custom_join(ecoinvent_product, "product_uuid", custom_how="left").custom_join(ecoinvent_activity, "activity_uuid", custom_how="left").custom_join(ecoinvent_co2, "activity_uuid_product_uuid", custom_how="left").custom_select(
             ['activity_uuid_product_uuid','activity_uuid','product_uuid','reference_product_name','unit','cpc_code','cpc_name','activity_name','activity_type','geography','isic_4digit','co2_footprint']
         )
-        ei_record_info.data = ei_record_info.data.withColumn("geography", F.lower(F.col("geography")))
+        ei_record_info.data = ei_record_info.data.withColumn("geography", F.lower(F.col("geography"))).dropna()
         ei_record_info.rename_columns({"isic_4digit": "isic_code"})
 
         ## PREPPING
         tilt_sector_isic_mapper.rename_columns({"isic_4digit": "isic_code"})
         sector_enriched_ecoinvent_co2 = ei_record_info.custom_join(tilt_sector_isic_mapper, custom_on="isic_code", custom_how="left").custom_drop("isic_section")
+        sector_enriched_ecoinvent_co2.data = sector_enriched_ecoinvent_co2.data.dropna()
 
         print("Running checks...")
         ## CHECK
@@ -119,10 +120,10 @@ def generate_table(table_name: str) -> None:
         tilt_ledger.data = tilt_ledger.data.filter(tilt_ledger.data.Geography.isin(valid_countries)).withColumn("Geography", F.lower(F.col("Geography"))).select([F.col(column).alias(column.lower()) for column in tilt_ledger.data.columns])
         tilt_ledger.data = tilt_ledger.data.withColumn("cpc_name", F.regexp_replace(F.trim(F.lower(F.col("cpc_name"))), "<.*?>", "")).withColumn("activity_type", F.lower(F.col("activity_type")))
         tilt_sector_isic_mapper.rename_columns({"isic_4digit": "isic_code"})
-        ei_record_info = ecoinvent_product.custom_join(ecoinvent_cut_off, "product_uuid", custom_how="left").custom_join(ecoinvent_activity, "activity_uuid", custom_how="left").custom_join(ecoinvent_co2, "activity_uuid_product_uuid", custom_how="left").custom_select(
+        ei_record_info = ecoinvent_cut_off.custom_join(ecoinvent_product, "product_uuid", custom_how="left").custom_join(ecoinvent_activity, "activity_uuid", custom_how="left").custom_join(ecoinvent_co2, "activity_uuid_product_uuid", custom_how="left").custom_select(
             ['activity_uuid_product_uuid','activity_uuid','product_uuid','reference_product_name','unit','cpc_code','cpc_name','activity_name','activity_type','geography','isic_4digit','co2_footprint']
         )
-        ei_record_info.data = ei_record_info.data.withColumn("geography", F.lower(F.col("geography")))
+        ei_record_info.data = ei_record_info.data.withColumn("geography", F.lower(F.col("geography"))).dropna()
         ei_record_info.rename_columns({"isic_4digit": "isic_code"})
 
         ## PREPPING
@@ -150,7 +151,7 @@ def generate_table(table_name: str) -> None:
         ## PREPPING
         input_ei_mapping_w_geography = input_ei_mapping.custom_join(geography_ecoinvent_mapper, (F.col("input_geography") == F.col("ecoinvent_geography")), custom_how="left")
         window_spec = Window.partitionBy("activity_uuid_product_uuid", "input_product_name").orderBy(F.col("input_priority").asc())
-        input_ei_mapping_w_geography.data = input_ei_mapping_w_geography.data.withColumn("row_num", F.row_number().over(window_spec))
+        input_ei_mapping_w_geography.data = input_ei_mapping_w_geography.data.withColumn("row_num", F.row_number().over(window_spec)).dropna()
 
         print("Running checks...")
         ## CHECK
@@ -195,7 +196,7 @@ def generate_table(table_name: str) -> None:
         emission_enriched_ledger_upstream_data = emission_enriched_ledger_upstream_data.custom_select(["input_activity_uuid_product_uuid", "tiltledger_id", "benchmark_group", "risk_category", "profile_ranking",
                                                                                                         "input_product_name", "input_co2_footprint"])
         
-        
+        # TEMP SOLUTION
         path = "abfss://landingzone@storagetiltdevelop.dfs.core.windows.net/test/"
         emission_enriched_ledger_upstream_data.data.write.mode("overwrite").parquet(path)
 
@@ -234,6 +235,7 @@ def generate_table(table_name: str) -> None:
 
         ## PREPPING
         sector_enriched_ledger = tilt_ledger.custom_join(tilt_sector_isic_mapper, custom_on="isic_code", custom_how="left").custom_select(["tiltledger_id", "cpc_name", "tilt_sector", "tilt_subsector"])
+        sector_enriched_ledger.data = sector_enriched_ledger.data.dropna()
 
         ## PREPPING
         scenario_enriched_ledger = sector_enriched_ledger.custom_join(tilt_sector_scenario_mapper, custom_on=["tilt_sector", "tilt_subsector"], custom_how="left")
