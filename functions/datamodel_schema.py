@@ -124,6 +124,7 @@ datamodel_schema = {
             [
                 StructField("source_id", StringType(), False),
                 StructField("source_name", StringType(), False),
+                StructField("data_source_reliability", IntegerType(), False),
                 StructField("from_date", DateType(), False),
                 StructField("to_date", DateType(), False),
                 StructField("tiltRecordID", StringType(), False),
