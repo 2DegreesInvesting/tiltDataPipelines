@@ -219,30 +219,32 @@ def generate_table(table_name: str) -> None:
         )
         companies_raw_final = companies_raw_final.custom_distinct()
 
-        companies_raw_final = companies_raw_final.data.dropDuplicates(["company_id"])
+        companies_raw_final.data = companies_raw_final.data.dropDuplicates(
+            ["company_id"]
+        )
 
         # Add data granularity score
         companies_sbi_activities = CustomDF(
             "companies_SBI_activities_datamodel", spark_generate
         )
+
+        companies_raw_final = companies_raw_final.custom_join(
+            companies_sbi_activities, "company_id", "left"
+        )
+
         companies_products = CustomDF("companies_products_datamodel", spark_generate)
         products = CustomDF("products_datamodel", spark_generate)
 
-        companies_raw_final = companies_raw_final.custom_join(
-            companies_products, "company_id", "left"
-        )
-        companies_raw_final = companies_raw_final.custom_join(
+        companies_products = companies_products.custom_join(
             products, "product_id", "left"
         )
 
         # first aggregate all product names related to a company into one string
         # then if that string is in fact an empty string, it should also count as null (no products related to the company)
-        companies_raw_final.data = (
-            companies_raw_final.data.groupBy("company_id")
+        companies_products.data = (
+            companies_products.data.groupBy("company_id")
             .agg(
-                F.concat_ws(", ", F.collect_list("product_name")).alias("product_name"),
-                F.first("company_description").alias("company_description"),
-                F.first("source_id").alias("source_id"),
+                F.concat_ws(", ", F.collect_list("product_name")).alias("product_name")
             )
             .withColumn(
                 "product_name",
@@ -253,10 +255,9 @@ def generate_table(table_name: str) -> None:
             .orderBy("company_id")
         )
 
-        companies_raw_final = companies_raw_final.custom_join(
-            companies_sbi_activities, "company_id", "left"
+        companies_raw_final.data = companies_raw_final.data.join(
+            companies_products.data, "company_id", "left"
         )
-
         # Add data granularity score
         companies_raw_final.data = companies_raw_final.data.withColumn(
             "data_granularity",
@@ -266,8 +267,21 @@ def generate_table(table_name: str) -> None:
             .otherwise(5),
         )
 
+        companies_raw_final = companies_raw_final.custom_select(
+            [
+                "company_id",
+                "country_un",
+                "source_id",
+                "company_name",
+                "company_description",
+                "address",
+                "company_city",
+                "postcode",
+                "data_granularity",
+            ]
+        )
         companies_datamodel = CustomDF(
-            "companies_datamodel", spark_generate, initial_df=companies_raw_final
+            "companies_datamodel", spark_generate, initial_df=companies_raw_final.data
         )
 
         companies_datamodel.write_table()
@@ -308,7 +322,7 @@ def generate_table(table_name: str) -> None:
 
         companies_europages_raw = CustomDF("companies_europages_raw", spark_generate)
 
-        products_datamodel = CustomDF("products_datamodel", spark_generate)
+        products_datamodel = CustomDF("EP_products_datamodel", spark_generate)
 
         rename_dict = {"id": "company_id"}
 
@@ -939,6 +953,7 @@ def generate_table(table_name: str) -> None:
         )
 
         companies_SBI_activities_datamodel.write_table()
+
     elif table_name == "tiltLedger_datamodel":
 
         tiltLedger_raw = CustomDF("tiltLedger_raw", spark_generate)
