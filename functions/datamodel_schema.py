@@ -27,6 +27,7 @@ datamodel_schema = {
                 StructField("address", StringType(), True),
                 StructField("company_city", StringType(), True),
                 StructField("postcode", StringType(), True),
+                StructField("data_granularity", IntegerType(), True),
                 StructField("from_date", DateType(), False),
                 StructField("to_date", DateType(), False),
                 StructField("tiltRecordID", StringType(), False),
