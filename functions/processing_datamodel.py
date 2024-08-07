@@ -961,6 +961,35 @@ def generate_table(table_name: str) -> None:
             "tiltLedger_id", F.sha2(F.concat_ws("|", *sha_columns), 256)
         )
 
+        tiltLedger_raw.data = tiltLedger_raw.data.withColumn(
+            "tiltLedger_id", F.sha2(F.concat_ws("|", *sha_columns), 256)
+        )
+
+        tiltLedger_raw.data = tiltLedger_raw.data.withColumn(
+            "model_certainty",
+            F.when(
+                # Manually reviewed OR Verified Source
+                (F.col("Manual_Review") == 1) | (F.col("Verified_Source") == 1),
+                1,
+            )
+            .when(
+                # Not Manually reveiwed and Not Verified source and 2 <= Distance <= 3
+                (F.col("Manual_Review") == 0)
+                & (F.col("Verified_Source") == 0)
+                & (F.col("Distance") >= 2)
+                & (F.col("Distance") <= 3),
+                3,
+            )
+            .when(
+                # Not Manually reveiwed and Not Verified source and Distance < 3
+                (F.col("Manual_Review") == 0)
+                & (F.col("Verified_Source") == 0)
+                & (F.col("Distance") > 3),
+                5,
+            )
+            .otherwise(None),
+        )
+
         tiltLedger_raw_final = tiltLedger_raw.custom_select(
             [
                 "tiltLedger_id",
@@ -973,6 +1002,7 @@ def generate_table(table_name: str) -> None:
                 "Distance",
                 "Manual_Review",
                 "Verified_Source",
+                "model_certainty",
             ]
         )
 
