@@ -578,6 +578,15 @@ def generate_table(table_name: str) -> None:
 
         sources_mapper_raw = CustomDF("sources_mapper_raw", spark_generate)
 
+        sources_mapper_raw.data = sources_mapper_raw.data.withColumn(
+            "data_source_reliability",
+            F.when(F.col("source_id") == "source_1_ep", 4)
+            .when(F.col("source_id") == "source_2_eco", 2)
+            .when(F.col("source_id") == "source_3_ci", 2)
+            .when(F.col("source_id") == "source_4_ep_ci", 4)
+            .otherwise(None),
+        )
+
         sources_mapper_datamodel = CustomDF(
             "sources_mapper_datamodel",
             spark_generate,
