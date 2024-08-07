@@ -1239,20 +1239,5 @@ landingzone_schema = {
         "type": "csv",
         "partition_column": "",
         "quality_checks": [],
-    },
-    "companies_embedding_landingzone": {
-        "columns": StructType(
-            [
-                StructField("company_id", StringType(), True),
-                StructField("query", StringType(), True),
-                StructField("isic_section", StringType(), True),
-                StructField("embedding", StringType(), True),
-            ]
-        ),
-        "container": "landingzone",
-        "location": "embeddings/companies_embedding.csv",
-        "type": "csv",
-        "partition_column": "",
-        "quality_checks": [],
-    },
+    }
 }

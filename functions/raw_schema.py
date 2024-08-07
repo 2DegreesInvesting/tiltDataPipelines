@@ -1331,22 +1331,4 @@ raw_schema = {
         "partition_column": "",
         "quality_checks": [],
     },
-    "companies_embedding_raw": {
-        "columns": StructType(
-            [
-                StructField("company_id", StringType(), True),
-                StructField("query", StringType(), True),
-                StructField("isic_section", StringType(), True),
-                StructField("embedding", ArrayType(DoubleType()), True),
-                StructField("from_date", DateType(), False),
-                StructField("to_date", DateType(), False),
-                StructField("tiltRecordID", StringType(), False),
-            ]
-        ),
-        "container": "raw",
-        "location": "companies_embedding",
-        "type": "delta",
-        "partition_column": "",
-        "quality_checks": [],
-    },
 }
