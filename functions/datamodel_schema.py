@@ -419,6 +419,7 @@ datamodel_schema = {
                 StructField("Distance", IntegerType(), True),
                 StructField("Manual_Review", IntegerType(), True),
                 StructField("Verified_Source", IntegerType(), True),
+                StructField("model_certainty", IntegerType(), True),
                 StructField("from_date", DateType(), False),
                 StructField("to_date", DateType(), False),
                 StructField("tiltRecordID", StringType(), False),
