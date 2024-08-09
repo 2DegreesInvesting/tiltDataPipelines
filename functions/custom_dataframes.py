@@ -646,7 +646,12 @@ class CustomDF(DataReader):
         copy_self_df = self._df
 
         copy_df = copy_self_df.groupBy(groupby_col).agg(
-            F.concat_ws(delimiter, F.collect_list(concatenate_col)).alias(alias)
+            F.concat_ws(delimiter, F.collect_list(concatenate_col)).alias(alias),
+            *[
+                F.first(col).alias(col)
+                for col in self._df.columns
+                if col not in [groupby_col, concatenate_col]
+            ],
         )
 
         cols = [F.col(col) for col in self._df.columns if not col.startswith("map_")]
