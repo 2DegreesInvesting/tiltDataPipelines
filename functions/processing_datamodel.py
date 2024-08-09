@@ -241,22 +241,17 @@ def generate_table(table_name: str) -> None:
 
         # first aggregate all product names related to a company into one string
         # then if that string is in fact an empty string, it should also count as null (no products related to the company)
-        companies_products.data = (
-            companies_products.data.groupBy("company_id")
-            .agg(
-                F.concat_ws(", ", F.collect_list("product_name")).alias("product_name")
-            )
-            .withColumn(
-                "product_name",
-                F.when(F.col("product_name") == "", None).otherwise(
-                    F.col("product_name")
-                ),
-            )
-            .orderBy("company_id")
+        companies_products = companies_products.custom_concatenate(
+            groupby_col="companiy_id", concatenate_col="product_name"
         )
 
-        companies_raw_final.data = companies_raw_final.data.join(
-            companies_products.data, "company_id", "left"
+        companies_products.data = companies_products.data.withColumn(
+            "product_name",
+            F.when(F.col("product_name") == "", None).otherwise(F.col("product_name")),
+        )
+
+        companies_raw_final = companies_raw_final.custom_join(
+            companies_products, "company_id", "left"
         )
         # Add data granularity score
         companies_raw_final.data = companies_raw_final.data.withColumn(
