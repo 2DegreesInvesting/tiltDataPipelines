@@ -627,6 +627,18 @@ class CustomDF(DataReader):
         alias: str = None,
         delimiter: str = ",",
     ) -> "CustomDF":
+        """
+        Concatenate multiple values into one, grouped by groupby column.
+
+        Args:
+            groupby_col (str): Column name to group by.
+            concatenate_col (str): Column name to collect and concatenate.
+            alias (str): Alias to give the new concatenated column.
+            delimiter (str): Separator to use when concatenating values.
+
+        Returns:
+            CustomDF: A new CustomDF instance with the specified columns dropped.
+        """
 
         if alias is None:
             alias = concatenate_col
