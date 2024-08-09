@@ -393,7 +393,7 @@ def generate_table(table_name: str) -> None:
 
         ecoinvent_co2_raw.rename_columns(rename_dict)
 
-        ecoinvent_co2_raw.custom_select(
+        ecoinvent_co2_raw = ecoinvent_co2_raw.custom_select(
             ["activity_uuid_product_uuid", "co2_footprint"])
 
         ecoinvent_co2_datamodel = CustomDF(
