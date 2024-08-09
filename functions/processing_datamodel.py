@@ -234,6 +234,7 @@ def generate_table(table_name: str) -> None:
 
         companies_products = CustomDF("companies_products_datamodel", spark_generate)
         products = CustomDF("products_datamodel", spark_generate)
+        products = products.custom_select(["product_id", "product_name"])
 
         companies_products = companies_products.custom_join(
             products, "product_id", "left"
@@ -242,7 +243,7 @@ def generate_table(table_name: str) -> None:
         # first aggregate all product names related to a company into one string
         # then if that string is in fact an empty string, it should also count as null (no products related to the company)
         companies_products = companies_products.custom_concatenate(
-            groupby_col="companiy_id", concatenate_col="product_name"
+            groupby_col="company_id", concatenate_col="product_name"
         )
 
         companies_products.data = companies_products.data.withColumn(
