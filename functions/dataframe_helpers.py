@@ -260,9 +260,11 @@ def apply_scd_type_2(new_table: DataFrame, existing_table: DataFrame) -> DataFra
     )
     if identical_records.count() > 0:
         identical_records = combined_df.filter(
-            (F.col("shaValueOld").isNotNull()) & (F.col("shaValueNew").isNotNull())
-        ).join(old_df, on="shaValueOld", how="inner")
-        identical_records = identical_records.select(value_columns + from_to_list)
+            (F.col("shaValueOld").isNotNull()) & (
+                F.col("shaValueNew").isNotNull())
+        ).join(new_data_frame, on="shaValueNew", how="inner")
+        identical_records = identical_records.select(
+            value_columns + from_to_list)
         all_records = all_records.union(identical_records)
 
     # Records that do not exist anymore are taken from the existing set of data

@@ -25,9 +25,11 @@ if __name__ == '__main__':
     # raw layer
     generate_table_raw('geographies_raw')
 
-    generate_table_raw('undefined_ao_raw')
+    generate_table_raw('undefined_ao_raw') 
     generate_table_raw('cut_off_ao_raw')
-    generate_table_raw('en15804_ao_raw')
+    generate_table_raw('en15804_ao_raw') 
+    generate_table_raw('apos_ao_raw') 
+
     generate_table_raw('consequential_ao_raw')
 
     generate_table_raw('lcia_methods_raw')

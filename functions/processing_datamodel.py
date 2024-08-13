@@ -391,7 +391,7 @@ def generate_table(table_name: str) -> None:
 
         ecoinvent_co2_raw.rename_columns(rename_dict)
 
-        ecoinvent_co2_raw.custom_select(
+        ecoinvent_co2_raw = ecoinvent_co2_raw.custom_select(
             ["activity_uuid_product_uuid", "co2_footprint"])
 
         ecoinvent_co2_datamodel = CustomDF(
@@ -437,16 +437,12 @@ def generate_table(table_name: str) -> None:
         cut_off_ao_raw.rename_columns(rename_dict)
 
         cut_off_ao_raw.data = cut_off_ao_raw.data.withColumn(
-            "CPC_code", F.trim(F.split("CPC_Classification", ":")[0])
-        )
+            "cpc_code", F.trim(F.split("CPC_Classification", ":")[0]))
         cut_off_ao_raw.data = cut_off_ao_raw.data.withColumn(
-            "CPC_name", F.trim(F.split("CPC_Classification", ":")[1])
-        )
+            "cpc_name", F.trim(F.split("CPC_Classification", ":")[1]))
 
         cut_off_ao_raw = cut_off_ao_raw.custom_select(
-            ["product_uuid", "reference_product_name",
-                "unit", "CPC_code", "CPC_name"]
-        ).custom_distinct()
+            ['product_uuid', 'reference_product_name', 'unit', "cpc_code", "cpc_name"]).custom_distinct()
 
         ecoinvent_product_datamodel = CustomDF(
             "ecoinvent_product_datamodel",
@@ -494,7 +490,7 @@ def generate_table(table_name: str) -> None:
     elif table_name == "ecoinvent_input_data_datamodel":
 
         ecoinvent_input_data_raw = CustomDF(
-            "inputProducts_raw", spark_generate)
+            "ecoinvent_input_data_raw", spark_generate)
 
         ecoinvent_input_data_datamodel = CustomDF(
             "ecoinvent_input_data_datamodel",
@@ -875,22 +871,13 @@ def generate_table(table_name: str) -> None:
 
         tiltLedger_raw = CustomDF("tiltLedger_raw", spark_generate)
 
-        rename_dict = {
-            "CPC21code": "CPC_Code",
-            "CPC21title": "CPC_Name",
-            "ISIC4code": "ISIC_Code",
-            "Description": "ISIC_Name",
-        }
-
-        tiltLedger_raw.rename_columns(rename_dict)
-
         final_columns = [
             "CPC_Code",
             "CPC_Name",
             "ISIC_Code",
             "ISIC_Name",
             "Activity_Type",
-            "Geography",
+            "Geography"
         ]
 
         tiltLedger_raw.custom_select(final_columns)
@@ -912,7 +899,11 @@ def generate_table(table_name: str) -> None:
             "ISIC_Code",
             "ISIC_Name",
             "Activity_Type",
-            "Geography"])
+            "Geography",
+            "Distance",
+            "Manual_Review",
+            "Verified_Source"
+        ])
 
         tiltLedger_datamodel = CustomDF(
             "tiltLedger_datamodel", spark_generate, initial_df=tiltLedger_raw_final.data

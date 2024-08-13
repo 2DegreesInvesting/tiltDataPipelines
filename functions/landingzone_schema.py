@@ -632,17 +632,17 @@ landingzone_schema = {
         "partition_column": "",
         "quality_checks": [],
     },
-    "geographies_landingzone": {
-        "columns": StructType(
-            [
-                StructField("ID", StringType(), False),
-                StructField("Name", StringType(), True),
-                StructField("Shortname", StringType(), True),
-                StructField("Geographical_Classification", StringType(), True),
-                StructField(
-                    "Contained_and_Overlapping_Geographies", StringType(), True
-                ),
-            ]
+    'geographies_landingzone': {
+        'columns':  StructType([
+            StructField('ID', StringType(), False),
+            StructField('Name', StringType(), True),
+            StructField('Shortname', StringType(), True),
+            StructField('Latitude', StringType(), True),
+            StructField('Longitude', StringType(), True),
+            StructField('Geographical_Classification', StringType(), True),
+            StructField('Contained_and_Overlapping_Geographies',
+                        StringType(), True),
+        ]
         ),
         "container": "landingzone",
         "location": "ecoInvent/Geographies.csv",
@@ -677,57 +677,57 @@ landingzone_schema = {
         "partition_column": "",
         "quality_checks": [],
     },
-    "cut_off_ao_landingzone": {
-        "columns": StructType(
-            [
-                StructField("Activity UUID & Product UUID",
-                            StringType(), True),
-                StructField("Activity UUID", StringType(), True),
-                StructField("EcoQuery URL", StringType(), True),
-                StructField("Activity Name", StringType(), True),
-                StructField("Geography", StringType(), True),
-                StructField("Time Period", StringType(), True),
-                StructField("Special Activity Type", StringType(), True),
-                StructField("Sector", StringType(), True),
-                StructField("ISIC Classification", StringType(), True),
-                StructField("ISIC Section", StringType(), True),
-                StructField("Product UUID", StringType(), True),
-                StructField("Reference Product Name", StringType(), True),
-                StructField("CPC Classification", StringType(), True),
-                StructField("Unit", StringType(), True),
-                StructField("Product Information", StringType(), True),
-                StructField("CAS Number", StringType(), True),
-                StructField("Cut-Off Classification", StringType(), True),
-            ]
+    'cut_off_ao_landingzone': {
+        'columns':  StructType([
+            StructField('Activity UUID & Product UUID',
+                        StringType(), True),
+            StructField('Activity UUID', StringType(), True),
+            StructField('EcoQuery URL', StringType(), True),
+            StructField('Activity Name', StringType(), True),
+            StructField('Geography', StringType(), True),
+            StructField('Time Period', StringType(), True),
+            StructField('Special Activity Type', StringType(), True),
+            StructField('Sector', StringType(), True),
+            StructField('ISIC Classification', StringType(), True),
+            StructField('ISIC Section', StringType(), True),
+            StructField('Product UUID', StringType(), True),
+            StructField('Reference Product Name', StringType(), True),
+            StructField('CPC Classification', StringType(), True),
+            StructField('HS2017 Classification', StringType(), True),
+            StructField('Unit', StringType(), True),
+            StructField('Product Information', StringType(), True),
+            StructField('CAS Number', StringType(), True),
+            StructField('Cut-Off Classification', StringType(), True)
+        ]
         ),
-        "container": "landingzone",
-        "location": "ecoInvent/Cut-OFF AO.csv",
-        "type": "multiline",
-        "partition_column": "",
-        "quality_checks": [],
+        'container': 'landingzone',
+        'location': 'ecoInvent/Cut-Off AO.csv',
+        'type': 'multiline',
+        'partition_column': '',
+        'quality_checks': []
     },
-    "en15804_ao_landingzone": {
-        "columns": StructType(
-            [
-                StructField("Activity UUID & Product UUID",
-                            StringType(), True),
-                StructField("Activity UUID", StringType(), True),
-                StructField("EcoQuery URL", StringType(), True),
-                StructField("Activity Name", StringType(), True),
-                StructField("Geography", StringType(), True),
-                StructField("Time Period", StringType(), True),
-                StructField("Special Activity Type", StringType(), True),
-                StructField("Sector", StringType(), True),
-                StructField("ISIC Classification", StringType(), True),
-                StructField("ISIC Section", StringType(), True),
-                StructField("Product UUID", StringType(), True),
-                StructField("Reference Product Name", StringType(), True),
-                StructField("CPC Classification", StringType(), True),
-                StructField("Unit", StringType(), True),
-                StructField("Product Information", StringType(), True),
-                StructField("CAS Number", StringType(), True),
-                StructField("Cut-Off Classification", StringType(), True),
-            ]
+    'en15804_ao_landingzone': {
+        'columns':  StructType([
+            StructField('Activity UUID & Product UUID',
+                        StringType(), True),
+            StructField('Activity UUID', StringType(), True),
+            StructField('EcoQuery URL', StringType(), True),
+            StructField('Activity Name', StringType(), True),
+            StructField('Geography', StringType(), True),
+            StructField('Time Period', StringType(), True),
+            StructField('Special Activity Type', StringType(), True),
+            StructField('Sector', StringType(), True),
+            StructField('ISIC Classification', StringType(), True),
+            StructField('ISIC Section', StringType(), True),
+            StructField('Product UUID', StringType(), True),
+            StructField('Reference Product Name', StringType(), True),
+            StructField('CPC Classification', StringType(), True),
+            StructField('HS2017_Classification', StringType(), True),
+            StructField('Unit', StringType(), True),
+            StructField('Product Information', StringType(), True),
+            StructField('CAS Number', StringType(), True),
+            StructField('Cut-Off Classification', StringType(), True)
+        ]
         ),
         "container": "landingzone",
         "location": "ecoInvent/EN15804 AO.csv",
@@ -735,28 +735,57 @@ landingzone_schema = {
         "partition_column": "",
         "quality_checks": [],
     },
-    "consequential_ao_landingzone": {
-        "columns": StructType(
-            [
-                StructField("Activity UUID & Product UUID",
-                            StringType(), True),
-                StructField("Activity UUID", StringType(), True),
-                StructField("EcoQuery URL", StringType(), True),
-                StructField("Activity Name", StringType(), True),
-                StructField("Geography", StringType(), True),
-                StructField("Time Period", StringType(), True),
-                StructField("Special Activity Type", StringType(), True),
-                StructField("Technology Level", StringType(), True),
-                StructField("Sector", StringType(), True),
-                StructField("ISIC Classification", StringType(), True),
-                StructField("ISIC Section", StringType(), True),
-                StructField("Product UUID", StringType(), True),
-                StructField("Reference Product Name", StringType(), True),
-                StructField("CPC Classification", StringType(), True),
-                StructField("Unit", StringType(), True),
-                StructField("Product Information", StringType(), True),
-                StructField("CAS Number", StringType(), True),
-            ]
+    'apos_ao_landingzone': {
+        'columns':  StructType([
+            StructField('Activity UUID & Product UUID',
+                        StringType(), True),
+            StructField('Activity UUID', StringType(), True),
+            StructField('EcoQuery URL', StringType(), True),
+            StructField('Activity Name', StringType(), True),
+            StructField('Geography', StringType(), True),
+            StructField('Time Period', StringType(), True),
+            StructField('Special Activity Type', StringType(), True),
+            StructField('Sector', StringType(), True),
+            StructField('ISIC Classification', StringType(), True),
+            StructField('ISIC Section', StringType(), True),
+            StructField('Product UUID', StringType(), True),
+            StructField('Reference Product Name', StringType(), True),
+            StructField('CPC Classification', StringType(), True),
+            StructField('HS2017_Classification', StringType(), True),
+            StructField('Unit', StringType(), True),
+            StructField('Product Information', StringType(), True),
+            StructField('CAS Number', StringType(), True),
+            StructField('APOS Classification', StringType(), True)
+
+        ]
+        ),
+        'container': 'landingzone',
+        'location': 'ecoInvent/APOS AO.csv',
+        'type': 'multiline',
+        'partition_column': '',
+        'quality_checks': []
+    },
+    'consequential_ao_landingzone': {
+        'columns':  StructType([
+            StructField('Activity UUID & Product UUID',
+                        StringType(), True),
+            StructField('Activity UUID', StringType(), True),
+            StructField('EcoQuery URL', StringType(), True),
+            StructField('Activity Name', StringType(), True),
+            StructField('Geography', StringType(), True),
+            StructField('Time Period', StringType(), True),
+            StructField('Special Activity Type', StringType(), True),
+            StructField('Technology Level', StringType(), True),
+            StructField('Sector', StringType(), True),
+            StructField('ISIC Classification', StringType(), True),
+            StructField('ISIC Section', StringType(), True),
+            StructField('Product UUID', StringType(), True),
+            StructField('Reference Product Name', StringType(), True),
+            StructField('CPC Classification', StringType(), True),
+            StructField('Unit', StringType(), True),
+            StructField('Product Information', StringType(), True),
+            StructField('CAS Number', StringType(), True)
+        ]
         ),
         "container": "landingzone",
         "location": "ecoInvent/Consequential AO.csv",
@@ -848,7 +877,7 @@ landingzone_schema = {
         "partition_column": "",
         "quality_checks": [],
     },
-    "cut-off_cumulative_LCIA_v3.9.1_landingzone": {
+    "cut-off_cumulative_LCIA_v_X_landingzone": {
         "columns": StructType(
             [
                 StructField("Activity UUID_Product UUID", StringType(), False),
@@ -865,7 +894,8 @@ landingzone_schema = {
         ),
         "container": "landingzone",
         # file that is created by extracting certain columns from the licensed data
-        "location": "ecoInvent/cut-off_cumulative_LCIA_v3.9.1.csv",
+        # the file name will change based on the availability of the new version
+        "location": "ecoInvent/cut-off_cumulative_LCIA_v10.csv",
         "type": "multiline",
         "partition_column": "",
         "quality_checks": [],
@@ -1184,17 +1214,20 @@ landingzone_schema = {
     "tiltLedger_landingzone": {
         "columns": StructType(
             [
-                StructField("CPC21code", StringType(), True),
-                StructField("CPC21title", StringType(), True),
-                StructField("ISIC4code", StringType(), True),
-                StructField("Description", StringType(), True),
-                StructField("Activity Type", StringType(), True),
+                StructField("CPC_Code", StringType(), True),
+                StructField("CPC_Name", StringType(), True),
+                StructField("ISIC_Code", StringType(), True),
+                StructField("ISIC_Name", StringType(), True),
+                StructField("Activity_Type", StringType(), True),
                 StructField("Geography", StringType(), True),
+                StructField("Distance", StringType(), True),
+                StructField("Manual_Review", StringType(), True),
+                StructField("Verified_Source", StringType(), True)
             ]
         ),
         "container": "landingzone",
-        "location": "tiltLedger/Ledger_dummy.csv",
-        "type": "multiline",
+        "location": "tiltLedger/20240729_Ledger_v53.csv",
+        "type": "csv_pipe_sep",
         "partition_column": "",
         "quality_checks": [],
     },

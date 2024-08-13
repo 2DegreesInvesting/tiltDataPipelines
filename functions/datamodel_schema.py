@@ -12,6 +12,7 @@ from pyspark.sql.types import (
     DateType,
     ByteType,
     DecimalType,
+    IntegerType
 )
 
 datamodel_schema = {
@@ -287,16 +288,17 @@ datamodel_schema = {
                 "activity_uuid_product_uuid"]},
         ],
     },
-    "ecoinvent_product_datamodel": {
-        "columns": StructType(
-            [
-                StructField("product_uuid", StringType(), False),
-                StructField("reference_product_name", StringType(), True),
-                StructField("unit", StringType(), True),
-                StructField("from_date", DateType(), False),
-                StructField("to_date", DateType(), False),
-                StructField("tiltRecordID", StringType(), False),
-            ]
+    'ecoinvent_product_datamodel': {
+        'columns':  StructType([
+            StructField('product_uuid', StringType(), False),
+            StructField('reference_product_name', StringType(), True),
+            StructField('unit', StringType(), True),
+            StructField('cpc_code', StringType(), True),
+            StructField('cpc_name', StringType(), True),
+            StructField('from_date', DateType(), False),
+            StructField('to_date', DateType(), False),
+            StructField('tiltRecordID', StringType(), False)
+        ]
         ),
         "container": "datamodel",
         "location": "ecoinvent_product",
@@ -306,17 +308,17 @@ datamodel_schema = {
             {"check": "values are unique", "columns": ["product_uuid"]},
         ],
     },
-    "ecoinvent_activity_datamodel": {
-        "columns": StructType(
-            [
-                StructField("activity_uuid", StringType(), False),
-                StructField("activity_name", StringType(), True),
-                StructField("geography", StringType(), True),
-                StructField("isic_4digit", StringType(), True),
-                StructField("from_date", DateType(), False),
-                StructField("to_date", DateType(), False),
-                StructField("tiltRecordID", StringType(), False),
-            ]
+    'ecoinvent_activity_datamodel': {
+        'columns':  StructType([
+            StructField('activity_uuid', StringType(), False),
+            StructField('activity_name', StringType(), True),
+            StructField('activity_type', StringType(), True),
+            StructField('geography', StringType(), True),
+            StructField('isic_4digit', StringType(), True),
+            StructField('from_date', DateType(), False),
+            StructField('to_date', DateType(), False),
+            StructField('tiltRecordID', StringType(), False)
+        ]
         ),
         "container": "datamodel",
         "location": "ecoinvent_activity",
@@ -406,6 +408,9 @@ datamodel_schema = {
                 StructField("ISIC_Name", StringType(), True),
                 StructField("Activity_Type", StringType(), True),
                 StructField("Geography", StringType(), True),
+                StructField("Distance", IntegerType(), True),
+                StructField("Manual_Review", IntegerType(), True),
+                StructField("Verified_Source", IntegerType(), True),
                 StructField("from_date", DateType(), False),
                 StructField("to_date", DateType(), False),
                 StructField("tiltRecordID", StringType(), False),
