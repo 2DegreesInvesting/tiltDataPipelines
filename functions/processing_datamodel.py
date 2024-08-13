@@ -469,6 +469,8 @@ def generate_table(table_name: str) -> None:
             "isic_4digit", substring(col("ISIC_Classification"), 1, 4)
         )
 
+        cut_off_ao_raw.data = cut_off_ao_raw.data.withColumn("isic_4digit", F.regexp_replace(F.col("isic_4digit"), ":.*", ""))
+
         cut_off_ao_raw = cut_off_ao_raw.custom_select(
             [
                 "activity_uuid",
