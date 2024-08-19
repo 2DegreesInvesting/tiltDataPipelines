@@ -262,7 +262,8 @@ def apply_scd_type_2(new_table: DataFrame, existing_table: DataFrame) -> DataFra
         identical_records = combined_df.filter(
             (F.col("shaValueOld").isNotNull()) & (
                 F.col("shaValueNew").isNotNull())
-        ).join(new_data_frame, on="shaValueNew", how="inner")
+        ).join(new_data_frame.drop('from_date'), on="shaValueNew", how="inner"
+               ).join(old_df.select(["shaValueOld", "from_date"]), on="shaValueOld", how="inner")
         identical_records = identical_records.select(
             value_columns + from_to_list)
         all_records = all_records.union(identical_records)
@@ -373,9 +374,11 @@ def ledger_x_ecoinvent_matcher(ledger, ecoinvent):
                 ), how = "right")
     complete_df = init_df.filter(init_df.activity_uuid_product_uuid.isNotNull()).drop(F.col("ei.geography"), F.col("ei.cpc_code"), F.col("ei.activity_type"))
     # unmatched_records = init_df.filter(init_df.activity_uuid_product_uuid.isNull()).select(ledger_cols)
-    windowSpec = Window.partitionBy("geography", "isic_4digit", "cpc_code", "activity_type").orderBy("priority")
+    windowSpec = Window.partitionBy(
+        "tiltledger_id", "reference_product_name", "activity_name", "activity_type").orderBy("priority")
 
-    ledger_ecoinvent_mapping = complete_df.withColumn("row_number", F.row_number().over(windowSpec)).filter("row_number = 1").drop("row_number")
+    ledger_ecoinvent_mapping = complete_df.withColumn("row_number", F.dense_rank(
+    ).over(windowSpec)).filter("row_number = 1").drop("row_number")
     return ledger_ecoinvent_mapping
 
 def check_nonempty_tiltsectors_for_nonempty_isic_pyspark(df):
