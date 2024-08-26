@@ -175,6 +175,9 @@ def generate_table(table_name: str) -> None:
             "tilt_isic_mapper_landingzone", spark_generate
         )
 
+        tilt_isic_mapper_landingzone.data = tilt_isic_mapper_landingzone.data.withColumn(
+            'isic_4digit', F.lpad(F.col('isic_4digit'), 4, '0'))
+
         tilt_sector_isic_mapper_raw = CustomDF(
             "tilt_sector_isic_mapper_raw",
             spark_generate,
