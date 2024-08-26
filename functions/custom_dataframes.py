@@ -1,18 +1,17 @@
-import re
-
 from pyspark.sql import SparkSession, DataFrame
 from pyspark.sql import functions as F
-from pyspark.sql.window import Window
+from time import time
 
-from delta import *
 
-from functions.dataframe_helpers import create_map_column, create_sha_values
-from functions.signalling_functions import calculate_signalling_issues
+from functions.dataframe_helpers import create_sha_values, create_catalog_schema, create_catalog_table, create_catalog_table_owner, apply_scd_type_2, assign_signalling_id
+from functions.data_quality_functions import calculate_signalling_issues, calculate_blocking_issues
 from functions.signalling_rules import signalling_checks_dictionary
-from functions.tables import get_table_definition
+# from functions.tables import get_table_definition
+from functions.database import get_table_definition
+from functions.data_readers import DataReader
 
 
-class CustomDF:
+class CustomDF(DataReader):
     """
     A custom DataFrame class that wraps a PySpark DataFrame for additional functionality, like data tracing, quality checks and slowly changing dimensions.
 
@@ -37,87 +36,33 @@ class CustomDF:
     def __init__(self, table_name: str, spark_session: SparkSession, initial_df: DataFrame = None,  partition_name: str = '', history: str = 'recent'):
         self._name = table_name
         self._spark_session = spark_session
-        self._schema = get_table_definition(self._name)
+        self._layer = table_name.split('_')[-1] + '_layer'
+        self._schema = get_table_definition(self._layer, self._name)
         self._partition_name = partition_name
         self._history = history
         self._env = 'develop'
-        self._path = f"abfss://{self._schema['container']}@storagetilt{self._env}.dfs.core.windows.net/{self._schema['location']}/"
-        self._table_name = f"`{self._env}`.`{self._schema['container']}`.`{self._schema['location'].replace('.','')}`"
-        if self._partition_name:
-            self._partition_path = f"{self._schema['partition_column']}={self._partition_name}"
-        else:
-            self._partition_path = ''
+        self._salt = str(time())[-10:].replace('.', '')
+        DataReader.__init__(self, self._spark_session, self._env,
+                            self._schema, self._partition_name, self._history)
         if initial_df:
             self._df = initial_df
         else:
-            self._df = self.read_table()
+            self._df = self.read_source()
 
-    def read_table(self):
-        """
-        Reads data from a table based on the schema type and applies various transformations.
+        if [col for col in self._df.columns if col.startswith('map_')]:
+            map_col = [
+                col for col in self._df.columns if col.startswith('map_')][0]
+            self._df = self._df.withColumnRenamed(
+                map_col, f'map_{self._name}_{self._salt}')
 
-        This method first validates the history attribute and constructs the partition path based on the partition name attribute. It then builds the table location path and defines a dictionary of read functions for different schema types.
-
-        It attempts to read the data using the appropriate read function based on the schema type. If the table does not exist, it creates an empty dataframe with the same schema. If any other error occurs during reading, it raises the error.
-
-        If a partition name is provided, it adds a column with the partition name to the dataframe. If the history attribute is set to 'recent' and the dataframe has a 'to_date' column, it filters the dataframe to only include rows where 'to_date' is '2099-12-31'.
-
-        It then replaces any 'NA' or 'nan' values in the dataframe with None. Finally, it calls the 'create_map_column' function to create a map column in the dataframe and returns the transformed dataframe.
-
-        Returns:
-            DataFrame: The transformed dataframe.
-        """
-
-        if self._history not in ['recent', 'complete']:
-            raise ValueError(
-                f"Value {self._history} is not in valid arguments [recent,complete] for history argument")
-
-        read_functions = {
-            'csv': lambda: self._spark_session.read.format('csv').schema(self._schema['columns']).option('header', True).option("quote", '"').option("multiline", 'True').load(self._path + self._partition_path),
-            'ecoInvent': lambda: self._spark_session.read.format('csv').schema(self._schema['columns']).option('header', True).option("quote", '~').option('delimiter', ';').option("multiline", 'True').load(self._path + self._partition_path),
-            'tiltData': lambda: self._spark_session.read.format('csv').schema(self._schema['columns']).option('header', True).option("quote", '~').option('delimiter', ';').option("multiline", 'True').load(self._path + self._partition_path),
-            'delta': lambda: DeltaTable.forName(self._spark_session, self._table_name).toDF(),
-            'parquet': lambda: self._spark_session.read.format(self._schema['type']).schema(self._schema['columns']).option('header', True).load(self._path + self._partition_path)
-        }
-
-        try:
-            df = read_functions.get(
-                self._schema['type'], read_functions['delta'])()
-            if self._schema['type'] == 'delta' and self._partition_name != '':
-                df = df.where(
-                    F.col(self._schema['partition_column']) == self._partition_name)
-            df.head()  # Force to load first record of the data to check if it throws an error
-        except Exception as e:
-            if "Path does not exist:" in str(e) or f"`{self._schema['container']}`.`{self._schema['location']}` is not a Delta table" in str(e):
-                # If the table does not exist yet, return an empty data frame
-                df = self._spark_session.createDataFrame(
-                    [], self._schema['columns'])
+    def rename_columns(self, rename_dict):
+        for name in rename_dict:
+            if name in self._df.columns:
+                pass
             else:
-                raise  # If we encounter any other error, raise as the error
-
-        if self._partition_name != '':
-            df = df.withColumn(
-                self._schema['partition_column'], F.lit(self._partition_name))
-
-        if self._history == 'recent' and 'to_date' in df.columns:
-            df = df.filter(F.col('to_date') == '2099-12-31')
-
-        # Replace empty values with None/null
-        replacement_dict = {'NA': None, 'nan': None}
-        df = df.replace(replacement_dict, subset=df.columns)
-
-        if self._schema['container'] != 'landingzone' and self._name != 'dummy_quality_check':
-            df = create_map_column(self._spark_session, df, self._name)
-
-        # This generically renames columns to remove special characters so that they can be written into managed storage
-        if self._schema['container'] == 'landingzone':
-            for col in df.columns:
-                new_col_name = re.sub(r"[-\\\/]", ' ', col)
-                new_col_name = re.sub(r'[\(\)]', '', new_col_name)
-                new_col_name = re.sub(r'\s+', '_', new_col_name)
-                df = df.withColumnRenamed(col, new_col_name)
-
-        return df
+                raise ValueError(
+                    f"Value {name} does not exist in the specified schema")
+        self._df = self._df.withColumnsRenamed(rename_dict)
 
     def compare_tables(self):
         """
@@ -135,72 +80,12 @@ class CustomDF:
         Returns:
             DataFrame: A DataFrame containing records that are new, identical, or closed compared to the existing table.
         """
-        # Determine the processing date
-        processing_date = F.current_date()
-        future_date = F.lit('2099-12-31')
-        from_to_list = [F.col('from_date'), F.col('to_date')]
-
-        # Select the columns that contain values that should be compared
-        value_columns = [F.col(col_name) for col_name in self._df.columns if col_name not in [
-            'tiltRecordID', 'from_date', 'to_date']]
 
         # Read the already existing table
         old_df = CustomDF(self._name, self._spark_session,
                           None, self._partition_name, 'complete')
-        old_closed_records = old_df.data.filter(
-            F.col('to_date') != future_date).select(value_columns + from_to_list)
-        old_df = old_df.data.filter(F.col('to_date') == future_date).select(
-            value_columns + from_to_list)
 
-        # Add the SHA representation of the old records and rename to unique name
-        old_df = create_sha_values(self._spark_session, old_df, value_columns)
-        old_df = old_df.withColumnRenamed('shaValue', 'shaValueOld')
-
-        # Add the SHA representation of the incoming records and rename to unique name
-        new_data_frame = create_sha_values(
-            self._spark_session, self._df, value_columns)
-        new_data_frame = new_data_frame.withColumn(
-            'from_date', processing_date).withColumn('to_date', F.to_date(future_date))
-        new_data_frame = new_data_frame.withColumnRenamed(
-            'shaValue', 'shaValueNew')
-
-        # Join the SHA values of both tables together
-        combined_df = new_data_frame.select(F.col('shaValueNew')).join(old_df.select(
-            'shaValueOld'), on=old_df.shaValueOld == new_data_frame.shaValueNew, how='full')
-
-        # Set the base of all records to the already expired/ closed records
-        all_records = old_closed_records
-        # Records that did not change are taken from the existing set of data
-        identical_records = combined_df.filter(
-            (F.col('shaValueOld').isNotNull()) & (F.col('shaValueNew').isNotNull()))
-        if identical_records.count() > 0:
-            identical_records = combined_df.filter((F.col('shaValueOld').isNotNull()) & (
-                F.col('shaValueNew').isNotNull())).join(old_df, on='shaValueOld', how='inner')
-            identical_records = identical_records.select(
-                value_columns + from_to_list)
-            all_records = all_records.union(identical_records)
-
-        # Records that do not exist anymore are taken from the existing set of data
-        # Records are closed by filling the to_date column with the current date
-        closed_records = combined_df.filter(
-            (F.col('shaValueOld').isNotNull()) & (F.col('shaValueNew').isNull()))
-        if closed_records.count() > 0:
-            closed_records = combined_df.filter((F.col('shaValueOld').isNotNull()) & (
-                F.col('shaValueNew').isNull())).join(old_df, on='shaValueOld', how='inner')
-            closed_records = closed_records.select(
-                value_columns + from_to_list)
-            closed_records = closed_records.withColumn(
-                'to_date', processing_date)
-            all_records = all_records.union(closed_records)
-
-        # Records that are new are taken from the new set of data
-        new_records = combined_df.filter(
-            (F.col('shaValueOld').isNull()) & (F.col('shaValueNew').isNotNull()))
-        if new_records.count() > 0:
-            new_records = combined_df.filter((F.col('shaValueOld').isNull()) & (F.col(
-                'shaValueNew').isNotNull())).join(new_data_frame, on='shaValueNew', how='inner')
-            new_records = new_records.select(value_columns + from_to_list)
-            all_records = all_records.union(new_records)
+        all_records = apply_scd_type_2(self._df, old_df.data)
 
         return all_records
 
@@ -245,20 +130,22 @@ class CustomDF:
             raise ValueError("The head of the table does not match.")
 
         # Check if all of the rows are unique in the table
+
         if self._df.count() != self._df.distinct().count():
             # The format of the DataFrame does not match the table definition
             raise ValueError("Not all rows in the table are unqiue")
 
         # Perform additional quality checks on specific columns
-        # validated = validate_data_quality(spark_session, data_frame, table_name)
+        self.check_blocking_issues()
+
         return True
 
     def add_record_id(self) -> DataFrame:
         """
         Computes SHA-256 hash values for each row in the DataFrame and adds the hash as a new column 'tiltRecordID'.
 
-        This method computes SHA-256 hash values for each row in the DataFrame based on the values in all columns, 
-        excluding 'tiltRecordID' and 'to_date'. The computed hash is then appended as a new column called 'tiltRecordID' 
+        This method computes SHA-256 hash values for each row in the DataFrame based on the values in all columns,
+        excluding 'tiltRecordID' and 'to_date'. The computed hash is then appended as a new column called 'tiltRecordID'
         to the DataFrame. The order of columns in the DataFrame will affect the generated hash value.
 
         If a partition column is specified in the schema, the method ensures that it is the rightmost column in the DataFrame.
@@ -269,11 +156,10 @@ class CustomDF:
         """
         # Select all columns that are needed for the creation of a record ID
         sha_columns = [F.col(col_name) for col_name in self._df.columns if col_name not in [
-            'tiltRecordID', 'to_date']]
+            'tiltRecordID', 'to_date'] and 'map_' not in col_name]
 
         # Create the SHA256 record ID by concatenating all relevant columns
-        data_frame = create_sha_values(
-            self._spark_session, self._df, sha_columns)
+        data_frame = create_sha_values(self._df, sha_columns)
         data_frame = data_frame.withColumnRenamed('shaValue', 'tiltRecordID')
 
         # Reorder the columns, to make sure the partition column is the most right column in the data frame
@@ -290,43 +176,29 @@ class CustomDF:
 
     def create_catalog_table(self) -> bool:
         """
-        Create or replace an external Hive table in the specified Hive container.
-
-        This method generates and executes SQL statements to create or replace an external Hive table. It first drops
-        the table if it already exists and then creates the table based on the provided table definition. The table
-        definition is obtained using the 'get_table_definition' function.
-
-        The table is created with the specified columns, data types, and partitioning (if applicable). If the table 
-        already exists, it is dropped and recreated.
+        Creates a catalog table and schema in the specified environment using the provided table name.
+        Additionally, it also sets the owner of the table, so that every developer has the rights to change the structure of the table.
 
         Returns:
-            bool: True if the table creation was successful, False otherwise.
-
-        Note:
-            - The table is created as an external table.
-            - The table definition is obtained using the 'get_table_definition' function.
-            - The table is created with the specified columns, data types, and partitioning (if applicable).
-            - If the table already exists, it is dropped and recreated.
+            bool: True if the catalog table is successfully created, False otherwise.
         """
-        schema_string = f'CREATE SCHEMA IF NOT EXISTS {self._env}.{self._schema["container"]};'
 
-        # Build a SQL string to recreate the table in the most up to date format
-        create_string = f"CREATE TABLE IF NOT EXISTS {self._table_name} ("
+        create_schema_string, set_owner_schema_string = create_catalog_schema(
+            self._env, self._schema)
+        create_string = create_catalog_table(self._table_name, self._schema)
+        set_owner_string = create_catalog_table_owner(self._table_name)
 
-        for i in self._schema['columns']:
-            col_info = i.jsonValue()
-            col_string = f"`{col_info['name']}` {col_info['type']} {'NOT NULL' if not col_info['nullable'] else ''},"
-            create_string += col_string
-
-        create_string = create_string[:-1] + ")"
-        create_string += " USING DELTA "
-        if self._schema['partition_column']:
-            create_string += f" PARTITIONED BY (`{self._schema['partition_column']}` STRING)"
-        set_owner_string = f"ALTER TABLE {self._table_name} SET OWNER TO tiltDevelopers"
-
-        self._spark_session.sql(schema_string)
+        self._spark_session.sql(create_schema_string)
+        self._spark_session.sql(set_owner_schema_string)
         self._spark_session.sql(create_string)
         self._spark_session.sql(set_owner_string)
+
+    def check_blocking_issues(self):
+
+        blocking_checks = self._schema['quality_checks']
+
+        calculate_blocking_issues(
+            self._df, blocking_checks)
 
     def check_signalling_issues(self):
         """
@@ -345,8 +217,9 @@ class CustomDF:
             - The specific checks performed depend on the definitions in the 'signalling_checks_dictionary'.
         """
 
-        dummy_signalling_df = CustomDF(
-            'dummy_quality_check', self._spark_session)
+        # Force to read the table again, to make sure that the table is not empty and we can calculate the signalling issues
+        base_monitoring_df = self.read_source()
+
         signalling_checks = {}
         # Check if there are additional data quality monitoring checks to be executed
         if self._name in signalling_checks_dictionary.keys():
@@ -354,39 +227,15 @@ class CustomDF:
 
         # Generate the monitoring values table to be written
         monitoring_values_df = calculate_signalling_issues(
-            self._df, signalling_checks, dummy_signalling_df.data)
+            base_monitoring_df, signalling_checks, self._spark_session)
         monitoring_values_df = monitoring_values_df.withColumn(
             'table_name', F.lit(self._name))
 
         existing_monitoring_df = CustomDF(
             'monitoring_values', self._spark_session, partition_name=self._name, history='complete')
-        max_issue = existing_monitoring_df.data.fillna(0, subset='signalling_id') \
-            .select(F.max(F.col('signalling_id')).alias('max_signalling_id')).collect()[0]['max_signalling_id']
-        if not max_issue:
-            max_issue = 0
-        existing_monitoring_df = existing_monitoring_df.data.select([F.col(c).alias(c+'_old') for c in existing_monitoring_df.data.columns])\
-            .select(['signalling_id_old', 'column_name_old', 'check_name_old', 'table_name_old', 'check_id_old']).distinct()
-        w = Window().partitionBy('table_name').orderBy(F.col('check_id'))
-        join_conditions = [monitoring_values_df.table_name == existing_monitoring_df.table_name_old,
-                           monitoring_values_df.column_name == existing_monitoring_df.column_name_old,
-                           monitoring_values_df.check_name == existing_monitoring_df.check_name_old,
-                           monitoring_values_df.check_id == existing_monitoring_df.check_id_old]
-        monitoring_values_intermediate = monitoring_values_df.join(
-            existing_monitoring_df, on=join_conditions, how='left')
 
-        existing_signalling_id = monitoring_values_intermediate.where(
-            F.col('signalling_id_old').isNotNull())
-        non_existing_signalling_id = monitoring_values_intermediate.where(
-            F.col('signalling_id_old').isNull())
-        non_existing_signalling_id = non_existing_signalling_id.withColumn(
-            'signalling_id', F.row_number().over(w)+F.lit(max_issue))
-
-        monitoring_values_intermediate = existing_signalling_id.union(
-            non_existing_signalling_id)
-        monitoring_values_intermediate = monitoring_values_intermediate.withColumn(
-            'signalling_id', F.coalesce(F.col('signalling_id_old'), F.col('signalling_id')))
-        monitoring_values_df = monitoring_values_intermediate.select(
-            ['signalling_id', 'check_id', 'column_name', 'check_name', 'total_count', 'valid_count', 'table_name'])
+        monitoring_values_df = assign_signalling_id(
+            monitoring_values_df, existing_monitoring_df.data)
 
         # Write the table to the location
         complete_monitoring_partition_df = CustomDF(
@@ -410,16 +259,20 @@ class CustomDF:
             - If a partition is specified, the DataFrame is written to that partition of the table.
             - If the table does not exist, it is created.
         """
-        # Compare the newly created records with the existing tables
 
+        self.create_catalog_table()
+
+        # Compare the newly created records with the existing tables
         self._df = self.compare_tables()
 
         # Add the SHA value to create a unique ID within tilt
         self._df = self.add_record_id()
 
-        table_check = self.validate_table_format()
+        # Since the map column is only available starting from the raw layer, we can not dump/write it when writing to the raw layer.
+        if self._schema['container'] not in ['landingzone', 'monitoring', 'raw']:
+            self.dump_map_column()
 
-        self.create_catalog_table()
+        table_check = self.validate_table_format()
 
         if table_check:
             if self._schema['partition_column']:
@@ -433,6 +286,76 @@ class CustomDF:
 
         if self._name != 'monitoring_values':
             self.check_signalling_issues()
+
+    def dump_map_column(self):
+        """
+        Dumps the map column from the DataFrame to a Delta table.
+
+        This method creates a Delta table and dumps the map column from the DataFrame into it.
+        The process happens when writing the table, so the map column is dumped to the record_trace table.
+        Here we use the new recordID of the generated record and explode the valus in the map column.
+        This process also include the creation and generation of the record trace table in case it does not exist yet.
+
+        Returns:
+            None
+        """
+        # Define the table name using the environment variable
+        table_name = f"{self._env}.monitoring.record_tracing"
+
+        # Get the schema for the "record_trace" table
+        trace_schema = get_table_definition(self._layer, "record_trace")
+
+        # Generate SQL strings to create the schema and set the owner of the schema
+        create_schema_string, set_owner_schema_string = create_catalog_schema(
+            self._env, trace_schema)
+
+        # Generate SQL strings to create the table and set the owner of the table
+        create_string = create_catalog_table(
+            table_name, trace_schema)
+        set_owner_string = create_catalog_table_owner(
+            table_name)
+
+        # Execute the SQL strings
+        self._spark_session.sql(create_schema_string)
+        self._spark_session.sql(set_owner_schema_string)
+        self._spark_session.sql(create_string)
+        self._spark_session.sql(set_owner_string)
+
+        # Find the map_column
+        map_col = [
+            col for col in self._df.columns if col.startswith('map_')][0]
+
+        # Filter the DataFrame to only include rows that are newly created. Only for the new rows we want to dump the new record traces.
+        dump_df = self._df.where(F.col('to_date') == '2099-12-31')
+
+        # Add a new column 'target_table_name' with the name of the table, and rename 'tiltRecordID' to 'target_tiltRecordID'
+        dump_df = dump_df.withColumn('target_table_name', F.lit(
+            self._name)).withColumnRenamed('tiltRecordID', 'target_tiltRecordID')
+
+        # Explode the map column to be able to write the array format to a standard sql table
+        dump_df = dump_df.select('*', F.explode(map_col).alias('source_table_name', 'source_tiltRecordID_list')
+                                 ).select('*', F.explode(F.col('source_tiltRecordID_list')).alias('source_tiltRecordID'))
+
+        # Select only the columns 'source_tiltRecordID', 'source_table_name', 'target_tiltRecordID', and 'target_table_name'
+        dump_df = dump_df.select(F.col('source_tiltRecordID'), F.col('source_table_name'), F.col(
+            'target_tiltRecordID'), F.col('target_table_name'))
+
+        # Read the existing record tracing table into a DataFrame
+        df = self._spark_session.read.format(
+            'delta').table(table_name)
+
+        # Filter the DataFrame to only include rows where for the current table
+        df = df.filter(F.col('target_table_name') == self._name)
+
+        # Eliminate the duplicate records from dump_df
+        dump_df = dump_df.drop_duplicates()
+
+        # Union the two DataFrames and write the result to the table, partitioned by the name of the table
+        dump_df.union(df).distinct().write.partitionBy('target_table_name').mode(
+            'overwrite').format('delta').saveAsTable(table_name)
+
+        # Drop the map column from the original DataFrame
+        self._df = self._df.drop(F.col(map_col))
 
     def convert_data_types(self, column_list: list, data_type):
         """
@@ -464,17 +387,163 @@ class CustomDF:
         Returns:
             CustomDF: A new CustomDF instance that is the result of the join.
         """
-        copy_df = custom_other.data
-        self._df = self._df.join(copy_df, custom_on, custom_how)
-        self._df = self._df.withColumn(
-            f'map_{self._name}', F.map_concat(
-                F.col(f'map_{self._name}'), F.col(f'map_{custom_other.name}'))
+
+        if not custom_how:
+            raise ValueError(
+                "Please specify the type of join (inner, outer, left, right)")
+
+        copy_self_df = self._df
+        copy_other_df = custom_other.data
+        copy_df = copy_self_df.join(
+            copy_other_df, on=custom_on, how=custom_how)
+        copy_df = copy_df.withColumn(
+            'map_temp', F.create_map().cast('map<string,array<String>>'))
+        for map_col in [col for col in copy_df.columns if col.startswith('map_')]:
+            copy_df = copy_df.withColumn(
+                map_col, F.coalesce(F.col(map_col), F.col('map_temp')))
+        copy_df = copy_df.drop(F.col('map_temp'))
+        copy_df = copy_df.withColumn(
+            f'map_{self._name}_{self._salt}', F.map_zip_with(
+                f'map_{self._name}_{self._salt}', f'map_{custom_other.name}_{custom_other._salt}', lambda k, v1, v2: F.when(v1.isNull(), v2).when(v2.isNull(), v1).otherwise(F.array_union(v1, v2)))
         )
-        self._df = self._df.drop(F.col(f'map_{custom_other.name}'))
+        copy_df = copy_df.drop(
+            F.col(f'map_{custom_other.name}_{custom_other._salt}'))
+
+        return CustomDF(self._name, self._spark_session, copy_df, self._partition_name, self._history)
+
+    def custom_select(self, columns: list):
+        """
+        Selects the specified columns from the DataFrame. If the DataFrame is not coming from the landing zone, the existence of the map column is assumed.
+
+        Args:
+            columns (list): A list of column names to select.
+
+        Returns:
+            CustomDF: A new CustomDF object with the selected columns.
+        """
+        copy_df = self._df
+        if self._schema['container'] not in ['landingzone']:
+            copy_df = copy_df.select(
+                *columns, F.col(f"map_{self._name}_{self._salt}"))
+        else:
+            copy_df = copy_df.select(*columns)
+
+        return CustomDF(self._name, self._spark_session, copy_df, self._partition_name, self._history)
+
+    def custom_distinct(self):
+        """
+        Returns the distinct rows from the DataFrame.
+
+        Returns:
+            CustomDF: A new CustomDF instance with distinct rows.
+        """
+        replace_na_value = str(time())
+        copy_df = self._df
+        copy_df = copy_df.fillna(replace_na_value)
+        cols = [F.col(col)
+                for col in self._df.columns if not col.startswith('map_')]
+
+        map_col = [
+            col for col in self._df.columns if col.startswith('map_')][0]
+
+        copy_df = copy_df.select(*cols, F.explode(
+            F.col(map_col)).alias('exploded_table', 'exploded_list'))\
+            .select(*cols, F.col('exploded_table'), F.explode(F.col('exploded_list')).alias('exploded'))
+
+        copy_df = copy_df\
+            .groupBy(cols + ['exploded_table'])\
+            .agg(F.collect_set(F.col('exploded')).alias('exploded_fold'))\
+            .groupBy(cols)\
+            .agg(F.collect_list(F.col('exploded_table')).alias('table_list'), F.collect_list(F.col('exploded_fold')).alias('fold_list'))\
+            .withColumn(map_col, F.map_from_arrays(F.col('table_list'), F.col('fold_list')))\
+            .select(*cols, F.col(map_col))
+
+        copy_df = copy_df.replace(replace_na_value, None)
+        return CustomDF(self._name, self._spark_session, copy_df, self._partition_name, self._history)
+
+    def custom_average(self, groupby_columns: list, average_column: str) -> 'CustomDF':
+
+        copy_df = self._df
+
+        average_df = copy_df.groupBy(groupby_columns).agg(
+            F.avg(F.col(average_column)).alias(average_column))
+
+        map_col = [
+            col for col in self._df.columns if col.startswith('map_')][0]
+
+        copy_df = copy_df.select(*groupby_columns, F.explode(
+            F.col(map_col)).alias('exploded_table', 'exploded_list'))\
+            .select(*groupby_columns, F.col('exploded_table'), F.explode(F.col('exploded_list')).alias('exploded'))
+
+        copy_df = copy_df\
+            .groupBy(groupby_columns + ['exploded_table'])\
+            .agg(F.collect_set(F.col('exploded')).alias('exploded_fold'))\
+            .groupBy(groupby_columns)\
+            .agg(F.collect_list(F.col('exploded_table')).alias('table_list'), F.collect_list(F.col('exploded_fold')).alias('fold_list'))\
+            .withColumn(map_col, F.map_from_arrays(F.col('table_list'), F.col('fold_list')))\
+            .select(*groupby_columns, F.col(map_col))
+
+        copy_df = average_df.alias('average_df')\
+            .join(copy_df.alias('copy_df'), on=[F.col('average_df.'+column) == F.col('copy_df.'+column) for column in groupby_columns], how='inner')\
+            .select([F.col('average_df.'+column) for column in average_df.columns]+[F.col('copy_df.'+map_col)])
+
+        return CustomDF(self._name, self._spark_session, copy_df, self._partition_name, self._history)
+
+    def custom_union(self, custom_other: 'CustomDF'):
+        """
+        Unions the current CustomDF instance with another CustomDF instance.
+
+        Args:
+            other (CustomDF): The other CustomDF instance to union with.
+
+        Returns:
+            CustomDF: A new CustomDF instance that is the result of the union.
+        """
+
+        cols = [F.col(col)
+                for col in self._df.columns if not col.startswith('map_')]
+
+        map_col = [
+            col for col in self._df.columns if col.startswith('map_')][0]
+
+        copy_df = custom_other.data
+        copy_df = copy_df.withColumnRenamed(
+            [col for col in copy_df.columns if col.startswith('map_')][0], map_col)
+        copy_df = self._df.unionAll(copy_df)
+
+        df = (
+            copy_df.select(*cols, F.explode(
+                F.col(map_col)).alias('exploded_table', 'exploded_list'))
+            .select(*cols, F.col('exploded_table'), F.explode(F.col('exploded_list')).alias('exploded'))
+        )
+
+        self._df = (
+            df
+            .groupBy(cols + ['exploded_table'])
+            .agg(F.collect_set(F.col('exploded')).alias('exploded_fold'))
+            .groupBy(cols)
+            .agg(F.collect_list(F.col('exploded_table')).alias('table_list'), F.collect_list(F.col('exploded_fold')).alias('fold_list'))
+            .withColumn(map_col, F.map_from_arrays(F.col('table_list'), F.col('fold_list')))
+            .select(*cols, F.col(map_col))
+        )
 
         return CustomDF(self._name, self._spark_session, self._df, self._partition_name, self._history)
 
-    @property
+    def custom_drop(self, columns: list):
+        """
+        Drops the specified columns from the DataFrame.
+
+        Args:
+            columns (list): A list of column names to drop from the DataFrame.
+
+        Returns:
+            CustomDF: A new CustomDF instance with the specified columns dropped.
+        """
+        copy_df = self._df
+        copy_df = copy_df.drop(*columns)
+        return CustomDF(self._name, self._spark_session, copy_df, self._partition_name, self._history)
+
+    @ property
     def data(self):
         """
         Returns the Spark DataFrame associated with the CustomDF instance.
@@ -484,7 +553,7 @@ class CustomDF:
         """
         return self._df
 
-    @data.setter
+    @ data.setter
     def data(self, new_df: DataFrame):
         """
         Sets the DataFrame associated with the CustomDF instance.
@@ -503,7 +572,7 @@ class CustomDF:
         """
         self._df = new_df
 
-    @property
+    @ property
     def name(self):
         """
         Returns the name of the CustomDF instance.

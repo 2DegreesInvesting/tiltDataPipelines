@@ -1,4 +1,4 @@
-from functions.processing import generate_table
+from functions.processing_raw import generate_table
 
 if __name__ == '__main__':
     # New Sector Profiles
