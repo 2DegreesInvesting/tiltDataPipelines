@@ -172,7 +172,7 @@ def generate_table(table_name: str) -> None:
     elif table_name == "tilt_sector_isic_mapper_raw":
 
         tilt_isic_mapper_landingzone = CustomDF(
-            "tilt_isic_mapper_2023-07-20_landingzone", spark_generate
+            "tilt_isic_mapper_landingzone", spark_generate
         )
 
         tilt_sector_isic_mapper_raw = CustomDF(
@@ -790,6 +790,28 @@ def generate_table(table_name: str) -> None:
         )
 
         tiltLedger_raw.write_table()
+
+    elif table_name == 'markus_companies_raw':
+
+        markus_companies_landingzone = CustomDF(
+            'markus_companies_landingzone', spark_generate)
+
+        markus_companies_raw = CustomDF(
+            "markus_companies_raw", spark_generate, initial_df=markus_companies_landingzone.data
+        )
+
+        markus_companies_raw.write_table()
+
+    elif table_name == 'nace2_isic4_mapper_raw':
+
+        nace2_isic4_landingzone = CustomDF(
+            'nace2_isic4_mapper_landingzone', spark_generate)
+
+        nace2_isic4_mapper_raw = CustomDF(
+            "nace2_isic4_mapper_raw", spark_generate, initial_df=nace2_isic4_landingzone.data
+        )
+
+        nace2_isic4_mapper_raw.write_table()
 
     else:
         raise ValueError(
