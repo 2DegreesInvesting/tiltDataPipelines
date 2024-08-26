@@ -223,7 +223,7 @@ def generate_table(table_name: str) -> None:
             ["company_id"]
         )
 
-        # Add data granularity score
+        # Prep to add data granularity score
         companies_sbi_activities = CustomDF(
             "companies_SBI_activities_datamodel", spark_generate
         )
@@ -233,23 +233,6 @@ def generate_table(table_name: str) -> None:
         )
 
         companies_products = CustomDF("companies_products_datamodel", spark_generate)
-        products = CustomDF("products_datamodel", spark_generate)
-        products = products.custom_select(["product_id", "product_name"])
-
-        companies_products = companies_products.custom_join(
-            products, "product_id", "left"
-        )
-
-        # first aggregate all product names related to a company into one string
-        # then if that string is in fact an empty string, it should also count as null (no products related to the company)
-        companies_products = companies_products.custom_concatenate(
-            groupby_col="company_id", concatenate_col="product_name"
-        )
-
-        companies_products.data = companies_products.data.withColumn(
-            "product_name",
-            F.when(F.col("product_name") == "", None).otherwise(F.col("product_name")),
-        )
 
         companies_raw_final = companies_raw_final.custom_join(
             companies_products, "company_id", "left"
@@ -257,7 +240,7 @@ def generate_table(table_name: str) -> None:
         # Add data granularity score
         companies_raw_final.data = companies_raw_final.data.withColumn(
             "data_granularity",
-            F.when(F.col("product_name").isNotNull(), 2)
+            F.when(F.col("product_id").isNotNull(), 2)
             .when(F.col("sbi_code").isNotNull(), 3)
             .when(F.col("company_description").isNotNull(), 4)
             .otherwise(5),
