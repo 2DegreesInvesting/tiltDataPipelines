@@ -363,7 +363,10 @@ def assign_signalling_id(
     return monitoring_values_df
 
 def ledger_x_ecoinvent_matcher(ledger, ecoinvent):
-    
+
+    ecoinvent = ecoinvent.withColumn('activity_type_manipulated', F.regexp_replace(
+        F.col('activity_type'), 'ordinary ', ''))
+
     ledger_cols = ["ledger."+column for column in ledger.columns]
     init_df = ecoinvent.alias("ei").join(ledger.alias("ledger"),                     
                 (
