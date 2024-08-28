@@ -816,6 +816,17 @@ def generate_table(table_name: str) -> None:
 
         nace2_isic4_mapper_raw.write_table()
 
+    elif table_name == 'markus_matches_raw':
+
+        markus_matches_landingzone = CustomDF(
+            'markus_matches_landingzone', spark_generate)
+
+        markus_matches_raw = CustomDF(
+            "markus_matches_raw", spark_generate, initial_df=markus_matches_landingzone.data
+        )
+        print(markus_matches_raw.data.show())
+        markus_matches_raw.write_table()
+
     else:
         raise ValueError(
             f"The table: {table_name} is not specified in the processing functions"

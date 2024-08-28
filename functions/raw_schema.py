@@ -1414,6 +1414,41 @@ raw_schema = {
         "partition_column": "",
         "quality_checks": [],
     },
+    "markus_matches_raw": {
+        "columns": StructType(
+            [
+                StructField('ID_Nummer', StringType(), True),
+                StructField('Firmenname', StringType(), True),
+                StructField('Tatigkeitsbeschreibung', StringType(), True),
+                StructField('onace_klasse', StringType(), True),
+                StructField('ONACE_Haupttatigkeit_Code', StringType(), True),
+                StructField('ONACE_Haupttatigkeit_Beschreibung',
+                            StringType(), True),
+                StructField('ONACE_Numbers', StringType(), True),
+                StructField('tiltLedger_id', StringType(), True),
+                StructField('CPC_Code', StringType(), True),
+                StructField('CPC_Name', StringType(), True),
+                StructField('ISIC_Code', StringType(), True),
+                StructField('ISIC_Name', StringType(), True),
+                StructField('Activity_Type', StringType(), True),
+                StructField('Manual_Review', StringType(), True),
+                StructField('Verified_Source', StringType(), True),
+                StructField('Present_in_EI', StringType(), True),
+                StructField('which_activity_type', StringType(), True),
+                StructField('match_Jule', StringType(), True),
+                StructField('match_Anne', StringType(), True),
+                StructField('Tilman', StringType(), True),
+                StructField("from_date", DateType(), False),
+                StructField("to_date", DateType(), False),
+                StructField("tiltRecordID", StringType(), False),
+            ]
+        ),
+        "container": "raw",
+        "location": "markus_matches",
+        "type": "delta",
+        "partition_column": "",
+        "quality_checks": [],
+    },
     "nace2_isic4_mapper_raw": {
         "columns": StructType(
             [

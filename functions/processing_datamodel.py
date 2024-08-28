@@ -96,6 +96,43 @@ def generate_table(table_name: str) -> None:
             "country", F.lit("netherlands")
         )
 
+        # Get the markus companies
+        companies_markus_raw = CustomDF('markus_companies_raw', spark_generate)
+
+        # Rename the markus columns
+        rename_dict = {
+            "ID_Nummer": "markus_company_id",
+            "Firmenname": "company_name",
+            "Tatigkeitsbeschreibung": "company_description",
+            "Adresse": "address",
+            "Stadt": "company_city",
+            "PLZ": "postcode",
+        }
+        companies_markus_raw.rename_columns(rename_dict)
+
+        # Add the country column
+        companies_markus_raw.data = companies_markus_raw.data.withColumn(
+            'country_un', F.lit('DE'))
+
+        # Add the source_id
+        companies_markus_raw.data = companies_markus_raw.data.withColumn(
+            'source_id', F.lit('source_5_markus'))
+
+        # Select the markus companies columns
+
+        companies_markus_raw = companies_markus_raw.custom_select(
+            [
+                'markus_company_id',
+                "country_un",
+                "source_id",
+                "company_name",
+                "company_description",
+                "address",
+                "company_city",
+                "postcode"
+            ]
+        )
+
         # process source_id
 
         ep_only = "source_1_ep"
@@ -206,13 +243,15 @@ def generate_table(table_name: str) -> None:
         )
         companies_raw_final = companies_raw_final.custom_distinct()
 
-        companies_raw_final = companies_raw_final.data.dropDuplicates([
-                                                                      'company_id'])
+        companies_raw_final.data = companies_raw_final.data.dropDuplicates([
+            'company_id'])
+
+        companies_raw_final = companies_raw_final.custom_union(
+            companies_markus_raw)
 
         companies_datamodel = CustomDF(
-            "companies_datamodel", spark_generate, initial_df=companies_raw_final
+            "companies_datamodel", spark_generate, initial_df=companies_raw_final.data
         )
-
         companies_datamodel.write_table()
 
     elif table_name == "EP_products_datamodel":
