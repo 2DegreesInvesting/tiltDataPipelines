@@ -5,8 +5,8 @@ if __name__ == '__main__':
 
     signalling_spark_session = create_spark_session()
 
-    table_name_list = ['emission_profile_company_raw', 'emission_profile_product_raw', 'emission_upstream_profile_product_raw', 'emission_upstream_profile_company_raw',
-                       'sector_profile_company_raw', 'sector_profile_product_raw', 'sector_upstream_profile_company_raw', 'sector_upstream_profile_product_raw']
+    table_name_list = ['emission_profile_ledger_enriched', 'emission_profile_ledger_upstream_enriched',
+                       'sector_profile_ledger_enriched', 'sector_profile_ledger_upstream_enriched']
 
     # Apply the checks from dictionary
     for table_name in table_name_list:
