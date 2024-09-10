@@ -493,11 +493,11 @@ landingzone_schema = {
                 StructField("ei_activity_name", StringType(), True),
             ]
         ),
-        "container": "landingzone",
-        "location": "mappers/main_activity_ecoinvent_mapper.csv",
-        "type": "csv",
-        "partition_column": "",
-        "quality_checks": [],
+        'container': 'landingzone',
+        'location': 'mappers/main_activity_ecoinvent_mapper.csv',
+        'type': 'multiline',
+        'partition_column': '',
+        'quality_checks': []
     },
     "sources_mapper_landingzone": {
         "columns": StructType(
@@ -541,16 +541,16 @@ landingzone_schema = {
         "partition_column": "",
         "quality_checks": [],
     },
-    "EP_tilt_sector_mapper_landingzone": {
-        "columns": StructType(
-            [
-                StructField("categories_id", StringType(), False),
-                StructField("group", StringType(), True),
-                StructField("ep_sector", StringType(), False),
-                StructField("ep_subsector", StringType(), True),
-                StructField("tilt_sector", StringType(), True),
-                StructField("tilt_subsector", StringType(), True),
-            ]
+    
+    'EP_tilt_sector_mapper_landingzone': {
+        'columns':  StructType([
+            StructField('categories_id', StringType(), False),
+            StructField('group', StringType(), True),
+            StructField('ep_sector', StringType(), False),
+            StructField('ep_subsector', StringType(), True),
+            StructField('tilt_sector', StringType(), True),
+            StructField('tilt_subsector', StringType(), True)
+        ]
         ),
         "container": "landingzone",
         "location": "mappers/EP_tilt_sector_mapper.csv",
@@ -900,33 +900,6 @@ landingzone_schema = {
         "partition_column": "",
         "quality_checks": [],
     },
-    "ecoinvent_input_data_relevant_columns_landingzone": {
-        "columns": StructType(
-            [
-                StructField("activityId", StringType(), True),
-                StructField("activityName", StringType(), True),
-                StructField("geography", StringType(), True),
-                StructField("reference product", StringType(), True),
-                StructField("group", StringType(), True),
-                StructField("exchange name", StringType(), True),
-                StructField("activityLinkId", StringType(), True),
-                StructField("activityLink_activityName", StringType(), True),
-                StructField("activityLink_geography", StringType(), True),
-                StructField("exchange unitName", StringType(), True),
-                StructField("exchange amount", StringType(), True),
-                StructField("CPC_classificationValue", StringType(), True),
-                StructField(
-                    "By-product classification_classificationValue", StringType(), True
-                ),
-            ]
-        ),
-        "container": "landingzone",
-        # extract from Ecoinvent portal (licensed)
-        "location": "ecoInvent/ecoinvent_input_data_relevant_columns.csv",
-        "type": "multiline",
-        "partition_column": "",
-        "quality_checks": [],
-    },
     "ep_ei_matcher_landingzone": {
         "columns": StructType(
             [
@@ -1255,6 +1228,43 @@ landingzone_schema = {
         "container": "landingzone",
         "location": "tiltLedger/20240729_Ledger_v53.csv",
         "type": "csv_pipe_sep",
+        "partition_column": "",
+        "quality_checks": [],
+    },
+    "inputProducts_landingzone": {
+        "columns": StructType(
+            [
+                StructField("Activity_UUID_Product_UUID", StringType(), True),
+                StructField("Input_Activity_UUID_Product_UUID",
+                            StringType(), True),
+                StructField("Product_Name", StringType(), True),
+                # Here we are using a not string type since it is coming from a parquet file.
+                StructField("Amount", DoubleType(), True),
+            ]
+        ),
+        "container": "landingzone",
+        "location": "ecoInvent/input_products_v_310.parquet",
+        "type": "parquet",
+        "partition_column": "",
+        "quality_checks": [],
+    },
+    "emissionData_landingzone": {
+        "columns": StructType(
+            [
+                StructField("Activity_UUID_Product_UUID", StringType(), True),
+                StructField("elementaryExchangeId", StringType(), True),
+                StructField("output_unit", StringType(), True),
+                StructField("emission", StringType(), True),
+                # Here we are using a not string type since it is coming from a parquet file.
+                StructField("amount", DoubleType(), True),
+                StructField("emissions_unit", StringType(), True),
+                # Here we are using a not string type since it is coming from a parquet file.
+                StructField("carbon_allocation", DoubleType(), True),
+            ]
+        ),
+        "container": "landingzone",
+        "location": "ecoInvent/elementary_exchanges_v_310.parquet",
+        "type": "parquet",
         "partition_column": "",
         "quality_checks": [],
     },

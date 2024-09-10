@@ -461,6 +461,34 @@ class CustomDF(DataReader):
         copy_df = copy_df.replace(replace_na_value, None)
         return CustomDF(self._name, self._spark_session, copy_df, self._partition_name, self._history)
 
+    def custom_average(self, groupby_columns: list, average_column: str) -> 'CustomDF':
+
+        copy_df = self._df
+
+        average_df = copy_df.groupBy(groupby_columns).agg(
+            F.avg(F.col(average_column)).alias(average_column))
+
+        map_col = [
+            col for col in self._df.columns if col.startswith('map_')][0]
+
+        copy_df = copy_df.select(*groupby_columns, F.explode(
+            F.col(map_col)).alias('exploded_table', 'exploded_list'))\
+            .select(*groupby_columns, F.col('exploded_table'), F.explode(F.col('exploded_list')).alias('exploded'))
+
+        copy_df = copy_df\
+            .groupBy(groupby_columns + ['exploded_table'])\
+            .agg(F.collect_set(F.col('exploded')).alias('exploded_fold'))\
+            .groupBy(groupby_columns)\
+            .agg(F.collect_list(F.col('exploded_table')).alias('table_list'), F.collect_list(F.col('exploded_fold')).alias('fold_list'))\
+            .withColumn(map_col, F.map_from_arrays(F.col('table_list'), F.col('fold_list')))\
+            .select(*groupby_columns, F.col(map_col))
+
+        copy_df = average_df.alias('average_df')\
+            .join(copy_df.alias('copy_df'), on=[F.col('average_df.'+column) == F.col('copy_df.'+column) for column in groupby_columns], how='inner')\
+            .select([F.col('average_df.'+column) for column in average_df.columns]+[F.col('copy_df.'+map_col)])
+
+        return CustomDF(self._name, self._spark_session, copy_df, self._partition_name, self._history)
+
     def custom_union(self, custom_other: 'CustomDF'):
         """
         Unions the current CustomDF instance with another CustomDF instance.
