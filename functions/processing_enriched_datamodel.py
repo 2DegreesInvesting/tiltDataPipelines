@@ -322,10 +322,10 @@ def generate_table(table_name: str) -> None:
 
         # PREPPING
         input_sector_profile_ledger = scenario_enriched_ledger.custom_join(combined_scenario_targets,
-                                                                           (F.col("scenario_type") == F.col("scenario_type_y")) &
-                                                                           (F.col("scenario_sector").eqNullSafe(F.col("scenario_sector_y"))) &
-                                                                           (F.col("scenario_subsector").eqNullSafe(
-                                                                               F.col("scenario_subsector_y"))),
+                                                                           (F.lower(F.col("scenario_type")) == F.lower(F.col("scenario_type_y"))) &
+                                                                           (F.lower(F.col("scenario_sector")).eqNullSafe(F.lower(F.col("scenario_sector_y")))) &
+                                                                           (F.lower(F.col("scenario_subsector")).eqNullSafe(
+                                                                               F.lower(F.col("scenario_subsector_y")))),
                                                                            custom_how="left")
         # PREPPING
         input_sector_profile_ledger = input_sector_profile_ledger.custom_select(["tiltledger_id", "tilt_sector", "tilt_subsector", "product_name", "scenario_type",
@@ -537,6 +537,8 @@ def generate_table(table_name: str) -> None:
             emission_profile_ledger.data.benchmark_group.alias(
                 "benchmark"),
             emission_profile_ledger.data.risk_category.alias("score"),
+            emission_profile_ledger.data.average_profile_ranking.alias(
+                "profile_ranking")
         ]).custom_union(
             emission_profile_ledger_upstream.custom_select([
                 emission_profile_ledger_upstream.data.tiltledger_id,
@@ -545,6 +547,7 @@ def generate_table(table_name: str) -> None:
                     "benchmark"),
                 emission_profile_ledger_upstream.data.risk_category.alias(
                     "score"),
+                emission_profile_ledger_upstream.data.profile_ranking
             ]
             )
         ).custom_union(
@@ -554,6 +557,7 @@ def generate_table(table_name: str) -> None:
                 sector_profile_ledger.data.benchmark_group.alias(
                     "benchmark"),
                 sector_profile_ledger.data.risk_category.alias("score"),
+                sector_profile_ledger.data.profile_ranking
             ]
             )
         ).custom_union(
@@ -564,6 +568,7 @@ def generate_table(table_name: str) -> None:
                     "benchmark"),
                 sector_profile_ledger_upstream.data.risk_category.alias(
                     "score"),
+                sector_profile_ledger_upstream.data.profile_ranking
             ]
             )
         )
@@ -585,6 +590,7 @@ def generate_table(table_name: str) -> None:
                 combined_indicator_data.data.Indicator,
                 combined_indicator_data.data.benchmark,
                 combined_indicator_data.data.score,
+                combined_indicator_data.data.profile_ranking,
 
             ])
 
@@ -620,8 +626,11 @@ def generate_table(table_name: str) -> None:
                 merged_company_information.data.data_granularity,
                 indicator_data.data.Indicator,
                 indicator_data.data.benchmark,
-                indicator_data.data.score
+                indicator_data.data.score,
+                indicator_data.data.profile_ranking,
             ])
+
+        company_product_indicators = company_product_indicators.custom_distinct()
 
         # Write the data to storage
         company_product_indicators_enriched = CustomDF("company_product_indicators_enriched", spark_generate,
