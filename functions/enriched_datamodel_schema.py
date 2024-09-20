@@ -140,5 +140,31 @@ enriched_datamodel_schema = {
         'type': 'delta',
         'partition_column': '',
         'quality_checks': []
+    },
+    'company_indicators_enriched': {
+        'columns': StructType([
+            StructField('company_id', StringType(), False),
+            StructField('source_id', StringType(), False),
+            StructField('country', StringType(), False),
+            StructField('Indicator', StringType(), True),
+            StructField('benchmark', StringType(), True),
+            StructField('average_ranking', DoubleType(), True),
+            StructField('company_score', StringType(), True),
+            StructField('amount_low', DoubleType(), True),
+            StructField('amount_medium', DoubleType(), True),
+            StructField('amount_high', DoubleType(), True),
+            StructField('model_certainty', StringType(), True),
+            StructField('data_source_reliability', StringType(), True),
+            StructField('data_granularity', StringType(), True),
+            StructField('from_date', DateType(), False),
+            StructField('to_date', DateType(), False),
+            StructField('tiltRecordID', StringType(), False)
+        ]
+        ),
+        'container': 'enriched',
+        'location': 'company_indicators',
+        'type': 'delta',
+        'partition_column': '',
+        'quality_checks': []
     }
 }
