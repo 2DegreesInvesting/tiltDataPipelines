@@ -603,11 +603,11 @@ def emissions_profile_upstream_compute(emission_data_upstream, ledger_ecoinvent_
         #     *[F.col(c).alias("input_" + c) for c in ledger_ecoinvent_mapping.columns]
         # )
 
-        # concatenated_df = concatenated_df.join(input_ledger_ecoinvent_mapping, on="input_activity_uuid_product_uuid", how="left").filter(F.col("input_tiltledger_id").isNotNull())
-        #*
+        concatenated_df = concatenated_df.select(["input_activity_uuid_product_uuid", "tiltledger_id", "benchmark_group", "profile_ranking",
+                                                  "input_product_name", "input_co2_footprint"])
 
-        # Drop duplicate tilt records per benchmark type
-        concatenated_df = concatenated_df.dropDuplicates(subset=["input_activity_uuid_product_uuid","tiltledger_id", "benchmark_group"])
+        concatenated_df = concatenated_df.groupBy(["tiltledger_id", "benchmark_group"]).agg(F.avg("profile_ranking").alias("average_input_profile_rank"),
+                                                                                            F.avg("input_co2_footprint").alias("average_input_co2_footprint"))
 
         concatenated_df = concatenated_df.withColumn(
             "risk_category",
@@ -615,8 +615,8 @@ def emissions_profile_upstream_compute(emission_data_upstream, ledger_ecoinvent_
             .when((F.col("profile_ranking") > 1/3) & 
                 (F.col("profile_ranking") <= 2/3), "medium")
             .otherwise("high")
-        ).withColumnsRenamed({"reference_product_name": "product_name"})
-        
+        )
+
     return concatenated_df
 
 def calculate_reductions(reductions_dataframe, name_replace_dict):
