@@ -502,6 +502,22 @@ def generate_table(table_name: str) -> None:
 
         ecoinvent_input_data_datamodel.write_table()
 
+    elif table_name == "scope_1_emissions_datamodel":
+            
+        emissions_data_raw = CustomDF("emissionData_raw", spark_generate)
+
+        emissions_data_raw = emissions_data_raw.custom_select(["Activity_UUID_Product_UUID","emission", "amount", "emissions_unit", "carbon_allocation"])
+
+        emissions_data_raw.rename_columns({"Activity_UUID_Product_UUID": "activity_uuid_product_uuid"})
+
+        scope_1_emissions_datamodel = CustomDF(
+            "scope_1_emissions_datamodel",
+            spark_generate,
+            initial_df=emissions_data_raw.data,
+        )
+
+        scope_1_emissions_datamodel.write_table()
+
     # Mappers data
 
     elif table_name == "sources_mapper_datamodel":

@@ -56,3 +56,4 @@ if __name__ == '__main__':
 
     generate_table_datamodel('ecoinvent_input_data_datamodel') 
     generate_table_datamodel("ledger_ecoinvent_mapping")
+    generate_table_datamodel("scope_1_emissions_datamodel")
