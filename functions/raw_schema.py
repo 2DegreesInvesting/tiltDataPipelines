@@ -1361,4 +1361,26 @@ raw_schema = {
         "partition_column": "",
         "quality_checks": [],
     },
+    "scope_2_mandatory_ghgs_raw": {
+        "columns": StructType(
+            [
+                StructField("Activity_Name", StringType(), True),
+                StructField("Geography", StringType(), True),
+                StructField("Reference_Product", StringType(), True),
+                StructField("scope_2kg_CO2_eq_kWh", DoubleType(), True),
+                StructField("scope_3_+_transmission_and_distribution_losseskg_CO2_eq_kWh", DoubleType(), True),
+                StructField("scope_3kg_CO2_eq_kWh", DoubleType(), True),
+                StructField("scope_3_transmission_and_distribution_losseskg_CO2_eq_kWh", DoubleType(), True),
+                StructField("comment", StringType(), True),
+                StructField("from_date", DateType(), False),
+                StructField("to_date", DateType(), False),
+                StructField("tiltRecordID", StringType(), False),
+            ]
+        ),
+        "container": "raw",
+        "location": "scope_2_mandatory_ghgs",
+        "type": "delta",
+        "partition_column": "",
+        "quality_checks": [],
+    }
 }
