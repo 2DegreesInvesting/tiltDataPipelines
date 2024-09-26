@@ -426,6 +426,23 @@ raw_schema = {
         "partition_column": "",
         "quality_checks": [],
     },
+    "multi_SBI_companyinfo_raw": {
+        "columns": StructType(
+            [
+                StructField("SIZOKEY", StringType(), False),
+                StructField("SIZOSBI", StringType(), False),
+                StructField("SBI-Code", StringType(), False),
+                StructField("SIZRVOLGNR", StringType(), False),
+                StructField("Soort_SBI-code_Kamer_van_Koophandel", StringType(), False),
+                StructField("Soort_SBI-Bron_ID", StringType(), False),
+            ]
+        ),
+        "container": "raw",
+        "location": "multi_SBI_companyinfo",
+        "type": "delta",
+        "partition_column": "",
+        "quality_checks": [],
+    },
     "country_raw": {
         "columns": StructType(
             [
