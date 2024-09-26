@@ -213,7 +213,7 @@ def generate_table(table_name: str) -> None:
 
         companies_datamodel.write_table()
 
-    elif table_name == "EP_products_datamodel":
+    elif table_name == "products_datamodel":
 
         companies_europages_raw = CustomDF(
             "companies_europages_raw", spark_generate)
@@ -246,7 +246,7 @@ def generate_table(table_name: str) -> None:
 
         products_datamodel.write_table()
 
-    elif table_name == "companies_EP_products_datamodel":
+    elif table_name == "companies_products_datamodel":
 
         companies_europages_raw = CustomDF(
             "companies_europages_raw", spark_generate)
