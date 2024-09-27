@@ -888,32 +888,40 @@ def generate_table(table_name: str) -> None:
 
         multi_SBI_companyinfo_raw.rename_columns({"SIZOSBI": "sbi_code"})
 
-        grouped = multi_SBI_companyinfo_raw.data.groupBy("SIZOKEY").agg(
-            F.countDistinct("Bron_ID").alias("num_sources")
+        grouped = multi_SBI_companyinfo_raw.custom_groupby(
+            ["SIZOKEY"], F.countDistinct("Bron_ID").alias("num_sources")
+        )
+        grouped.data = grouped.data.filter(F.col("num_sources") == 1)
+        single_source_df = multi_SBI_companyinfo_raw.custom_join(
+            grouped, "SIZOKEY", "inner"
         )
 
-        single_source = grouped.filter(F.col("num_sources") == 1)
-        single_source_df = multi_SBI_companyinfo_raw.data.join(
-            single_source, "SIZOKEY", "inner"
-        ).select("SIZOKEY", "sbi_code")
+        grouped = multi_SBI_companyinfo_raw.custom_groupby(
+            ["SIZOKEY"], F.countDistinct("Bron_ID").alias("num_sources")
+        )
+        grouped.data = grouped.data.filter(F.col("num_sources") > 1)
 
-        multi_source = grouped.filter(F.col("num_sources") > 1)
-
-        multi_source_df = (
-            multi_SBI_companyinfo_raw.data.join(multi_source, "SIZOKEY", "inner")
-            .filter(F.col("Bron_ID") == "Company.info (Data Science)")
-            .select("SIZOKEY", "sbi_code")
+        multi_source_df = multi_SBI_companyinfo_raw.custom_join(
+            grouped, "SIZOKEY", "inner"
+        )
+        multi_source_df.data = multi_source_df.data.filter(
+            F.col("Bron_ID") == "Company.info (Data Science)"
         )
 
-        multi_df = single_source_df.union(multi_source_df)
+        multi_df = single_source_df.custom_union(multi_source_df)
 
-        companies_companyinfo_raw.data = companies_companyinfo_raw.data.join(
-            multi_df, "SIZOKEY", "right"
+        multi_df = (
+            companies_companyinfo_raw.custom_select(["company_id", "SIZOKEY"])
+            .custom_join(multi_df, "SIZOKEY", "inner")
+            .custom_select(["company_id", "sbi_code"])
         )
 
-        companies_sbi_activities = companies_companyinfo_raw.custom_select(
+        companies_companyinfo_raw = companies_companyinfo_raw.custom_select(
             ["company_id", "sbi_code"]
-        ).custom_distinct()
+        )
+        companies_sbi_activities = multi_df.custom_union(companies_companyinfo_raw)
+
+        companies_sbi_activities = companies_sbi_activities.custom_distinct()
 
         companies_SBI_activities_datamodel = CustomDF(
             "companies_SBI_activities_datamodel",
