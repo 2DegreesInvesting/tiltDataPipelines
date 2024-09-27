@@ -431,10 +431,13 @@ raw_schema = {
             [
                 StructField("SIZOKEY", StringType(), False),
                 StructField("SIZOSBI", StringType(), False),
-                StructField("SBI-Code", StringType(), False),
+                StructField("SBI_Code", StringType(), False),
                 StructField("SIZRVOLGNR", StringType(), False),
-                StructField("Soort_SBI-code_Kamer_van_Koophandel", StringType(), False),
-                StructField("Soort_SBI-Bron_ID", StringType(), False),
+                StructField("Soort_SBI_code_Kamer_van_Koophandel", StringType(), False),
+                StructField("Bron_ID", StringType(), False),
+                StructField("from_date", DateType(), False),
+                StructField("to_date", DateType(), False),
+                StructField("tiltRecordID", StringType(), False),
             ]
         ),
         "container": "raw",
