@@ -416,23 +416,6 @@ def generate_table(table_name: str) -> None:
         )
         ecoinvent_co2_raw.write_table()
 
-    elif table_name == "ecoinvent_input_data_raw":
-
-        ecoinvent_input_data_relevant_columns_landingzone = CustomDF(
-            "ecoinvent_input_data_relevant_columns_landingzone", spark_generate
-        )
-
-        ecoinvent_input_data_relevant_columns_landingzone.convert_data_types(
-            ["exchange_amount"], DecimalType(25, 10)
-        )
-
-        ecoinvent_input_data_raw = CustomDF(
-            "ecoinvent_input_data_raw",
-            spark_generate,
-            initial_df=ecoinvent_input_data_relevant_columns_landingzone.data.distinct(),
-        )
-        ecoinvent_input_data_raw.write_table()
-
     elif table_name == "ep_ei_matcher_raw":
 
         ep_ei_matcher_landingzone = CustomDF(
@@ -464,7 +447,16 @@ def generate_table(table_name: str) -> None:
 
         mapper_ep_ei_raw.write_table()
 
-    elif table_name == "emission_profile_company_raw":
+    elif table_name == "main_activity_ecoinvent_mapper_raw":
+        main_activity_ecoinvent_mapper_landingzone = CustomDF(
+            "main_activity_ecoinvent_mapper_landingzone", spark_generate)
+        
+        main_activity_ecoinvent_mapper_raw = CustomDF(
+            "main_activity_ecoinvent_mapper_raw", spark_generate, initial_df=main_activity_ecoinvent_mapper_landingzone.data)
+
+        main_activity_ecoinvent_mapper_raw.write_table()
+
+    elif table_name == 'emission_profile_company_raw':
 
         emission_profile_company_landingzone = CustomDF(
             "emission_profile_company_landingzone", spark_generate
@@ -790,6 +782,26 @@ def generate_table(table_name: str) -> None:
         )
 
         tiltLedger_raw.write_table()
+
+    elif table_name == 'inputProducts_raw':
+
+        inputProducts_landingzone = CustomDF(
+            'inputProducts_landingzone', spark_generate)
+
+        inputProducts_raw = CustomDF(
+            'inputProducts_raw', spark_generate, initial_df=inputProducts_landingzone.data)
+
+        inputProducts_raw.write_table()
+
+    elif table_name == 'emissionData_raw':
+
+        emissionData_landingzone = CustomDF(
+            'emissionData_landingzone', spark_generate)
+
+        emissionData_raw = CustomDF(
+            'emissionData_raw', spark_generate, initial_df=emissionData_landingzone.data)
+
+        emissionData_raw.write_table()
 
     else:
         raise ValueError(
