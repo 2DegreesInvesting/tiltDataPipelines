@@ -488,5 +488,24 @@ datamodel_schema = {
         "type": "delta",
         "partition_column": "",
         "quality_checks": [],
+    },
+    "scope_3_emissions_datamodel": {
+        "columns": StructType(
+            [
+                StructField("activity_name", StringType(), True),
+                StructField("geography", StringType(), True),
+                StructField("reference_product_name", StringType(), True),
+                StructField("scope_3_emission", DoubleType(), True),
+                StructField("from_date", DateType(), False),
+                StructField("to_date", DateType(), False),
+                StructField("tiltRecordID", StringType(), False),
+            ]
+        ),
+        "container": "datamodel",
+        "location": "scope_3_emissions",
+        "type": "delta",
+        "partition_column": "",
+        "quality_checks": [],
     }
+    
 }
