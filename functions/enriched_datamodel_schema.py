@@ -102,5 +102,38 @@ enriched_datamodel_schema = {
         'type': 'delta',
         'partition_column': '',
         'quality_checks': []
+    },
+    'company_product_indicators_enriched': {
+        'columns': StructType([
+            StructField('company_id', StringType(), False),
+            StructField('source_id', StringType(), False),
+            StructField('country', StringType(), False),
+            StructField('tilt_sector', StringType(), True),
+            StructField('tilt_subsector', StringType(), True),
+            StructField('tiltledger_id', StringType(), True),
+            StructField('activity_type', StringType(), True),
+            StructField('geography', StringType(), True),
+            StructField('CPC_Code', StringType(), True),
+            StructField('CPC_Name', StringType(), True),
+            StructField('ISIC_Code', StringType(), True),
+            StructField('ISIC_Name', StringType(), True),
+            StructField('companies_ledger_matches', StringType(), True),
+            StructField('model_certainty', StringType(), True),
+            StructField('data_source_reliability', StringType(), True),
+            StructField('data_granularity', StringType(), True),
+            StructField('Indicator', StringType(), True),
+            StructField('benchmark', StringType(), True),
+            StructField('score', StringType(), True),
+            StructField('profile_ranking', StringType(), True),
+            StructField('from_date', DateType(), False),
+            StructField('to_date', DateType(), False),
+            StructField('tiltRecordID', StringType(), False)
+        ]
+        ),
+        'container': 'enriched',
+        'location': 'company_product_indicators',
+        'type': 'delta',
+        'partition_column': '',
+        'quality_checks': []
     }
 }

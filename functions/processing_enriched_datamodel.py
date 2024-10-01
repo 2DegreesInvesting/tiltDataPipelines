@@ -257,9 +257,14 @@ def generate_table(table_name: str) -> None:
     elif table_name == 'sector_profile_ledger_enriched':
         print(f"Loading data for {table_name}")
         # LOAD
+        # LOAD
         # tilt data
         tilt_ledger = CustomDF("tiltLedger_datamodel", spark_generate)
         # mappers
+        tilt_sector_isic_mapper = CustomDF(
+            "tilt_sector_isic_mapper_datamodel", spark_generate)
+        tilt_sector_scenario_mapper = CustomDF(
+            "tilt_sector_scenario_mapper_datamodel", spark_generate)
         tilt_sector_isic_mapper = CustomDF(
             "tilt_sector_isic_mapper_datamodel", spark_generate)
         tilt_sector_scenario_mapper = CustomDF(
@@ -531,6 +536,138 @@ def generate_table(table_name: str) -> None:
         # WRITE
         transition_risk_ledger_level.write_table()
         print("Data written successfully!\n")
+
+    elif table_name == 'company_product_indicators_enriched':
+
+        companies = CustomDF("companies_datamodel", spark_generate)
+        tiltledger_mapping = CustomDF(
+            "tiltLedger_mapping_datamodel", spark_generate)
+        sources_mapper = CustomDF("sources_mapper_datamodel", spark_generate)
+        tiltledger = CustomDF("tiltLedger_datamodel", spark_generate)
+        emission_profile_ledger = CustomDF(
+            "emission_profile_ledger_enriched", spark_generate)
+        emission_profile_ledger_upstream = CustomDF(
+            "emission_profile_ledger_upstream_enriched", spark_generate)
+        sector_profile_ledger = CustomDF(
+            "sector_profile_ledger_enriched", spark_generate)
+        sector_profile_ledger_upstream = CustomDF(
+            "sector_profile_ledger_upstream_enriched", spark_generate)
+        transition_risk_ledger_level = CustomDF(
+            "transition_risk_ledger_enriched", spark_generate)
+        tilt_sector_isic_mapper = CustomDF(
+            "tilt_sector_isic_mapper_datamodel", spark_generate)
+        # model_certainty_view = CustomDF("model_certainty_view") <- this one is replaced with the model certainty column in the tiltLedger_mapping_datamodel
+
+        # Combine indicators
+
+        # Union the information for the different indicators
+        combined_indicator_data = emission_profile_ledger.custom_select([
+            emission_profile_ledger.data.tiltledger_id,
+            F.lit('EP').alias('Indicator'),
+            emission_profile_ledger.data.benchmark_group.alias(
+                "benchmark"),
+            emission_profile_ledger.data.risk_category.alias("score"),
+            emission_profile_ledger.data.average_profile_ranking.alias(
+                "profile_ranking")
+        ]).custom_union(
+            emission_profile_ledger_upstream.custom_select([
+                emission_profile_ledger_upstream.data.tiltledger_id,
+                F.lit('EPU').alias('Indicator'),
+                emission_profile_ledger_upstream.data.benchmark_group.alias(
+                    "benchmark"),
+                emission_profile_ledger_upstream.data.risk_category.alias(
+                    "score"),
+                emission_profile_ledger_upstream.data.profile_ranking
+            ]
+            )
+        ).custom_union(
+            sector_profile_ledger.custom_select([
+                sector_profile_ledger.data.tiltledger_id,
+                F.lit('SP').alias('Indicator'),
+                sector_profile_ledger.data.benchmark_group.alias(
+                    "benchmark"),
+                sector_profile_ledger.data.risk_category.alias("score"),
+                sector_profile_ledger.data.profile_ranking
+            ]
+            )
+        ).custom_union(
+            sector_profile_ledger_upstream.custom_select([
+                sector_profile_ledger_upstream.data.tiltledger_id,
+                F.lit('SPU').alias('Indicator'),
+                sector_profile_ledger_upstream.data.benchmark_group.alias(
+                    "benchmark"),
+                sector_profile_ledger_upstream.data.risk_category.alias(
+                    "score"),
+                sector_profile_ledger_upstream.data.profile_ranking
+            ]
+            )
+        )
+
+        # Combine Indicator with tiltLedger
+        indicator_data = tiltledger.custom_join(
+            combined_indicator_data, custom_on=combined_indicator_data.data.tiltledger_id == tiltledger.data.tiltLedger_id, custom_how="left")\
+            .custom_join(tilt_sector_isic_mapper, custom_on=(tiltledger.data.ISIC_Code == tilt_sector_isic_mapper.data.isic_4digit), custom_how="left")\
+            .custom_select([
+                combined_indicator_data.data.tiltledger_id,
+                tilt_sector_isic_mapper.data.tilt_sector,
+                tilt_sector_isic_mapper.data.tilt_subsector,
+                tiltledger.data.Activity_Type,
+                tiltledger.data.CPC_Code,
+                tiltledger.data.CPC_Name,
+                tiltledger.data.Geography,
+                tiltledger.data.ISIC_Code,
+                tiltledger.data.ISIC_Name,
+                combined_indicator_data.data.Indicator,
+                combined_indicator_data.data.benchmark,
+                combined_indicator_data.data.score,
+                combined_indicator_data.data.profile_ranking,
+
+            ])
+
+        # Prepare Company Data
+        merged_company_information = companies.custom_join(sources_mapper, custom_on=(companies.data.source_id == sources_mapper.data.source_id), custom_how="left").custom_select([
+            companies.data.company_id,
+            companies.data.source_id,
+            companies.data.country_un.alias("country"),
+            sources_mapper.data.data_source_reliability,
+            companies.data.data_granularity
+        ])
+
+        # Combine Company with Indicator Data and select columns in the appropriate order
+        company_product_indicators = merged_company_information.custom_join(tiltledger_mapping, custom_on=(companies.data.company_id == tiltledger_mapping.data.company_id), custom_how="left")\
+            .custom_join(indicator_data, custom_on=(indicator_data.data.tiltledger_id == tiltledger_mapping.data.tiltLedger_id), custom_how="left")\
+            .custom_select([
+                merged_company_information.data.company_id,
+                merged_company_information.data.source_id,
+                merged_company_information.data.country,
+                indicator_data.data.tilt_sector,
+                indicator_data.data.tilt_subsector,
+                indicator_data.data.tiltledger_id,
+                indicator_data.data.Activity_Type.alias('activity_type'),
+                indicator_data.data.Geography.alias('geography'),
+                indicator_data.data.CPC_Code,
+                indicator_data.data.CPC_Name,
+                indicator_data.data.ISIC_Code,
+                indicator_data.data.ISIC_Name,
+                tiltledger_mapping.data.company_id.alias(
+                    "companies_ledger_matches"),
+                tiltledger_mapping.data.model_certainty,
+                merged_company_information.data.data_source_reliability,
+                merged_company_information.data.data_granularity,
+                indicator_data.data.Indicator,
+                indicator_data.data.benchmark,
+                indicator_data.data.score,
+                indicator_data.data.profile_ranking,
+            ])
+
+        company_product_indicators = company_product_indicators.custom_distinct()
+
+        # Write the data to storage
+        company_product_indicators_enriched = CustomDF("company_product_indicators_enriched", spark_generate,
+                                                       initial_df=company_product_indicators.data)
+
+        company_product_indicators_enriched.write_table()
+
     else:
         raise ValueError(
             f'The table: {table_name} is not specified in the processing functions')
