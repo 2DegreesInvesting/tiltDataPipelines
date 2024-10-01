@@ -634,8 +634,8 @@ def emissions_profile_upstream_compute(emission_data_upstream, ledger_ecoinvent_
     emission_data_upstream.data = emission_data_upstream.data.withColumn(
         "benchmark_group", F.regexp_replace(F.col('benchmark_group'), 'rank_', ''))
 
-    emission_data_upstream = emission_data_upstream.custom_join(
-        ledger_ecoinvent_mapping, custom_on="activity_uuid_product_uuid", custom_how="left")
+    emission_data_upstream = ledger_ecoinvent_mapping.custom_join(
+        emission_data_upstream, custom_on="activity_uuid_product_uuid", custom_how="left")
 
     emission_data_upstream.data = emission_data_upstream.data.filter(
         F.col("benchmark_group").isNotNull())
