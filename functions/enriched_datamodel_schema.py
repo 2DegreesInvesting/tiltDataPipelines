@@ -66,16 +66,13 @@ enriched_datamodel_schema = {
     },
     'sector_profile_ledger_upstream_enriched': {
         'columns': StructType([
-            StructField('input_tiltledger_id', StringType(), False),
-            StructField('tiltledger_id', StringType(), False),
+            StructField('tiltLedger_id', StringType(), False),
             StructField('benchmark_group', StringType(), False),
+            StructField('scenario_type', StringType(), False),
+            StructField('scenario_name', StringType(), False),
+            StructField('year', StringType(), False),
             StructField('risk_category', StringType(), False),
-            StructField('profile_ranking', StringType(), False),
-            StructField('input_product_name', StringType(), False),
-            StructField('input_tilt_sector', StringType(), False),
-            StructField('input_scenario_name', StringType(), False),
-            StructField('input_scenario_type', StringType(), False),
-            StructField('input_year', StringType(), False),
+            StructField('profile_ranking', DoubleType(), False),
             StructField('from_date', DateType(), False),
             StructField('to_date', DateType(), False),
             StructField('tiltRecordID', StringType(), False)

@@ -593,69 +593,84 @@ def emissions_profile_compute(emission_data, ledger_ecoinvent_mapping,  output_t
 
 def emissions_profile_upstream_compute(emission_data_upstream, ledger_ecoinvent_mapping, output_type="combined"):
 
-    # define a dictionary with the 6 different benchmark types
-    benchmark_types = {
-        "all": [],
-        "window_input_isic_4digit": ["input_isic_4digit"],
-        "window_input_tilt_sector": ["input_tilt_sector"],
-        "window_input_unit": ["input_unit"],
-        "window_input_unit_isic_4digit": ["input_unit", "input_isic_4digit"],
-        "window_input_unit_tilt_sector": ["input_unit", "input_tilt_sector"]
-    }
+    if output_type == "combined":
 
-    window_all = Window.orderBy("input_co2_footprint")
-    window_input_isic_4digit = Window.partitionBy(
-        "input_isic_code").orderBy("input_co2_footprint")
-    window_input_tilt_sector = Window.partitionBy(
-        "input_tilt_sector").orderBy("input_co2_footprint")
-    window_input_unit = Window.partitionBy(
-        "input_unit").orderBy("input_co2_footprint")
-    window_input_unit_isic_4digit = Window.partitionBy(
-        "input_unit", "input_isic_code").orderBy("input_co2_footprint")
-    window_input_unit_tilt_sector = Window.partitionBy(
-        "input_unit", "input_tilt_sector").orderBy("input_co2_footprint")
+        # define a dictionary with the 6 different benchmark types
+        benchmark_types = {
+            "all": [],
+            "window_input_isic_4digit": ["input_isic_4digit"],
+            "window_input_tilt_sector": ["input_tilt_sector"],
+            "window_input_unit": ["input_unit"],
+            "window_input_unit_isic_4digit": ["input_unit", "input_isic_4digit"],
+            "window_input_unit_tilt_sector": ["input_unit", "input_tilt_sector"]
+        }
 
-    emission_data_upstream.data = emission_data_upstream.data.withColumn(
-        "rank_all", F.dense_rank().over(window_all)/F.count('*').over(window_all))
-    emission_data_upstream.data = emission_data_upstream.data.withColumn(
-        "rank_input_isic_4digit", F.dense_rank().over(window_input_isic_4digit)/F.count('*').over(window_input_isic_4digit))
-    emission_data_upstream.data = emission_data_upstream.data.withColumn(
-        "rank_input_tilt_sector", F.dense_rank().over(window_input_tilt_sector)/F.count('*').over(window_input_tilt_sector))
-    emission_data_upstream.data = emission_data_upstream.data.withColumn(
-        "rank_input_unit", F.dense_rank().over(window_input_unit)/F.count('*').over(window_input_unit))
-    emission_data_upstream.data = emission_data_upstream.data.withColumn(
-        "rank_input_unit_isic_4digit", F.dense_rank().over(window_input_unit_isic_4digit)/F.count('*').over(window_input_unit_isic_4digit))
-    emission_data_upstream.data = emission_data_upstream.data.withColumn(
-        "rank_input_unit_tilt_sector", F.dense_rank().over(window_input_unit_tilt_sector)/F.count('*').over(window_input_unit_tilt_sector))
+        window_all = Window.orderBy("input_co2_footprint")
+        window_input_isic_4digit = Window.partitionBy(
+            "input_isic_code").orderBy("input_co2_footprint")
+        window_input_tilt_sector = Window.partitionBy(
+            "input_tilt_sector").orderBy("input_co2_footprint")
+        window_input_unit = Window.partitionBy(
+            "input_unit").orderBy("input_co2_footprint")
+        window_input_unit_isic_4digit = Window.partitionBy(
+            "input_unit", "input_isic_code").orderBy("input_co2_footprint")
+        window_input_unit_tilt_sector = Window.partitionBy(
+            "input_unit", "input_tilt_sector").orderBy("input_co2_footprint")
 
-    emission_data_upstream.data = emission_data_upstream.data.unpivot(["activity_uuid_product_uuid", "input_activity_uuid_product_uuid", "input_co2_footprint", emission_data_upstream.map_col], [
-                                                                      "rank_all", "rank_input_isic_4digit", "rank_input_tilt_sector", "rank_input_unit", "rank_input_unit_isic_4digit", "rank_input_unit_tilt_sector"], "benchmark_group", "profile_ranking")
+        emission_data_upstream.data = emission_data_upstream.data.withColumn(
+            "rank_all", F.dense_rank().over(window_all))
+        emission_data_upstream.data = emission_data_upstream.data.withColumn(
+            "rank_input_isic_4digit", F.dense_rank().over(window_input_isic_4digit))
+        emission_data_upstream.data = emission_data_upstream.data.withColumn(
+            "rank_input_tilt_sector", F.dense_rank().over(window_input_tilt_sector))
+        emission_data_upstream.data = emission_data_upstream.data.withColumn(
+            "rank_input_unit", F.dense_rank().over(window_input_unit))
+        emission_data_upstream.data = emission_data_upstream.data.withColumn(
+            "rank_input_unit_isic_4digit", F.dense_rank().over(window_input_unit_isic_4digit))
+        emission_data_upstream.data = emission_data_upstream.data.withColumn(
+            "rank_input_unit_tilt_sector", F.dense_rank().over(window_input_unit_tilt_sector))
 
-    emission_data_upstream.data = emission_data_upstream.data.withColumn(
-        "benchmark_group", F.regexp_replace(F.col('benchmark_group'), 'rank_', ''))
+        emission_data_upstream.data = emission_data_upstream.data.withColumn(
+            "rank_all", F.col("rank_all")/F.max("rank_all").over(window_all.rangeBetween(Window.unboundedPreceding, Window.unboundedFollowing)))
+        emission_data_upstream.data = emission_data_upstream.data.withColumn(
+            "rank_input_isic_4digit", F.col("rank_input_isic_4digit")/F.max("rank_input_isic_4digit").over(window_input_isic_4digit.rangeBetween(Window.unboundedPreceding, Window.unboundedFollowing)))
+        emission_data_upstream.data = emission_data_upstream.data.withColumn(
+            "rank_input_tilt_sector", F.col("rank_input_tilt_sector")/F.max("rank_input_tilt_sector").over(window_input_tilt_sector.rangeBetween(Window.unboundedPreceding, Window.unboundedFollowing)))
+        emission_data_upstream.data = emission_data_upstream.data.withColumn(
+            "rank_input_unit", F.col("rank_input_unit")/F.max("rank_input_unit").over(window_input_unit.rangeBetween(Window.unboundedPreceding, Window.unboundedFollowing)))
+        emission_data_upstream.data = emission_data_upstream.data.withColumn(
+            "rank_input_unit_isic_4digit", F.col("rank_input_unit_isic_4digit")/F.max("rank_input_unit_isic_4digit").over(window_input_unit_isic_4digit.rangeBetween(Window.unboundedPreceding, Window.unboundedFollowing)))
+        emission_data_upstream.data = emission_data_upstream.data.withColumn(
+            "rank_input_unit_tilt_sector", F.col("rank_input_unit_tilt_sector")/F.max("rank_input_unit_tilt_sector").over(window_input_unit_tilt_sector.rangeBetween(Window.unboundedPreceding, Window.unboundedFollowing)))
 
-    emission_data_upstream = ledger_ecoinvent_mapping.custom_join(
-        emission_data_upstream, custom_on="activity_uuid_product_uuid", custom_how="left")
+        emission_data_upstream.data = emission_data_upstream.data.unpivot(["activity_uuid_product_uuid", "input_activity_uuid_product_uuid", "input_co2_footprint", emission_data_upstream.map_col], [
+            "rank_all", "rank_input_isic_4digit", "rank_input_tilt_sector", "rank_input_unit", "rank_input_unit_isic_4digit", "rank_input_unit_tilt_sector"], "benchmark_group", "profile_ranking")
 
-    emission_data_upstream.data = emission_data_upstream.data.filter(
-        F.col("benchmark_group").isNotNull())
+        emission_data_upstream.data = emission_data_upstream.data.withColumn(
+            "benchmark_group", F.regexp_replace(F.col('benchmark_group'), 'rank_', ''))
 
-    emission_data_upstream = emission_data_upstream.custom_select(
-        ["input_activity_uuid_product_uuid", "tiltledger_id", "benchmark_group", "profile_ranking", "input_co2_footprint"])
+        emission_data_upstream = ledger_ecoinvent_mapping.custom_join(
+            emission_data_upstream, custom_on="activity_uuid_product_uuid", custom_how="left")
 
-    emission_data_upstream = emission_data_upstream.custom_groupby(["tiltledger_id", "benchmark_group"], F.avg("profile_ranking").alias("average_input_profile_rank"),
-                                                                   F.avg("input_co2_footprint").alias("average_input_co2_footprint"))
+        emission_data_upstream.data = emission_data_upstream.data.filter(
+            F.col("benchmark_group").isNotNull())
 
-    emission_data_upstream.data = emission_data_upstream.data.withColumn(
-        "risk_category",
-        F.when(F.col("average_input_profile_rank") <= 1/3, "low")
-        .when((F.col("average_input_profile_rank") > 1/3) &
-              (F.col("average_input_profile_rank") <= 2/3), "medium")
-         .otherwise("high")
-    )
+        emission_data_upstream = emission_data_upstream.custom_select(
+            ["input_activity_uuid_product_uuid", "tiltledger_id", "benchmark_group", "profile_ranking", "input_co2_footprint"])
 
-    emission_data_upstream = emission_data_upstream.custom_select(
-        ['tiltledger_id', 'benchmark_group', 'average_input_profile_rank', 'average_input_co2_footprint', 'risk_category'])
+        emission_data_upstream = emission_data_upstream.custom_groupby(["tiltledger_id", "benchmark_group"], F.avg("profile_ranking").alias("average_input_profile_rank"),
+                                                                       F.avg("input_co2_footprint").alias("average_input_co2_footprint"))
+
+        emission_data_upstream.data = emission_data_upstream.data.withColumn(
+            "risk_category",
+            F.when(F.col("average_input_profile_rank") <= 1/3, "low")
+            .when((F.col("average_input_profile_rank") > 1/3) &
+                  (F.col("average_input_profile_rank") <= 2/3), "medium")
+            .otherwise("high")
+        )
+
+        emission_data_upstream = emission_data_upstream.custom_select(
+            ['tiltledger_id', 'benchmark_group', 'average_input_profile_rank', 'average_input_co2_footprint', 'risk_category'])
 
     return emission_data_upstream
 
