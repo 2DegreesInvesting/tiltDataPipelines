@@ -1361,7 +1361,7 @@ raw_schema = {
         "partition_column": "",
         "quality_checks": [],
     },
-    "scope_2_mandatory_ghgs_raw": {
+    "scope_2_and_3_mandatory_ghgs_raw": {
         "columns": StructType(
             [
                 StructField("Activity_Name", StringType(), True),
@@ -1378,7 +1378,7 @@ raw_schema = {
             ]
         ),
         "container": "raw",
-        "location": "scope_2_mandatory_ghgs",
+        "location": "scope_2_and_3_mandatory_ghgs",
         "type": "delta",
         "partition_column": "",
         "quality_checks": [],
