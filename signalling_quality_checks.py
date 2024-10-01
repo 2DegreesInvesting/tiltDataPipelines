@@ -5,8 +5,11 @@ if __name__ == '__main__':
 
     signalling_spark_session = create_spark_session()
 
-    table_name_list = ['emission_profile_company_raw', 'emission_profile_product_raw', 'emission_upstream_profile_product_raw', 'emission_upstream_profile_company_raw',
-                       'sector_profile_company_raw', 'sector_profile_product_raw', 'sector_upstream_profile_company_raw', 'sector_upstream_profile_product_raw']
+    table_name_list = ['undefined_ao_raw', 'cut_off_ao_raw', 'en15804_ao_raw', 'consequential_ao_raw', 'impact_categories_raw', 'intermediate_exchanges_raw', 'elementary_exchanges_raw', 'inputProducts_raw', 
+                       'ecoinvent_product_datamodel', 'companies_datamodel', 'ecoinvent_product_datamodel', 'isic_mapper_datamodel', 'tilt_sector_isic_mapper_datamodel', 'tilt_sector_scenario_mapper_datamodel', 'tiltLedger_datamodel',
+                       'emission_profile_ledger_enriched', 'emission_profile_ledger_upstream_enriched', 'sector_profile_ledger_enriched', 'transition_risk_ledger_enriched', 'company_product_indicators_enriched']
+    
+    # sector_profile_ledger_upstream_enriched, 'company_indicators'
 
     # Apply the checks from dictionary
     for table_name in table_name_list:
