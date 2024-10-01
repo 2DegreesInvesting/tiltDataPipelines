@@ -1268,7 +1268,7 @@ landingzone_schema = {
         "partition_column": "",
         "quality_checks": [],
     },
-    "scope_2_mandatory_ghgs_landingzone": {
+    "scope_2_and_3_mandatory_ghgs_landingzone": {
         "columns": StructType(
             [
                 StructField("Activity_Name", StringType(), True),
@@ -1282,7 +1282,7 @@ landingzone_schema = {
             ]
         ),
         "container": "landingzone",
-        "location": "ecoInvent/scope_2_mandatory_ghgs.csv",
+        "location": "ecoInvent/scope_2_and_3_mandatory_ghgs.csv",
         "type": "csv",
         "partition_column": "",
         "quality_checks": [],
