@@ -265,8 +265,6 @@ def generate_table(table_name: str) -> None:
             "tilt_sector_isic_mapper_datamodel", spark_generate)
         tilt_sector_scenario_mapper = CustomDF(
             "tilt_sector_scenario_mapper_datamodel", spark_generate)
-        tilt_sector_isic_mapper = CustomDF(
-            "tilt_sector_isic_mapper_datamodel", spark_generate)
         tilt_sector_scenario_mapper = CustomDF(
             "tilt_sector_scenario_mapper_datamodel", spark_generate)
         # scenario data
