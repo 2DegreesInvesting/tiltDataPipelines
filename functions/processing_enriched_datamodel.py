@@ -5,10 +5,6 @@ from functions.spark_session import create_spark_session
 from functions.dataframe_helpers import *
 from pyspark.sql.functions import col, substring
 import sys
- 
-sys.setrecursionlimit(10**6)
- 
-
 
 def generate_table(table_name: str) -> None:
     """
@@ -415,6 +411,7 @@ def generate_table(table_name: str) -> None:
         print("Data written successfully!\n")
 
     elif table_name == 'scope_2_indicator_enriched':
+        sys.setrecursionlimit(2000)
         print(f"Loading data for {table_name}")
         ## LOAD
         # ecoinvent
@@ -463,6 +460,7 @@ def generate_table(table_name: str) -> None:
         scope_2_indicator_output.data = scope_2_indicator_output.data.withColumn("total_scope_2_emission_per_input_amount", F.col("input_amount") * F.col("input_scope_2_emission"))
         windowSpec = Window.partitionBy("activity_uuid_product_uuid")
         scope_2_indicator_output.data = scope_2_indicator_output.data.withColumn("total_scope_2_emission_per_activity_uuid_product_uuid", F.sum("total_scope_2_emission_per_input_amount").over(windowSpec))
+        scope_2_indicator_output = scope_2_indicator_output.custom_distinct()
 
         ## PREPPING
         covered_scope_2_output = filtered_ei_record_info.custom_join(scope_2_indicator_output,custom_on="activity_uuid_product_uuid", custom_how="left").custom_select(["activity_uuid_product_uuid", "activity_name", "reference_product_name", "co2_footprint", "geography", "total_scope_2_emission_per_activity_uuid_product_uuid"])
@@ -475,13 +473,10 @@ def generate_table(table_name: str) -> None:
         covered_scope_2_output_ledger.data = covered_scope_2_output_ledger.data.withColumn("total_scope_2_emission_per_ledger_id", F.sum("total_scope_2_emission_per_activity_uuid_product_uuid").over(windowSpec))
         covered_scope_2_output_ledger = covered_scope_2_output_ledger.custom_drop(["total_scope_2_emission_per_activity_uuid_product_uuid"])
         covered_scope_2_output_ledger = covered_scope_2_output_ledger.custom_select(["tiltledger_id", "total_scope_2_emission_per_ledger_id"]).custom_distinct()
-        covered_scope_2_output_ledger.data.show()
 
         ## DF CREATION
         scope_2_indicator_enriched = CustomDF("scope_2_indicator_enriched", spark_generate,
                                                 initial_df=covered_scope_2_output_ledger.data)
-        
-        scope_2_indicator_enriched.data.show()
         
         print(f"Writing data for {table_name}")
         # WRITE
