@@ -124,10 +124,6 @@ enriched_datamodel_schema = {
     'partition_column': '',
     'quality_checks': []
     }
-    'type': 'delta',
-    'partition_column': '',
-    'quality_checks': []
-    }
     ,
     'scope_2_indicator_enriched': {
         'columns': StructType([
