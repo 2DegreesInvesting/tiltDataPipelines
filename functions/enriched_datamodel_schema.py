@@ -107,5 +107,25 @@ enriched_datamodel_schema = {
     'type': 'delta',
     'partition_column': '',
     'quality_checks': []
+    },
+    'scope_1_indicator_enriched': {
+        'columns': StructType([
+            StructField('tiltledger_id', StringType(), False),
+            StructField('avg_sum_carbon_per_product', DoubleType(), False),
+            StructField('avg_sum_carbon_per_product_amount', DoubleType(), False),
+            StructField('from_date', DateType(), False),
+            StructField('to_date', DateType(), False),
+            StructField('tiltRecordID', StringType(), False)
+        ]
+        ),
+    'container': 'enriched',
+    'location': 'scope_1_indicator_ledger',
+    'type': 'delta',
+    'partition_column': '',
+    'quality_checks': []
+    }
+    'type': 'delta',
+    'partition_column': '',
+    'quality_checks': []
     }
 }

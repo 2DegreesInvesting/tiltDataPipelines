@@ -457,9 +457,9 @@ datamodel_schema = {
         'columns': StructType([
             StructField('activity_uuid_product_uuid', StringType(), False),
             StructField('emission', StringType(), True),
-            StructField('amount', StringType(), True),
+            StructField('amount', DoubleType(), True),
             StructField('emissions_unit', StringType(), True),
-            StructField('carbon_allocation', StringType(), True),
+            StructField('carbon_allocation', DoubleType(), True),
             StructField('from_date', DateType(), False),
             StructField('to_date', DateType(), False),
             StructField('tiltRecordID', StringType(), False)
