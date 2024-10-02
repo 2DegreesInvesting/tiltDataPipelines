@@ -410,7 +410,46 @@ def generate_table(table_name: str) -> None:
         transition_risk_ledger_level.write_table()
         print("Data written successfully!\n")
 
-    elif table_name == 'scope_2_indicator_enriched':
+    elif table_name == 'scope_1_indicator_enriched':
+        print(f"Loading data for {table_name}")
+        ## LOAD
+        # ecoinvent
+        scope_1_emissions = CustomDF("scope_1_emissions_datamodel", spark_generate)
+        # tilt data
+        tilt_ledger = CustomDF("tiltLedger_datamodel", spark_generate)
+        # mappers
+        ledger_ecoinvent_mapping = CustomDF("ledger_ecoinvent_mapping_datamodel", spark_generate)
+
+        ## CALCULATION
+        windowSpec = Window.partitionBy("activity_uuid_product_uuid")
+        scope_1_emissions.data = scope_1_emissions.data.withColumn("carbon_amount", F.col("carbon_allocation") * F.col("amount")) 
+        scope_1_emissions.data = scope_1_emissions.data.withColumn("sum_carbon_per_product", F.sum("carbon_amount").over(windowSpec))
+        
+        ## PREPPING
+        scope_1_emissions.data = scope_1_emissions.data.withColumn("sum_carbon_per_product_amount", 
+                                                                       F.col("sum_carbon_per_product"))
+        ## PREPPING
+        ledgered_scope_1_output = ledger_ecoinvent_mapping.custom_join(scope_1_emissions, custom_on="activity_uuid_product_uuid", custom_how="inner")
+
+        ## CALCULATION
+        windowSpec = Window.partitionBy("tiltledger_id")
+        ledgered_scope_1_output.data = ledgered_scope_1_output.data.withColumn("avg_sum_carbon_per_product", F.avg("sum_carbon_per_product").over(windowSpec))
+        ledgered_scope_1_output.data = ledgered_scope_1_output.data.withColumn("avg_sum_carbon_per_product_amount", F.avg("sum_carbon_per_product_amount").over(windowSpec))
+
+        ## PREPPING
+        ledgered_scope_1_output = ledgered_scope_1_output.custom_select(["tiltledger_id", "avg_sum_carbon_per_product", "avg_sum_carbon_per_product_amount"]).custom_distinct()
+        
+
+        ## DF CREATION
+        scope_1_indicator_enriched = CustomDF("scope_1_indicator_enriched", spark_generate,
+                                                initial_df=ledgered_scope_1_output.data)
+        
+        print(f"Writing data for {table_name}")
+        # WRITE
+        scope_1_indicator_enriched.write_table()
+        print("Data written successfully!\n")
+        
+            elif table_name == 'scope_2_indicator_enriched':
         sys.setrecursionlimit(2000)
         print(f"Loading data for {table_name}")
         ## LOAD
@@ -482,7 +521,6 @@ def generate_table(table_name: str) -> None:
         # WRITE
         scope_2_indicator_enriched.write_table()
         print("Data written successfully!\n")
-
     else:
         raise ValueError(
             f'The table: {table_name} is not specified in the processing functions')
