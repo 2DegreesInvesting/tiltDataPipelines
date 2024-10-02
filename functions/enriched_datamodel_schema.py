@@ -72,7 +72,7 @@ enriched_datamodel_schema = {
             StructField('scenario_name', StringType(), False),
             StructField('year', StringType(), False),
             StructField('risk_category', StringType(), False),
-            StructField('profile_ranking', DoubleType(), False),
+            StructField('average_profile_ranking', DoubleType(), False),
             StructField('from_date', DateType(), False),
             StructField('to_date', DateType(), False),
             StructField('tiltRecordID', StringType(), False)

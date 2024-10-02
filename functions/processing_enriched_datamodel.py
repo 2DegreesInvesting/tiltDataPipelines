@@ -470,10 +470,10 @@ def generate_table(table_name: str) -> None:
         sector_enriched_ledger_upstream_data.data = sector_enriched_ledger_upstream_data.data.dropna(
             subset="input_scenario_name")
         sector_enriched_ledger_upstream_data.rename_columns(
-            {"input_benchmark_group": "benchmark_group", "input_scenario_type": 'scenario_type', "input_scenario_name": "scenario_name", "input_year": "year", "average_input_profile_ranking": "profile_ranking"})
+            {"input_benchmark_group": "benchmark_group", "input_scenario_type": 'scenario_type', "input_scenario_name": "scenario_name", "input_year": "year", "average_input_profile_ranking": "average_profile_ranking"})
 
         sector_enriched_ledger_upstream_data = sector_enriched_ledger_upstream_data.custom_select(
-            ['tiltLedger_id', 'benchmark_group', 'scenario_type', 'scenario_name', 'year', 'risk_category', 'profile_ranking'])
+            ['tiltLedger_id', 'benchmark_group', 'scenario_type', 'scenario_name', 'year', 'risk_category', 'average_profile_ranking'])
 
         # DF CREATION
         sector_profile_ledger_upstream_level = CustomDF("sector_profile_ledger_upstream_enriched", spark_generate,
@@ -577,7 +577,7 @@ def generate_table(table_name: str) -> None:
                     "benchmark"),
                 emission_profile_ledger_upstream.data.risk_category.alias(
                     "score"),
-                emission_profile_ledger_upstream.data.profile_ranking
+                emission_profile_ledger_upstream.data.average_input_profile_rank
             ]
             )
         ).custom_union(
@@ -592,13 +592,13 @@ def generate_table(table_name: str) -> None:
             )
         ).custom_union(
             sector_profile_ledger_upstream.custom_select([
-                sector_profile_ledger_upstream.data.tiltledger_id,
+                sector_profile_ledger_upstream.data.tiltLedger_id,
                 F.lit('SPU').alias('Indicator'),
                 sector_profile_ledger_upstream.data.benchmark_group.alias(
                     "benchmark"),
                 sector_profile_ledger_upstream.data.risk_category.alias(
                     "score"),
-                sector_profile_ledger_upstream.data.profile_ranking
+                sector_profile_ledger_upstream.data.average_profile_ranking
             ]
             )
         )
