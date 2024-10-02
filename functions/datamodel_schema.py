@@ -54,7 +54,7 @@ datamodel_schema = {
         "partition_column": "",
         "quality_checks": [],
     },
-    "companies_EP_products_datamodel": {
+    "companies_products_datamodel": {
         "columns": StructType(
             [
                 StructField("company_id", StringType(), False),
@@ -65,12 +65,12 @@ datamodel_schema = {
             ]
         ),
         "container": "datamodel",
-        "location": "companies_EP_products",
+        "location": "companies_products_datamodel",
         "type": "delta",
         "partition_column": "",
         "quality_checks": [],
     },
-    "EP_products_datamodel": {
+    "products_datamodel": {
         "columns": StructType(
             [
                 StructField("product_id", StringType(), False),
@@ -81,7 +81,7 @@ datamodel_schema = {
             ]
         ),
         "container": "datamodel",
-        "location": "EP_products",
+        "location": "products",
         "type": "delta",
         "partition_column": "",
         "quality_checks": [],
