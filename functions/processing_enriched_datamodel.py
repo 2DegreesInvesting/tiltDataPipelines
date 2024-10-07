@@ -470,9 +470,9 @@ def generate_table(table_name: str) -> None:
 
         ## CALCULATION
         windowSpec = Window.partitionBy("tiltledger_id")
-        covered_scope_3_output_ledger.data = covered_scope_3_output_ledger.data.withColumn("total_scope_3_emission_per_ledger_id", F.sum("total_scope_3_emission_per_activity_uuid_product_uuid").over(windowSpec))
+        covered_scope_3_output_ledger.data = covered_scope_3_output_ledger.data.withColumn("total_scope_3_electricity_emission_per_ledger_id", F.sum("total_scope_3_emission_per_activity_uuid_product_uuid").over(windowSpec))
         covered_scope_3_output_ledger = covered_scope_3_output_ledger.custom_drop(["total_scope_3_emission_per_activity_uuid_product_uuid"])
-        covered_scope_3_output_ledger = covered_scope_3_output_ledger.custom_select(["tiltledger_id", "total_scope_3_emission_per_ledger_id"]).custom_distinct()
+        covered_scope_3_output_ledger = covered_scope_3_output_ledger.custom_select(["tiltledger_id", "total_scope_3_electricity_emission_per_ledger_id"]).custom_distinct()
 
         ## DF CREATION
         scope_3_indicator_enriched = CustomDF("scope_3_indicator_enriched", spark_generate,
