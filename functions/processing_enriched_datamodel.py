@@ -606,7 +606,7 @@ def generate_table(table_name: str) -> None:
             combined_indicator_data, custom_on=combined_indicator_data.data.tiltledger_id == tiltledger.data.tiltLedger_id, custom_how="left")\
             .custom_join(tilt_sector_isic_mapper, custom_on=(tiltledger.data.ISIC_Code == tilt_sector_isic_mapper.data.isic_4digit), custom_how="left")\
             .custom_select([
-                combined_indicator_data.data.tiltledger_id,
+                tiltledger.data.tiltLedger_id,
                 tilt_sector_isic_mapper.data.tilt_sector,
                 tilt_sector_isic_mapper.data.tilt_subsector,
                 tiltledger.data.Activity_Type,
@@ -633,14 +633,14 @@ def generate_table(table_name: str) -> None:
 
         # Combine Company with Indicator Data and select columns in the appropriate order
         company_product_indicators = merged_company_information.custom_join(tiltledger_mapping, custom_on=(companies.data.company_id == tiltledger_mapping.data.company_id), custom_how="left")\
-            .custom_join(indicator_data, custom_on=(indicator_data.data.tiltledger_id == tiltledger_mapping.data.tiltLedger_id), custom_how="left")\
+            .custom_join(indicator_data, custom_on=(indicator_data.data.tiltLedger_id == tiltledger_mapping.data.tiltLedger_id), custom_how="left")\
             .custom_select([
                 merged_company_information.data.company_id,
                 merged_company_information.data.source_id,
                 merged_company_information.data.country,
                 indicator_data.data.tilt_sector,
                 indicator_data.data.tilt_subsector,
-                indicator_data.data.tiltledger_id,
+                indicator_data.data.tiltLedger_id,
                 indicator_data.data.Activity_Type.alias('activity_type'),
                 indicator_data.data.Geography.alias('geography'),
                 indicator_data.data.CPC_Code,

@@ -110,7 +110,7 @@ enriched_datamodel_schema = {
             StructField('country', StringType(), False),
             StructField('tilt_sector', StringType(), True),
             StructField('tilt_subsector', StringType(), True),
-            StructField('tiltledger_id', StringType(), True),
+            StructField('tiltLedger_id', StringType(), True),
             StructField('activity_type', StringType(), True),
             StructField('geography', StringType(), True),
             StructField('CPC_Code', StringType(), True),
