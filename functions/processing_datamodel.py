@@ -40,7 +40,7 @@ def generate_table(table_name: str) -> None:
 
         companies_europages_raw = CustomDF("companies_europages_raw", spark_generate)
 
-        # rename columns per schema
+        # EP: rename columns per schema
         rename_dict = {
             "id": "europages_company_id",
             "information": "company_description",
@@ -60,6 +60,13 @@ def generate_table(table_name: str) -> None:
             ]
         )
 
+        companies_europages_raw = companies_europages_raw.custom_distinct()
+
+        duplicates_removed = companies_europages_raw.custom_groupby(["europages_company_id"], F.first("address").alias("address"), F.first("postcode").alias("postcode"), F.first("company_description").alias("company_description"))
+
+        companies_europages_raw = companies_europages_raw.custom_join(duplicates_removed, ["europages_company_id", "address", "postcode", "company_description"], "inner")
+
+        companies_europages_raw = companies_europages_raw.custom_distinct()
         # process CI data
         companies_companyinfo_raw = CustomDF(
             "companies_companyinfo_raw", spark_generate
@@ -93,7 +100,7 @@ def generate_table(table_name: str) -> None:
             ]
         )
 
-        # # CI: add country colum
+        # # CI: add country column
         companies_companyinfo_raw.data = companies_companyinfo_raw.data.withColumn(
             "country", F.lit("netherlands")
         )
@@ -108,7 +115,7 @@ def generate_table(table_name: str) -> None:
             "companies_match_result_datamodel", spark_generate
         )
 
-        # CMR: matched companies
+        # MR: matched companies
         companies_match_result_datamodel.data = (
             companies_match_result_datamodel.data.withColumn("source", F.lit(ep_ci))
         )
@@ -116,29 +123,25 @@ def generate_table(table_name: str) -> None:
             ["europages_company_id", "companyinfo_company_id", "source"]
         )
 
-        # EP: get companies
+        # MR: join EP companies to the table
         companies_europages = companies_europages_raw.custom_select(
             ["europages_company_id"]
         )
-
-        # Add other EP companies to the table
         europages_matched = companies_europages.custom_join(
             match_source, custom_on="europages_company_id", custom_how="left_outer"
         )
 
-        # CI: get companies
+        # MR: join CI companies to the table
         companies_companyinfo = companies_companyinfo_raw.custom_select(
             ["companyinfo_company_id"]
         )
-
         both_matched = companies_companyinfo.custom_join(
             europages_matched,
             custom_on="companyinfo_company_id",
             custom_how="full_outer",
         )
 
-        both_matched = both_matched.custom_distinct()
-
+        # add source_id column
         both_matched.data = both_matched.data.withColumn(
             "source_id",
             F.when(col("source").isNotNull(), F.lit(ep_ci)).otherwise(
@@ -148,6 +151,7 @@ def generate_table(table_name: str) -> None:
             ),
         )
 
+        # unify company_id
         both_matched.data = both_matched.data.withColumn(
             "company_id",
             F.when(
@@ -165,10 +169,7 @@ def generate_table(table_name: str) -> None:
             == companies_companyinfo_raw.data.companyinfo_company_id,
             custom_how="inner",
         )
-
-        companyinfo_data_filled = companyinfo_data_filled.custom_drop(
-            ["companyinfo_company_id", "europages_company_id", "source"]
-        )
+        companyinfo_data_filled = companyinfo_data_filled.custom_distinct()
 
         europages_data_filled = companies.custom_join(
             companies_europages_raw,
@@ -176,16 +177,15 @@ def generate_table(table_name: str) -> None:
             == companies_europages_raw.data.europages_company_id,
             custom_how="inner",
         )
-        europages_data_filled = europages_data_filled.custom_drop(
-            ["companyinfo_company_id", "europages_company_id", "source"]
-        )
+        europages_data_filled = europages_data_filled.custom_distinct()
 
         both_data_filled = europages_data_filled.custom_union(companyinfo_data_filled)
+        both_data_filled.custom_drop(["companyinfo_company_id", "europages_company_id", "source"])
 
         # process country data
         countries_mapper_raw = CustomDF("countries_mapper_raw", spark_generate)
 
-        # Capitalize the first letter of the values in the 'country' column to match with countries_mapperpoductr
+        # capitalise the first letter of the values in the 'country' column to match with countries_mapper
         both_data_filled.data = both_data_filled.data.withColumn(
             "country", F.initcap("country")
         )
@@ -197,7 +197,6 @@ def generate_table(table_name: str) -> None:
         companies_raw_final = joined_companies_countries_mapper.custom_drop(["country"])
 
         companies_raw_final.data = companies_raw_final.data.filter(
-            # col("company_description").isNotNull() &
             col("address").isNotNull()
             & col("company_city").isNotNull()
             & col("postcode").isNotNull()
@@ -215,11 +214,11 @@ def generate_table(table_name: str) -> None:
                 "postcode",
             ]
         )
-        companies_raw_final = companies_raw_final.custom_distinct()
 
-        companies_raw_final.data = companies_raw_final.data.dropDuplicates(
-            ["company_id"]
-        )
+        landingzone_dir = "abfss://landingzone@storagetiltdevelop.dfs.core.windows.net/temp_companies/"
+        companies_raw_final.data.write.mode('overwrite').parquet(landingzone_dir)
+
+        companies_raw_final.data = spark_generate.read.format("parquet").load(landingzone_dir)
 
         # Prep to add data granularity score
         companies_sbi_activities = CustomDF(
@@ -235,6 +234,7 @@ def generate_table(table_name: str) -> None:
         companies_raw_final = companies_raw_final.custom_join(
             companies_products, "company_id", "left"
         )
+        
         # Add data granularity score
         companies_raw_final.data = companies_raw_final.data.withColumn(
             "data_granularity",
@@ -243,7 +243,6 @@ def generate_table(table_name: str) -> None:
             .when(F.col("company_description").isNotNull(), 4)
             .otherwise(5),
         )
-
         companies_raw_final = companies_raw_final.custom_select(
             [
                 "company_id",
@@ -257,6 +256,9 @@ def generate_table(table_name: str) -> None:
                 "data_granularity",
             ]
         )
+
+        companies_raw_final = companies_raw_final.custom_distinct()
+
         companies_datamodel = CustomDF(
             "companies_datamodel", spark_generate, initial_df=companies_raw_final.data
         )
