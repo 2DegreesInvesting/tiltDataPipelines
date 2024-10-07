@@ -111,13 +111,6 @@ signalling_checks_dictionary = {
     #     }
     # ],
 # checks on datamodel layer
-    'ecoinvent_product_datamodel': [
-        {
-            'check': 'values within list',
-            'columns': ['unit'],
-            'value_list': unit_measures_ecoinvent
-        }
-    ],
     'companies_datamodel': [
         {
             'check': 'values are unique',
@@ -141,13 +134,34 @@ signalling_checks_dictionary = {
             'format': r'^\d{1,6}$'
         }
     ],
-    'isic_mapper_datamodel': [
+    'ecoinvent_activity_datamodel': [
         {
             'check': 'values have format',
             'columns': ['isic_4digit'],
             'format': r'^[A-Z]$|^\d{1,4}$'
         }
     ],
+    'SBI_activities_datamodel': [
+        {
+            'check': 'values have format',
+            'columns': ['sbi_code'],
+            'format': r'^\d{1,6}$'
+        }
+    ],
+    'companies_SBI_activities_datamodel': [
+        {
+            'check': 'values have format',
+            'columns': ['sbi_code'], 
+            'format': r'^\d{1,6}$'
+        }
+    ],
+    # 'isic_mapper_datamodel': [
+    #     {
+    #         'check': 'values have format',
+    #         'columns': ['isic_4digit'],
+    #         'format': r'^[A-Z]$|^\d{1,4}$'
+    #     }
+    # ],
     'tilt_sector_isic_mapper_datamodel': [
         {  
             'check': 'values within list',
@@ -579,10 +593,10 @@ signalling_checks_dictionary = {
             'columns': ['risk_category'],
             'value_list': ['low', 'medium', 'high']
         },
-        # {   'check': 'values within list',
-        #     'columns': ['tilt_sector'],
-        #     'value_list': ['Energy', 'Power', 'Industry', 'Land Use', 'Metals', 'Construction', 'Non-metallic Minerals', 'Transport']
-        # }, 
+        {   'check': 'values within list',
+            'columns': ['tilt_sector'],
+            'value_list': ['Energy', 'Power', 'Industry', 'Land Use', 'Metals', 'Construction', 'Non-metallic Minerals', 'Transport']
+        }, 
         {   'check': 'values within list',
             'columns': ['scenario_name'],
             'value_list': ['1.5C RPS', 'NZ 2050']
@@ -738,34 +752,30 @@ signalling_checks_dictionary = {
                            'nz 2050_2050_all', '1.5c rps_2050_isic_4digit', '1.5c rps_2050_unit_tilt_sector', '1.5c rps_2030_unit', '1.5c rps_2030_unit_tilt_sector', '1.5c rps_2030_all', '1.5c rps_2030_tilt_sector']
         }
     ],
-    # 'sector_profile_ledger_upstream_enriched': [
-    #     {
-    #         'check': 'values within list',
-    #         'columns': ['benchmark_group'],
-    #         'value_list': ['weo_nz 2050_2030', 'weo_nz 2050_2050', 'ipr_1.5c rps_2030', 'ipr_1.5c rps_2050']
-    #     },
-    #     {
-    #         'check': 'values within list',
-    #         'columns': ['risk_category'],
-    #         'value_list': ['low', 'medium', 'high']
-    #     },
-    #     {   'check': 'values within list',
-    #         'columns': ['input_tilt_sector'],
-    #         'value_list': ['Energy', 'Power', 'Industry', 'Land Use', 'Metals', 'Construction', 'Non-metallic Minerals', 'Transport']
-    #     }, 
-    #     {   'check': 'values within list',
-    #         'columns': ['input_scenario_name'],
-    #         'value_list': ['1.5C RPS', 'NZ 2050']
-    #     },
-    #     {   'check': 'values within list',
-    #         'columns': ['input_scenario_type'],
-    #         'value_list': ['ipr', 'weo']
-    #     },
-    #     {   'check': 'values within list',
-    #         'columns': ['input_year'],
-    #         'value_list': ['2030', '2050']
-    #     },
-    # ],
+    'sector_profile_ledger_upstream_enriched': [
+        {
+            'check': 'values within list',
+            'columns': ['benchmark_group'],
+            'value_list': ['weo_nz 2050_2030', 'weo_nz 2050_2050', 'ipr_1.5c rps_2030', 'ipr_1.5c rps_2050']
+        },
+        {
+            'check': 'values within list',
+            'columns': ['risk_category'],
+            'value_list': ['low', 'medium', 'high']
+        }, 
+        {   'check': 'values within list',
+            'columns': ['scenario_name'],
+            'value_list': ['1.5C RPS', 'NZ 2050']
+        },
+        {   'check': 'values within list',
+            'columns': ['scenario_type'],
+            'value_list': ['ipr', 'weo']
+        },
+        {   'check': 'values within list',
+            'columns': ['year'],
+            'value_list': ['2030', '2050']
+        },
+    ],
     'company_product_indicators_enriched': [
         {
             'check': 'values within list',
@@ -851,16 +861,6 @@ signalling_checks_dictionary = {
             'check': 'value vithin list',
             'columns': ['company_score'],
             'value_list': ['low', 'medium', 'high']
-        },
-        {
-            'check': 'values have format',
-            'columns': ['CPC_Code'],
-            'format': r'^\d{1,6}$'
-        },
-        {
-            'check': 'values have format',
-            'columns': ['ISIC_Code'],
-            'format': r'^[A-Z]$|^\d{1,4}$'
         },
         {
             'check': 'values within list',

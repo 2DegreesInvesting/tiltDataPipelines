@@ -163,12 +163,17 @@ def check_values_consistent(dataframe: DataFrame, column_name: list, compare_df:
 
     """
     compare_df = compare_df.select(
-        join_columns + [F.col(column_name[0]).alias('compare_' + column_name[0])])
+        join_columns + [F.col(cn).alias('compare_' + cn) for cn in column_name])
 
     joined_df = dataframe.select(
-        [column_name[0]] + join_columns).join(compare_df, on=join_columns, how='left')
-    valid_count = joined_df.filter(
-        F.col(column_name[0]) == F.col('compare_' + column_name[0])).count()
+        column_name + join_columns).join(compare_df, on=join_columns, how='left')
+    # valid_count = joined_df.filter(
+        # F.col(column_name[0]) == F.col('compare_' + column_name[0])).count()
+    
+    for cn in column_name:
+        joined_df = joined_df.filter(F.col(cn) == F.col("compare_" + cn))
+
+    valid_count = joined_df.count()
 
     return valid_count
 
