@@ -1,9 +1,11 @@
 import os
+import sys
 import pyspark.sql.functions as F
 from functions.custom_dataframes import CustomDF
 from functions.spark_session import create_spark_session
 from functions.dataframe_helpers import *
 from pyspark.sql.functions import col, substring
+from pyspark.sql.types import DoubleType
 
 
 def generate_table(table_name: str) -> None:
@@ -114,6 +116,8 @@ def generate_table(table_name: str) -> None:
         print("Data written successfully!\n")
 
     elif table_name == 'emission_profile_ledger_upstream_enriched':
+        # The query plans are quite complex, so for the grpc package to work the recursion limit needs to be increased
+        sys.setrecursionlimit(2000)
         print(f"Loading data for {table_name}")
         # LOAD
         # tilt data
@@ -233,25 +237,19 @@ def generate_table(table_name: str) -> None:
         print(f"Calculating indicators for {table_name}")
 
         # CALCULATION
-        emission_enriched_ledger_upstream_data.data = emissions_profile_upstream_compute(
-            emission_enriched_ledger_upstream_data.data, ledger_ecoinvent_mapping.data, "combined")
+        emission_enriched_ledger_upstream_final = emissions_profile_upstream_compute(
+            emission_enriched_ledger_upstream_data, ledger_ecoinvent_mapping, "combined")
 
-        print(f"Preparing data for {table_name}")
+        # print(f"Preparing data for {table_name}")
         # PREPPING
-        emission_enriched_ledger_upstream_data = emission_enriched_ledger_upstream_data.custom_select(["input_activity_uuid_product_uuid", "tiltledger_id", "benchmark_group", "risk_category", "profile_ranking",
-                                                                                                       "input_product_name", "input_co2_footprint"])
-
-        # TEMP SOLUTION
-        path = "abfss://landingzone@storagetiltdevelop.dfs.core.windows.net/test/"
-        emission_enriched_ledger_upstream_data.data.write.mode(
-            "overwrite").parquet(path)
-
-        df = spark_generate.read.format("parquet").load(path)
+        emission_enriched_ledger_upstream_final = emission_enriched_ledger_upstream_final.custom_select(
+            ["tiltledger_id", "benchmark_group", "risk_category", "average_input_profile_rank", "average_input_co2_footprint"]).custom_distinct()
 
         print(f"Writing data for {table_name}")
         # DF CREATION
         emission_profile_ledger_upstream_level = CustomDF("emission_profile_ledger_upstream_enriched", spark_generate,
-                                                          initial_df=df)
+                                                          initial_df=emission_enriched_ledger_upstream_final.data)
+
         # WRITE
         emission_profile_ledger_upstream_level.write_table()
         print("Data written successfully!")
@@ -259,11 +257,14 @@ def generate_table(table_name: str) -> None:
     elif table_name == 'sector_profile_ledger_enriched':
         print(f"Loading data for {table_name}")
         # LOAD
+        # LOAD
         # tilt data
         tilt_ledger = CustomDF("tiltLedger_datamodel", spark_generate)
         # mappers
         tilt_sector_isic_mapper = CustomDF(
             "tilt_sector_isic_mapper_datamodel", spark_generate)
+        tilt_sector_scenario_mapper = CustomDF(
+            "tilt_sector_scenario_mapper_datamodel", spark_generate)
         tilt_sector_scenario_mapper = CustomDF(
             "tilt_sector_scenario_mapper_datamodel", spark_generate)
         # scenario data
@@ -404,12 +405,15 @@ def generate_table(table_name: str) -> None:
         input_ledger_mapping = input_ledger_mapping.custom_join(
             ledger_ecoinvent_mapping_w_geography, "input_activity_uuid_product_uuid", custom_how="left").custom_drop(["input_activity_uuid_product_uuid"])
         input_ledger_mapping.data = input_ledger_mapping.data.filter(
-            F.col("input_tiltledger_id").isNotNull())
+            (F.col("input_tiltledger_id").isNotNull()))
 
         print(f"Calculating indicators for {table_name}")
         # CALCULATION
         input_sector_profile_ledger = input_ledger_mapping.custom_join(
             input_sector_profile, "input_tiltledger_id", custom_how="left")
+
+        input_sector_profile_ledger.data = input_sector_profile_ledger.data.filter(
+            (F.col('input_profile_ranking').isNotNull()))
 
         print(f"Preparing data for {table_name}")
         # PREPPING
@@ -421,9 +425,6 @@ def generate_table(table_name: str) -> None:
         # Add a row number column within each group
         input_data_filtered.data = input_data_filtered.data.withColumn(
             "row_num", F.row_number().over(window_spec))
-
-        # CHECK
-        # ledger_geography_checker(input_data_filtered)
 
         # PREPPING
         input_data_filtered.data = input_data_filtered.data.filter(
@@ -440,11 +441,37 @@ def generate_table(table_name: str) -> None:
         sector_enriched_ledger_upstream_data = input_data_filtered.custom_select([
             "input_tiltledger_id", "tiltledger_id", "input_benchmark_group", "input_risk_category", "input_profile_ranking", "input_product_name", "input_tilt_sector", "input_scenario_name", "input_scenario_type", "input_year"]).custom_distinct()
 
+        sector_enriched_ledger_upstream_data.convert_data_types(
+            ['input_profile_ranking'], DoubleType())
+        sector_enriched_ledger_upstream_data = sector_enriched_ledger_upstream_data.custom_groupby(
+            ['tiltLedger_id', 'input_benchmark_group', 'input_scenario_type', 'input_scenario_name', 'input_year'], F.avg('input_profile_ranking').alias('average_input_profile_ranking'))
+
+        # Setting different thresholds for each dataframe
+        low_threshold_2030, high_threshold_2030 = 1/9, 1/3  # thresholds for 2030
+        low_threshold_2050, high_threshold_2050 = 2/9, 2/3   # thresholds for 2050
+
+        sector_enriched_ledger_upstream_data.data = sector_enriched_ledger_upstream_data.data.withColumn(
+            "risk_category",
+            F.when(F.col('input_year') == 2030,
+                   F.when(F.col("average_input_profile_ranking")
+                          <= low_threshold_2030, "low")
+                   .when((F.col("average_input_profile_ranking") > low_threshold_2030) & (F.col("average_input_profile_ranking") <= high_threshold_2030), "medium")
+                   .otherwise("high")
+                   ).otherwise(
+                F.when(F.col("average_input_profile_ranking")
+                       <= low_threshold_2050, "low")
+                .when((F.col("average_input_profile_ranking") > low_threshold_2050) & (F.col("average_input_profile_ranking") <= high_threshold_2050), "medium")
+                .otherwise("high")
+            )
+        )
+
         sector_enriched_ledger_upstream_data.data = sector_enriched_ledger_upstream_data.data.dropna(
             subset="input_scenario_name")
         sector_enriched_ledger_upstream_data.rename_columns(
-            {"input_benchmark_group": "benchmark_group", "input_risk_category": "risk_category", "input_profile_ranking": "profile_ranking"})
-        # print(sector_enriched_ledger_upstream_data.data.select("tiltledger_id").distinct().count())
+            {"input_benchmark_group": "benchmark_group", "input_scenario_type": 'scenario_type', "input_scenario_name": "scenario_name", "input_year": "year", "average_input_profile_ranking": "average_profile_ranking"})
+
+        sector_enriched_ledger_upstream_data = sector_enriched_ledger_upstream_data.custom_select(
+            ['tiltLedger_id', 'benchmark_group', 'scenario_type', 'scenario_name', 'year', 'risk_category', 'average_profile_ranking'])
 
         # DF CREATION
         sector_profile_ledger_upstream_level = CustomDF("sector_profile_ledger_upstream_enriched", spark_generate,
@@ -452,6 +479,7 @@ def generate_table(table_name: str) -> None:
 
         print(f"Writing data for {table_name}")
         # WRITE
+        print(sector_profile_ledger_upstream_level.data.show())
         sector_profile_ledger_upstream_level.write_table()
         print("Data written successfully!\n")
 
@@ -537,6 +565,8 @@ def generate_table(table_name: str) -> None:
             emission_profile_ledger.data.benchmark_group.alias(
                 "benchmark"),
             emission_profile_ledger.data.risk_category.alias("score"),
+            emission_profile_ledger.data.average_profile_ranking.alias(
+                "profile_ranking")
         ]).custom_union(
             emission_profile_ledger_upstream.custom_select([
                 emission_profile_ledger_upstream.data.tiltledger_id,
@@ -545,6 +575,7 @@ def generate_table(table_name: str) -> None:
                     "benchmark"),
                 emission_profile_ledger_upstream.data.risk_category.alias(
                     "score"),
+                emission_profile_ledger_upstream.data.average_input_profile_rank
             ]
             )
         ).custom_union(
@@ -554,16 +585,18 @@ def generate_table(table_name: str) -> None:
                 sector_profile_ledger.data.benchmark_group.alias(
                     "benchmark"),
                 sector_profile_ledger.data.risk_category.alias("score"),
+                sector_profile_ledger.data.profile_ranking
             ]
             )
         ).custom_union(
             sector_profile_ledger_upstream.custom_select([
-                sector_profile_ledger_upstream.data.tiltledger_id,
+                sector_profile_ledger_upstream.data.tiltLedger_id,
                 F.lit('SPU').alias('Indicator'),
                 sector_profile_ledger_upstream.data.benchmark_group.alias(
                     "benchmark"),
                 sector_profile_ledger_upstream.data.risk_category.alias(
                     "score"),
+                sector_profile_ledger_upstream.data.average_profile_ranking
             ]
             )
         )
@@ -585,6 +618,7 @@ def generate_table(table_name: str) -> None:
                 combined_indicator_data.data.Indicator,
                 combined_indicator_data.data.benchmark,
                 combined_indicator_data.data.score,
+                combined_indicator_data.data.profile_ranking,
 
             ])
 
@@ -620,8 +654,11 @@ def generate_table(table_name: str) -> None:
                 merged_company_information.data.data_granularity,
                 indicator_data.data.Indicator,
                 indicator_data.data.benchmark,
-                indicator_data.data.score
+                indicator_data.data.score,
+                indicator_data.data.profile_ranking,
             ])
+
+        company_product_indicators = company_product_indicators.custom_distinct()
 
         # Write the data to storage
         company_product_indicators_enriched = CustomDF("company_product_indicators_enriched", spark_generate,
