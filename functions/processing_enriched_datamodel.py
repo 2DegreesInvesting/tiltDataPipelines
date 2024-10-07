@@ -521,7 +521,7 @@ def generate_table(table_name: str) -> None:
         scope_2_indicator_enriched.write_table()
         print("Data written successfully!\n")
           
-  elif table_name == 'scope_3_indicator_enriched':
+    elif table_name == 'scope_3_indicator_enriched':
         sys.setrecursionlimit(2000)
         print(f"Loading data for {table_name}")
         ## LOAD
