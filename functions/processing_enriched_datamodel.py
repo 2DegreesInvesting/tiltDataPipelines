@@ -6,7 +6,6 @@ from functions.dataframe_helpers import *
 from pyspark.sql.functions import col, substring
 import sys
 
-
 def generate_table(table_name: str) -> None:
     """
     Generate a specified table from the datamodel layer using either a remote or the Databricks SparkSession.
@@ -410,9 +409,48 @@ def generate_table(table_name: str) -> None:
         # WRITE
         transition_risk_ledger_level.write_table()
         print("Data written successfully!\n")
-    elif table_name == 'scope_3_indicator_enriched':
-        sys.setrecursionlimit(2000)
+
+    elif table_name == 'scope_1_indicator_enriched':
+        print(f"Loading data for {table_name}")
+        ## LOAD
+        # ecoinvent
+        scope_1_emissions = CustomDF("scope_1_emissions_datamodel", spark_generate)
+        # tilt data
+        tilt_ledger = CustomDF("tiltLedger_datamodel", spark_generate)
+        # mappers
+        ledger_ecoinvent_mapping = CustomDF("ledger_ecoinvent_mapping_datamodel", spark_generate)
+
+        ## CALCULATION
+        windowSpec = Window.partitionBy("activity_uuid_product_uuid")
+        scope_1_emissions.data = scope_1_emissions.data.withColumn("carbon_amount", F.col("carbon_allocation") * F.col("amount")) 
+        scope_1_emissions.data = scope_1_emissions.data.withColumn("sum_carbon_per_product", F.sum("carbon_amount").over(windowSpec))
         
+        ## PREPPING
+        scope_1_emissions.data = scope_1_emissions.data.withColumn("sum_carbon_per_product_amount", 
+                                                                       F.col("sum_carbon_per_product"))
+        ## PREPPING
+        ledgered_scope_1_output = ledger_ecoinvent_mapping.custom_join(scope_1_emissions, custom_on="activity_uuid_product_uuid", custom_how="inner")
+
+        ## CALCULATION
+        windowSpec = Window.partitionBy("tiltledger_id")
+        ledgered_scope_1_output.data = ledgered_scope_1_output.data.withColumn("avg_sum_carbon_per_product", F.avg("sum_carbon_per_product").over(windowSpec))
+        ledgered_scope_1_output.data = ledgered_scope_1_output.data.withColumn("avg_sum_carbon_per_product_amount", F.avg("sum_carbon_per_product_amount").over(windowSpec))
+
+        ## PREPPING
+        ledgered_scope_1_output = ledgered_scope_1_output.custom_select(["tiltledger_id", "avg_sum_carbon_per_product", "avg_sum_carbon_per_product_amount"]).custom_distinct()
+        
+
+        ## DF CREATION
+        scope_1_indicator_enriched = CustomDF("scope_1_indicator_enriched", spark_generate,
+                                                initial_df=ledgered_scope_1_output.data)
+        
+        print(f"Writing data for {table_name}")
+        # WRITE
+        scope_1_indicator_enriched.write_table()
+        print("Data written successfully!\n")
+        
+    elif table_name == 'scope_2_indicator_enriched':
+        sys.setrecursionlimit(2000)
         print(f"Loading data for {table_name}")
         ## LOAD
         # ecoinvent
@@ -421,16 +459,17 @@ def generate_table(table_name: str) -> None:
         ecoinvent_activity = CustomDF("ecoinvent_activity_datamodel", spark_generate)
         ecoinvent_co2 = CustomDF("ecoinvent_co2_datamodel", spark_generate)
         ecoinvent_cut_off = CustomDF("ecoinvent_cut_off_datamodel", spark_generate)
-        scope_3_emissions = CustomDF("scope_3_emissions_datamodel", spark_generate)
+        scope_2_emissions = CustomDF("scope_2_emissions_datamodel", spark_generate)
         # mappers
         geography_ecoinvent_mapper = CustomDF("geography_ecoinvent_mapper_datamodel", spark_generate).custom_select(["geography_id", "ecoinvent_geography", "priority", "input_priority"])
         ledger_ecoinvent_mapping = CustomDF("ledger_ecoinvent_mapping_datamodel", spark_generate)
 
         ## PREPPING
         covered_geographies = geography_ecoinvent_mapper.custom_select(["ecoinvent_geography"]).custom_distinct()
-        scope_3_emissions.data = scope_3_emissions.data.withColumn("geography", F.lower(F.col("geography")))
-        scope_3_emissions = scope_3_emissions.custom_select([
-            *[F.col(c).alias("input_" + c) for c in scope_3_emissions.data.columns[:-1]]
+
+        scope_2_emissions.data = scope_2_emissions.data.withColumn("geography", F.lower(F.col("geography")))
+        scope_2_emissions = scope_2_emissions.custom_select([
+            *[F.col(c).alias("input_" + c) for c in scope_2_emissions.data.columns[:-1]]
             ]
         )
 
@@ -452,8 +491,79 @@ def generate_table(table_name: str) -> None:
         ## PREPPING
         input_data_w_co2 = ecoinvent_input_data.custom_join(input_ei_record_info, custom_on="input_activity_uuid_product_uuid", custom_how="inner")
         input_data_w_co2.rename_columns({"Amount":"input_amount", "Activity_UUID_Product_UUID": "activity_uuid_product_uuid", "Input_Activity_UUID_Product_UUID": "input_activity_uuid_product_uuid"})
+        joined_records = input_data_w_co2.custom_join(scope_2_emissions, custom_on=["input_activity_name", "input_reference_product_name", "input_geography"], custom_how="inner")
+        scope_2_indicator_output = joined_records.custom_select(["activity_uuid_product_uuid", "input_activity_uuid_product_uuid", "input_amount", "input_scope_2_emission"])
+
+        ## CALCULATION
+        scope_2_indicator_output.data = scope_2_indicator_output.data.withColumn("total_scope_2_emission_per_input_amount", F.col("input_amount") * F.col("input_scope_2_emission"))
+        windowSpec = Window.partitionBy("activity_uuid_product_uuid")
+        scope_2_indicator_output.data = scope_2_indicator_output.data.withColumn("total_scope_2_emission_per_activity_uuid_product_uuid", F.sum("total_scope_2_emission_per_input_amount").over(windowSpec))
+        scope_2_indicator_output = scope_2_indicator_output.custom_distinct()
 
         ## PREPPING
+        covered_scope_2_output = filtered_ei_record_info.custom_join(scope_2_indicator_output,custom_on="activity_uuid_product_uuid", custom_how="left").custom_select(["activity_uuid_product_uuid", "activity_name", "reference_product_name", "co2_footprint", "geography", "total_scope_2_emission_per_activity_uuid_product_uuid"])
+
+        ## PREPPING
+        covered_scope_2_output_ledger = ledger_ecoinvent_mapping.custom_join(covered_scope_2_output, custom_on="activity_uuid_product_uuid", custom_how="inner").custom_select(["tiltledger_id", "total_scope_2_emission_per_activity_uuid_product_uuid"])
+
+        ## CALCULATION
+        windowSpec = Window.partitionBy("tiltledger_id")
+        covered_scope_2_output_ledger.data = covered_scope_2_output_ledger.data.withColumn("total_scope_2_emission_per_ledger_id", F.sum("total_scope_2_emission_per_activity_uuid_product_uuid").over(windowSpec))
+        covered_scope_2_output_ledger = covered_scope_2_output_ledger.custom_drop(["total_scope_2_emission_per_activity_uuid_product_uuid"])
+        covered_scope_2_output_ledger = covered_scope_2_output_ledger.custom_select(["tiltledger_id", "total_scope_2_emission_per_ledger_id"]).custom_distinct()
+
+        ## DF CREATION
+        scope_2_indicator_enriched = CustomDF("scope_2_indicator_enriched", spark_generate,
+                                                initial_df=covered_scope_2_output_ledger.data)
+        
+        print(f"Writing data for {table_name}")
+        # WRITE
+        scope_2_indicator_enriched.write_table()
+        print("Data written successfully!\n")
+          
+  elif table_name == 'scope_3_indicator_enriched':
+        sys.setrecursionlimit(2000)
+        print(f"Loading data for {table_name}")
+        ## LOAD
+        # ecoinvent
+        ecoinvent_product = CustomDF("ecoinvent_product_datamodel", spark_generate)
+        ecoinvent_input_data = CustomDF("ecoinvent_input_data_datamodel", spark_generate)
+        ecoinvent_activity = CustomDF("ecoinvent_activity_datamodel", spark_generate)
+        ecoinvent_co2 = CustomDF("ecoinvent_co2_datamodel", spark_generate)
+        ecoinvent_cut_off = CustomDF("ecoinvent_cut_off_datamodel", spark_generate)
+        scope_3_emissions = CustomDF("scope_3_emissions_datamodel", spark_generate)
+        
+        # mappers
+        geography_ecoinvent_mapper = CustomDF("geography_ecoinvent_mapper_datamodel", spark_generate).custom_select(["geography_id", "ecoinvent_geography", "priority", "input_priority"])
+        ledger_ecoinvent_mapping = CustomDF("ledger_ecoinvent_mapping_datamodel", spark_generate)
+
+        ## PREPPING
+        covered_geographies = geography_ecoinvent_mapper.custom_select(["ecoinvent_geography"]).custom_distinct()
+
+        scope_3_emissions.data = scope_3_emissions.data.withColumn("geography", F.lower(F.col("geography")))
+        scope_3_emissions = scope_3_emissions.custom_select([
+            *[F.col(c).alias("input_" + c) for c in scope_3_emissions.data.columns[:-1]]
+          ]
+        )
+        
+        ## PREPPING
+        ei_record_info = ecoinvent_cut_off.custom_join(ecoinvent_product, "product_uuid", custom_how="left").custom_join(ecoinvent_activity, "activity_uuid", custom_how="left").custom_join(ecoinvent_co2, "activity_uuid_product_uuid", custom_how="left").custom_select(
+            ['activity_uuid_product_uuid','activity_uuid','product_uuid','reference_product_name','unit','cpc_code','cpc_name','activity_name','activity_type','geography','isic_4digit','co2_footprint']
+        )
+        ei_record_info.data = ei_record_info.data.withColumn("geography", F.lower(F.col("geography"))).dropna()
+        ei_record_info.rename_columns({"isic_4digit": "isic_code"})
+        ei_record_info = ei_record_info.custom_select(["activity_uuid_product_uuid","activity_name", "reference_product_name", "co2_footprint", "geography"])
+        filtered_ei_record_info = ei_record_info.custom_join(covered_geographies, (F.col("geography") == F.col("ecoinvent_geography")), custom_how="inner").custom_drop("ecoinvent_geography")
+
+        ## PREPPING
+        input_ei_record_info = ei_record_info.custom_select([
+            *[F.col(c).alias("input_" + c) for c in ei_record_info.data.columns[:-1]]
+            ]
+        )
+        
+        ## PREPPING
+        input_data_w_co2 = ecoinvent_input_data.custom_join(input_ei_record_info, custom_on="input_activity_uuid_product_uuid", custom_how="inner")
+        input_data_w_co2.rename_columns({"Amount":"input_amount", "Activity_UUID_Product_UUID": "activity_uuid_product_uuid", "Input_Activity_UUID_Product_UUID": "input_activity_uuid_product_uuid"})
         joined_records = input_data_w_co2.custom_join(scope_3_emissions, custom_on=["input_activity_name", "input_reference_product_name", "input_geography"], custom_how="inner")
         scope_3_indicator_output = joined_records.custom_select(["activity_uuid_product_uuid", "input_activity_uuid_product_uuid", "input_amount", "input_scope_3_emission"])
 
