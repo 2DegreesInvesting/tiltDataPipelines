@@ -257,6 +257,9 @@ def generate_table(table_name: str) -> None:
 
         companies_raw_final.data = spark_generate.read.format("parquet").load(landingzone_dir)
 
+        companies_raw_final = companies_raw_final.custom_union(
+            companies_markus_raw)
+
         # Prep to add data granularity score
         companies_sbi_activities = CustomDF(
             "companies_SBI_activities_datamodel", spark_generate
@@ -272,8 +275,7 @@ def generate_table(table_name: str) -> None:
             companies_products, "company_id", "left"
         )
         
-        companies_raw_final = companies_raw_final.custom_union(
-            companies_markus_raw)
+        
         
         # Add data granularity score
         companies_raw_final.data = companies_raw_final.data.withColumn(
