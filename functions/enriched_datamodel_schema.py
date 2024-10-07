@@ -140,4 +140,20 @@ enriched_datamodel_schema = {
     'partition_column': '',
     'quality_checks': []
     }
+    ,
+    'scope_3_indicator_enriched': {
+        'columns': StructType([
+            StructField('tiltledger_id', StringType(), False),
+            StructField('total_scope_3_electricity_emission_per_ledger_id', DoubleType(), True),
+            StructField('from_date', DateType(), False),
+            StructField('to_date', DateType(), False),
+            StructField('tiltRecordID', StringType(), False)
+        ]
+        ),
+    'container': 'enriched',
+    'location': 'scope_3_indicator',
+    'type': 'delta',
+    'partition_column': '',
+    'quality_checks': []
+    }
 }
