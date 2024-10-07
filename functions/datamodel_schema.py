@@ -475,5 +475,24 @@ datamodel_schema = {
         'type': 'delta',
         'partition_column': '',
         'quality_checks': []
-    }
+    },
+    "tiltLedger_mapping_datamodel": {
+        "columns": StructType(
+            [
+                StructField("tiltLedger_id", StringType(), True),
+                StructField("company_id", StringType(), True),
+                StructField("distance_isic", DoubleType(), True),
+                StructField("distance_cpc", DoubleType(), True),
+                StructField("model_certainty", DoubleType(), True),
+                StructField("from_date", DateType(), False),
+                StructField("to_date", DateType(), False),
+                StructField("tiltRecordID", StringType(), False),
+            ]
+        ),
+        "container": "datamodel",
+        "location": "tiltLedger_mapping",
+        "type": "delta",
+        "partition_column": "",
+        "quality_checks": [],
+    },
 }
