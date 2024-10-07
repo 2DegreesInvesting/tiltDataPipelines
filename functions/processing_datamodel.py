@@ -110,7 +110,7 @@ def generate_table(table_name: str) -> None:
 
         # Rename the markus columns
         rename_dict = {
-            "ID_Nummer": "markus_company_id",
+            "ID_Nummer": "company_id",
             "Firmenname": "company_name",
             "Tatigkeitsbeschreibung": "company_description",
             "Adresse": "address",
@@ -131,7 +131,7 @@ def generate_table(table_name: str) -> None:
 
         companies_markus_raw = companies_markus_raw.custom_select(
             [
-                'markus_company_id',
+                'company_id',
                 "country_un",
                 "source_id",
                 "company_name",
@@ -272,11 +272,15 @@ def generate_table(table_name: str) -> None:
             companies_products, "company_id", "left"
         )
         
+        companies_raw_final = companies_raw_final.custom_union(
+            companies_markus_raw)
+        
         # Add data granularity score
         companies_raw_final.data = companies_raw_final.data.withColumn(
             "data_granularity",
             F.when(F.col("product_id").isNotNull(), 2)
             .when(F.col("sbi_code").isNotNull(), 3)
+            .when(F.col("source_id") == "source_5_markus", 3)
             .when(F.col("company_description").isNotNull(), 4)
             .otherwise(5),
         )
@@ -298,9 +302,7 @@ def generate_table(table_name: str) -> None:
 
         companies_raw_final.data = companies_raw_final.data.dropDuplicates([
             'company_id'])
-
-        companies_raw_final = companies_raw_final.custom_union(
-            companies_markus_raw)
+       
 
         companies_datamodel = CustomDF(
             "companies_datamodel", spark_generate, initial_df=companies_raw_final.data
