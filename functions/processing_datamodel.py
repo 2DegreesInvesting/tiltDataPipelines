@@ -319,14 +319,14 @@ def generate_table(table_name: str) -> None:
             "product_name", F.explode(F.split("products_and_services", "\|"))
         )
         companies_europages_raw = companies_europages_raw.custom_drop(
-            "products_and_services"
-        ).custom_select("product_name")
+            ["products_and_services"]
+        ).custom_select(["product_name"])
 
         # create product_id
         sha_columns = [
             F.col(col_name)
             for col_name in companies_europages_raw.data.columns
-            if col_name not in ["tiltRecordID", "to_date"]
+            if (col_name not in ["tiltRecordID", "to_date"]) and (not col_name.startswith("map_") )
         ]
 
         companies_europages_raw.data = companies_europages_raw.data.withColumn(
@@ -337,8 +337,8 @@ def generate_table(table_name: str) -> None:
             "products_datamodel",
             spark_generate,
             initial_df=companies_europages_raw.custom_select(
-                "product_id", "product_name"
-            ).distinct(),
+                ["product_id", "product_name"]
+            ).custom_distinct().data,
         )
 
         products_datamodel.write_table()
@@ -347,7 +347,7 @@ def generate_table(table_name: str) -> None:
 
         companies_europages_raw = CustomDF("companies_europages_raw", spark_generate)
 
-        products_datamodel = CustomDF("EP_products_datamodel", spark_generate)
+        products_datamodel = CustomDF("products_datamodel", spark_generate)
 
         rename_dict = {"id": "company_id"}
 
@@ -357,23 +357,23 @@ def generate_table(table_name: str) -> None:
             "product_name", F.explode(F.split("products_and_services", "\|"))
         )
         companies_europages_raw = companies_europages_raw.custom_drop(
-            "products_and_services"
+            ["products_and_services"]
         )
 
         companies_joined_product_id = companies_europages_raw.custom_join(
-            products_datamodel.data, "product_name"
+            products_datamodel, "product_name", "inner"
         )
 
         companies_joined_without_product_name = companies_joined_product_id.custom_drop(
-            "product_name"
+            ["product_name"]
         )
 
         companies_products_datamodel = CustomDF(
             "companies_products_datamodel",
             spark_generate,
-            initial_df=companies_joined_without_product_name.custom_select(
-                "company_id", "product_id"
-            ),
+            initial_df=companies_joined_without_product_name.custom_select([
+                "company_id", "product_id"]
+            ).data,
         )
         companies_products_datamodel = companies_products_datamodel.custom_distinct()
 
