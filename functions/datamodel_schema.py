@@ -54,7 +54,7 @@ datamodel_schema = {
         "partition_column": "",
         "quality_checks": [],
     },
-    "companies_EP_products_datamodel": {
+    "companies_products_datamodel": {
         "columns": StructType(
             [
                 StructField("company_id", StringType(), False),
@@ -65,12 +65,12 @@ datamodel_schema = {
             ]
         ),
         "container": "datamodel",
-        "location": "companies_EP_products",
+        "location": "companies_products_datamodel",
         "type": "delta",
         "partition_column": "",
         "quality_checks": [],
     },
-    "EP_products_datamodel": {
+    "products_datamodel": {
         "columns": StructType(
             [
                 StructField("product_id", StringType(), False),
@@ -81,7 +81,7 @@ datamodel_schema = {
             ]
         ),
         "container": "datamodel",
-        "location": "EP_products",
+        "location": "products",
         "type": "delta",
         "partition_column": "",
         "quality_checks": [],
@@ -366,16 +366,11 @@ datamodel_schema = {
     "ecoinvent_input_data_datamodel": {
         "columns": StructType(
             [
-                StructField("activityId", StringType(), True),
-                StructField("activityName", StringType(), True),
-                StructField("geography", StringType(), True),
-                StructField("reference_product", StringType(), True),
-                StructField("group", StringType(), True),
-                StructField("exchange_name", StringType(), True),
-                StructField("activityLinkId", StringType(), True),
-                StructField("activityLink_activityName", StringType(), True),
-                StructField("activityLink_geography", StringType(), True),
-                StructField("exchange_unitName", StringType(), True),
+                StructField("Activity_UUID_Product_UUID", StringType(), True),
+                StructField("Input_Activity_UUID_Product_UUID",
+                            StringType(), True),
+                StructField("Product_Name", StringType(), True),
+                StructField("Amount", DoubleType(), True),
                 StructField("from_date", DateType(), False),
                 StructField("to_date", DateType(), False),
                 StructField("tiltRecordID", StringType(), False),
@@ -423,6 +418,56 @@ datamodel_schema = {
         ),
         "container": "datamodel",
         "location": "tiltLedger",
+        "type": "delta",
+        "partition_column": "",
+        "quality_checks": [],
+    },
+    'ledger_ecoinvent_mapping_datamodel': {
+        'columns':  StructType([
+            StructField('tiltledger_id', StringType(), True),
+            StructField('activity_uuid_product_uuid', StringType(), True),
+            StructField('from_date', DateType(), False),
+            StructField('to_date', DateType(), False),
+            StructField('tiltRecordID', StringType(), False)
+        ]
+        ),
+        'container': 'datamodel',
+        'location': 'ledger_ecoinvent_mapping',
+        'type': 'delta',
+        'partition_column': '',
+        'quality_checks': []
+    },
+    'main_activity_ecoinvent_mapper_datamodel': {
+        'columns': StructType([
+            StructField('main_activity_id', StringType(), False),
+            StructField('main_activity', StringType(), True),
+            StructField('ecoinvent_activity', StringType(), True),
+            StructField('from_date', DateType(), False),
+            StructField('to_date', DateType(), False),
+            StructField('tiltRecordID', StringType(), False)
+        ]
+        ),
+        'container': 'datamodel',
+        'location': 'main_activity_ecoinvent_mapper',
+        'type': 'delta',
+        'partition_column': '',
+        'quality_checks': []
+    },
+    "tiltLedger_mapping_datamodel": {
+        "columns": StructType(
+            [
+                StructField("tiltLedger_id", StringType(), True),
+                StructField("company_id", StringType(), True),
+                StructField("distance_isic", DoubleType(), True),
+                StructField("distance_cpc", DoubleType(), True),
+                StructField("model_certainty", DoubleType(), True),
+                StructField("from_date", DateType(), False),
+                StructField("to_date", DateType(), False),
+                StructField("tiltRecordID", StringType(), False),
+            ]
+        ),
+        "container": "datamodel",
+        "location": "tiltLedger_mapping",
         "type": "delta",
         "partition_column": "",
         "quality_checks": [],

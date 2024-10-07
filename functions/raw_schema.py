@@ -933,35 +933,6 @@ raw_schema = {
         "partition_column": "",
         "quality_checks": [],
     },
-    "ecoinvent_input_data_raw": {
-        "columns": StructType(
-            [
-                StructField("activityId", StringType(), True),
-                StructField("activityName", StringType(), True),
-                StructField("geography", StringType(), True),
-                StructField("reference_product", StringType(), True),
-                StructField("group", StringType(), True),
-                StructField("exchange_name", StringType(), True),
-                StructField("activityLinkId", StringType(), True),
-                StructField("activityLink_activityName", StringType(), True),
-                StructField("activityLink_geography", StringType(), True),
-                StructField("exchange_unitName", StringType(), True),
-                StructField("exchange_amount", DecimalType(25, 10), True),
-                StructField("CPC_classificationValue", StringType(), True),
-                StructField(
-                    "By_product_classification_classificationValue", StringType(), True
-                ),
-                StructField("from_date", DateType(), False),
-                StructField("to_date", DateType(), False),
-                StructField("tiltRecordID", StringType(), False),
-            ]
-        ),
-        "container": "raw",
-        "location": "ecoinvent_input_data",
-        "type": "delta",
-        "partition_column": "",
-        "quality_checks": [],
-    },
     "ep_ei_matcher_raw": {
         "columns": StructType(
             [
@@ -1346,6 +1317,64 @@ raw_schema = {
         ),
         "container": "raw",
         "location": "tiltLedger",
+        "type": "delta",
+        "partition_column": "",
+        "quality_checks": [],
+    },
+    "inputProducts_raw": {
+        "columns": StructType(
+            [
+                StructField("Activity_UUID_Product_UUID", StringType(), True),
+                StructField("Input_Activity_UUID_Product_UUID",
+                            StringType(), True),
+                StructField("Product_Name", StringType(), True),
+                StructField("Amount", DoubleType(), True),
+                StructField("from_date", DateType(), False),
+                StructField("to_date", DateType(), False),
+                StructField("tiltRecordID", StringType(), False),
+            ]
+        ),
+        "container": "raw",
+        "location": "inputProducts",
+        "type": "delta",
+        "partition_column": "",
+        "quality_checks": [],
+    },
+    "emissionData_raw": {
+        "columns": StructType(
+            [
+                StructField("Activity_UUID_Product_UUID", StringType(), True),
+                StructField("elementaryExchangeId", StringType(), True),
+                StructField("output_unit", StringType(), True),
+                StructField("emission", StringType(), True),
+                StructField("amount", DoubleType(), True),
+                StructField("emissions_unit", StringType(), True),
+                StructField("carbon_allocation", DoubleType(), True),
+                StructField("from_date", DateType(), False),
+                StructField("to_date", DateType(), False),
+                StructField("tiltRecordID", StringType(), False),
+            ]
+        ),
+        "container": "raw",
+        "location": "emissionData",
+        "type": "delta",
+        "partition_column": "",
+        "quality_checks": [],
+    },
+    "tiltLedger_mapping_raw": {
+        "columns": StructType(
+            [
+                StructField("tiltLedger_id", StringType(), True),
+                StructField("company_id", StringType(), True),
+                StructField("distance_isic", DoubleType(), True),
+                StructField("distance_cpc", DoubleType(), True),
+                StructField("from_date", DateType(), False),
+                StructField("to_date", DateType(), False),
+                StructField("tiltRecordID", StringType(), False),
+            ]
+        ),
+        "container": "raw",
+        "location": "tiltLedger_mapping",
         "type": "delta",
         "partition_column": "",
         "quality_checks": [],
