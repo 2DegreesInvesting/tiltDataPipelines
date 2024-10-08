@@ -186,8 +186,11 @@ def generate_table(table_name: str) -> None:
     elif table_name == "tilt_sector_isic_mapper_raw":
 
         tilt_isic_mapper_landingzone = CustomDF(
-            "tilt_isic_mapper_2023-07-20_landingzone", spark_generate
+            "tilt_isic_mapper_landingzone", spark_generate
         )
+
+        tilt_isic_mapper_landingzone.data = tilt_isic_mapper_landingzone.data.withColumn(
+            'isic_4digit', F.lpad(F.col('isic_4digit'), 4, '0'))
 
         tilt_sector_isic_mapper_raw = CustomDF(
             "tilt_sector_isic_mapper_raw",
@@ -451,8 +454,7 @@ def generate_table(table_name: str) -> None:
 
     elif table_name == "main_activity_ecoinvent_mapper_raw":
         main_activity_ecoinvent_mapper_landingzone = CustomDF(
-            "main_activity_ecoinvent_mapper_landingzone", spark_generate
-        )
+            "main_activity_ecoinvent_mapper_landingzone", spark_generate)
 
         main_activity_ecoinvent_mapper_raw = CustomDF(
             "main_activity_ecoinvent_mapper_raw",
@@ -807,6 +809,39 @@ def generate_table(table_name: str) -> None:
         )
 
         emissionData_raw.write_table()
+
+    elif table_name == 'markus_companies_raw':
+
+        markus_companies_landingzone = CustomDF(
+            'markus_companies_landingzone', spark_generate)
+
+        markus_companies_raw = CustomDF(
+            "markus_companies_raw", spark_generate, initial_df=markus_companies_landingzone.data
+        )
+
+        markus_companies_raw.write_table()
+
+    elif table_name == 'nace2_isic4_mapper_raw':
+
+        nace2_isic4_landingzone = CustomDF(
+            'nace2_isic4_mapper_landingzone', spark_generate)
+
+        nace2_isic4_mapper_raw = CustomDF(
+            "nace2_isic4_mapper_raw", spark_generate, initial_df=nace2_isic4_landingzone.data
+        )
+
+        nace2_isic4_mapper_raw.write_table()
+
+    elif table_name == 'markus_matches_raw':
+
+        markus_matches_landingzone = CustomDF(
+            'markus_matches_landingzone', spark_generate)
+
+        markus_matches_raw = CustomDF(
+            "markus_matches_raw", spark_generate, initial_df=markus_matches_landingzone.data
+        )
+        print(markus_matches_raw.data.show())
+        markus_matches_raw.write_table()
 
     else:
         raise ValueError(
