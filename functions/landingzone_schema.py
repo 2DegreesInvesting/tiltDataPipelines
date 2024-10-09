@@ -457,6 +457,23 @@ landingzone_schema = {
         "partition_column": "",
         "quality_checks": [],
     },
+    "multi_SBI_companyinfo_landingzone": {
+        "columns": StructType(
+            [
+                StructField("SIZOKEY", StringType(), False),
+                StructField("SIZOSBI", StringType(), False),
+                StructField("SBI-Code", StringType(), False),
+                StructField("SIZRVOLGNR", StringType(), False),
+                StructField("Soort_SBI-code_Kamer_van_Koophandel", StringType(), False),
+                StructField("Bron_ID", StringType(), False),
+            ]
+        ),
+        "container": "landingzone",
+        "location": "CompanyInfo/multi_sbi_20240718.csv",
+        "type": "csv",
+        "partition_column": "",
+        "quality_checks": [],
+    },
     "country_landingzone": {
         "columns": StructType(
             [
@@ -541,7 +558,7 @@ landingzone_schema = {
         "partition_column": "",
         "quality_checks": [],
     },
-    
+
     'EP_tilt_sector_mapper_landingzone': {
         'columns':  StructType([
             StructField('categories_id', StringType(), False),
@@ -558,7 +575,7 @@ landingzone_schema = {
         "partition_column": "",
         "quality_checks": [],
     },
-    "tilt_isic_mapper_2023-07-20_landingzone": {
+    "tilt_isic_mapper_landingzone": {
         "columns": StructType(
             [
                 StructField("tilt_sector", StringType(), True),
@@ -568,8 +585,8 @@ landingzone_schema = {
             ]
         ),
         "container": "landingzone",
-        "location": "mappers/tilt_isic_mapper_2023-07-20.csv",
-        "type": "csv",
+        "location": "mappers/tilt_sectors_isic_mapper_20240826.csv",
+        "type": "multiline",
         "partition_column": "",
         "quality_checks": [],
     },
@@ -1283,6 +1300,114 @@ landingzone_schema = {
         ),
         "container": "landingzone",
         "location": "ecoInvent/scope_2_and_3_mandatory_ghgs.csv",
+        "type": "csv",
+        "partition_column": "",
+        "quality_checks": [],
+    },
+    "markus_companies_landingzone": {
+        "columns": StructType(
+            [
+                StructField('ID Nummer', StringType(), True),
+                StructField('Firmenname', StringType(), True),
+                StructField('Adresse', StringType(), True),
+                StructField('PLZ', StringType(), True),
+                StructField('Stadt', StringType(), True),
+                StructField('Land', StringType(), True),
+                StructField('Tatigkeitsbeschreibung', StringType(), True),
+                StructField('1 Zusatzliche Beschreibung', StringType(), True),
+                StructField('2 Zusatzliche Beschreibung', StringType(), True),
+                StructField('3 Zusatzliche Beschreibung', StringType(), True),
+                StructField('4 Zusatzliche Beschreibung', StringType(), True),
+                StructField('ONACE Haupttatigkeit Code', StringType(), True),
+                StructField('ONACE Haupttatigkeit Beschreibung',
+                            StringType(), True),
+                StructField('1 ONACE Nebenttatigkeit Code',
+                            StringType(), True),
+                StructField('1 ONACE Nebenttatigkeit Beschreibung',
+                            StringType(), True),
+                StructField('2 ONACE Nebenttatigkeit Code',
+                            StringType(), True),
+                StructField('2 ONACE Nebenttatigkeit Beschreibung',
+                            StringType(), True),
+                StructField('3 ONACE Nebenttatigkeit Code',
+                            StringType(), True),
+                StructField('3 ONACE Nebenttatigkeit Beschreibung',
+                            StringType(), True),
+                StructField('4 ONACE Nebenttatigkeit Code',
+                            StringType(), True),
+                StructField('4 ONACE Nebenttatigkeit Beschreibung',
+                            StringType(), True),
+                StructField('5 ONACE Nebenttatigkeit Code',
+                            StringType(), True),
+                StructField('5 ONACE Nebenttatigkeit Beschreibung',
+                            StringType(), True),
+                StructField('6 ONACE Nebenttatigkeit Code',
+                            StringType(), True),
+                StructField('6 ONACE Nebenttatigkeit Beschreibung',
+                            StringType(), True),
+                StructField('7 ONACE Nebenttatigkeit Code',
+                            StringType(), True),
+                StructField('7 ONACE Nebenttatigkeit Beschreibung',
+                            StringType(), True),
+                StructField('8 ONACE Nebenttatigkeit Code',
+                            StringType(), True),
+                StructField('8 ONACE Nebenttatigkeit Beschreibung',
+                            StringType(), True),
+                StructField('9 ONACE Nebenttatigkeit Code',
+                            StringType(), True),
+                StructField('9 ONACE Nebenttatigkeit Beschreibung',
+                            StringType(), True),
+            ]
+        ),
+        "container": "landingzone",
+        "location": "markus_companies/Markus Company Extract.csv",
+        "type": "multiline",
+        "partition_column": "",
+        "quality_checks": [],
+    },
+    "markus_matches_landingzone": {
+        "columns": StructType(
+            [
+                StructField('ID_Nummer', StringType(), True),
+                StructField('Firmenname', StringType(), True),
+                StructField('Tatigkeitsbeschreibung', StringType(), True),
+                StructField('onace_klasse', StringType(), True),
+                StructField('ONACE_Haupttatigkeit_Code', StringType(), True),
+                StructField('ONACE_Haupttatigkeit_Beschreibung',
+                            StringType(), True),
+                StructField('ONACE_Numbers', StringType(), True),
+                StructField('tiltLedger_id', StringType(), True),
+                StructField('CPC_Code', StringType(), True),
+                StructField('CPC_Name', StringType(), True),
+                StructField('ISIC_Code', StringType(), True),
+                StructField('ISIC_Name', StringType(), True),
+                StructField('Activity_Type', StringType(), True),
+                StructField('Manual_Review', StringType(), True),
+                StructField('Verified_Source', StringType(), True),
+                StructField('Present_in_EI', StringType(), True),
+                StructField('which activity type', StringType(), True),
+                StructField('match Jule', StringType(), True),
+                StructField('match Anne', StringType(), True),
+                StructField('Tilman', StringType(), True),
+            ]
+        ),
+        "container": "landingzone",
+        "location": "markus_companies/markus_companies_20240823 - Final matches Anne.csv",
+        "type": "csv",
+        "partition_column": "",
+        "quality_checks": [],
+    },
+    "nace2_isic4_mapper_landingzone": {
+        "columns": StructType(
+            [
+                StructField("NACE2code", StringType(), True),
+                StructField("NACE2part", StringType(), True),
+                StructField("ISIC4code", StringType(), True),
+                StructField("ISIC4part", StringType(), True)
+            ]
+        ),
+        "container": "landingzone",
+        "location": "mappers/NACE2_ISIC4.txt",
         "type": "csv",
         "partition_column": "",
         "quality_checks": [],
