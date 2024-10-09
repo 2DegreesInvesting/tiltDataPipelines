@@ -457,6 +457,23 @@ landingzone_schema = {
         "partition_column": "",
         "quality_checks": [],
     },
+    "multi_SBI_companyinfo_landingzone": {
+        "columns": StructType(
+            [
+                StructField("SIZOKEY", StringType(), False),
+                StructField("SIZOSBI", StringType(), False),
+                StructField("SBI-Code", StringType(), False),
+                StructField("SIZRVOLGNR", StringType(), False),
+                StructField("Soort_SBI-code_Kamer_van_Koophandel", StringType(), False),
+                StructField("Bron_ID", StringType(), False),
+            ]
+        ),
+        "container": "landingzone",
+        "location": "CompanyInfo/multi_sbi_20240718.csv",
+        "type": "csv",
+        "partition_column": "",
+        "quality_checks": [],
+    },
     "country_landingzone": {
         "columns": StructType(
             [
