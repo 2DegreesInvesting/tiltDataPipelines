@@ -589,6 +589,47 @@ class CustomDF(DataReader):
 
         return CustomDF(self._name, self._spark_session, copy_df, self._partition_name, self._history)
 
+    def custom_groupby(self, groupby_columns: list, *arguments) -> 'CustomDF':
+        """
+        Performs a custom groupby operation on the DataFrame.
+
+        Args:
+            groupby_columns (list): A list of column names to group by.
+            *arguments: Additional arguments to be passed to the `agg` function, like sum, average. These functions should be written using the F representation for the average functions.
+
+        Returns:
+            CustomDF: A new instance of the CustomDF class representing the grouped DataFrame.
+
+        Example:
+            CustomDF.custom_groupby(['groupby_col_1','groupby_col_2'],F.sum(F.col('col_to_sum_over')),F.avg(F.col('avg_col')))
+
+        """
+
+        map_col = [
+            col for col in self._df.columns if col.startswith('map_')][0]
+
+        copy_df = self._df
+
+        group_df = copy_df.groupBy(groupby_columns).agg(*arguments)
+
+        copy_df = copy_df.select(*groupby_columns, F.explode(
+            F.col(map_col)).alias('exploded_table', 'exploded_list'))\
+            .select(*groupby_columns, F.col('exploded_table'), F.explode(F.col('exploded_list')).alias('exploded'))
+
+        copy_df = copy_df\
+            .groupBy(groupby_columns + ['exploded_table'])\
+            .agg(F.collect_set(F.col('exploded')).alias('exploded_fold'))\
+            .groupBy(groupby_columns)\
+            .agg(F.collect_list(F.col('exploded_table')).alias('table_list'), F.collect_list(F.col('exploded_fold')).alias('fold_list'))\
+            .withColumn(map_col, F.map_from_arrays(F.col('table_list'), F.col('fold_list')))\
+            .select(*groupby_columns, F.col(map_col))
+
+        copy_df = group_df.alias('group_df')\
+            .join(copy_df.alias('copy_df'), on=[F.col('group_df.'+column).eqNullSafe(F.col('copy_df.'+column)) for column in groupby_columns], how='inner')\
+            .select([F.col('group_df.'+column) for column in group_df.columns]+[F.col('copy_df.'+map_col)])
+
+        return CustomDF(self._name, self._spark_session, copy_df, self._partition_name, self._history)
+
     def custom_union(self, custom_other: 'CustomDF'):
         """
         Unions the current CustomDF instance with another CustomDF instance.
