@@ -130,14 +130,16 @@ signalling_checks_dictionary = {
         },
         {
             'check': 'values are consistent',
-            'columns': [('company_description', 'Bedrijfsomschrijving'), ('address', 'Vestigingsadres'), ('company_city', 'Vestigingsadres_plaats'), ('postcode', 'Vestigingsadres_postcode')],
+            'columns': ['company_description', 'address', 'company_city', 'postcode'],
             'compare_table': 'companies_companyinfo_raw',
+            'compare_columns': ['Bedrijfsomschrijving', 'Vestigingsadres', 'Vestigingsadres_plaats', 'Vestigingsadres_postcode'],
             'join_columns': [('company_id', "Kamer_van_Koophandel_nummer_12_cijferig")]
         },
         {
             'check': 'values are consistent',
-            'columns': [('company_description', 'information'), ('address', 'address'), ('company_city', 'company_city')],
+            'columns': ['company_description', 'address','company_city'],
             'compare_table': 'companies_europages_raw',
+            'compare_columns': ['information', 'address', 'company_city'],
             'join_columns': [('company_id', "id")]
         } 
     ],

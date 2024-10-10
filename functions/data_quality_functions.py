@@ -1,7 +1,9 @@
 from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql.functions import col
 from pyspark.sql.types import StructType, StructField, StringType, IntegerType, Row
+from functools import reduce
 import pyspark.sql.functions as F
+
 
 
 def check_value_within_list(dataframe: DataFrame, **kwargs: dict) -> int:
@@ -164,38 +166,23 @@ def check_values_consistent(dataframe: DataFrame, **kwargs: dict) -> int:
 
     """
     # Extracting elements from kwargs
-    column_comparison = kwargs.get('columns')
+    column_names= kwargs.get('columns')
+    compare_column_names= kwargs.get('compare_columns')
 
-    # [("Ä", "B"), ("C", "D")]
+
     compare_df = kwargs.get('compare_table')
     join_columns = kwargs.get('join_columns')
-    print(column_comparison)
-    print(join_columns)
 
-    # Body of the function
     compare_df = compare_df.select(
-        *([F.col(jc[1]) for jc in join_columns] + [F.col(cn_tup[1]).alias('compare_' + cn_tup[1]) for cn_tup in column_comparison]))
-    # Flattening the list of tuples
-    # flattened_list = [item for tup in column_comparison for item in tup]   
-    print(compare_df.columns)
-    joined_df = dataframe.join(compare_df, on=[dataframe.join_columns[0]==compare_df.join_columns[1]], how='left')
-    joined_df.show()
+        *([F.col(jc[1]) for jc in join_columns] + [F.col(cn).alias('compare_' + cn) for cn in compare_column_names]))
+
+    join_conditions = [dataframe[jc[0]] == compare_df[jc[1]] for jc in join_columns]
+    joined_df = dataframe.join(compare_df, on=join_conditions, how='left')
     
-    # .select(
-        # *join_columns, *flattened_list)
-    
-    # print(joined_df.columns)
-    # TODO: fix pseudo
-    valid_count = joined_df.filter([
-        F.col(column_name[0]) == F.col('compare_' + column_name[1])] for column_name in column_comparison).count()
-    
-    # # iterate over column tuples to derive cross-check dataframes
-    # # compare the two columns (items) in a tuple pair
-    # for column_pairs in column_comparison:
-    #     column_table1 = joined_df.select([column_pairs[0]])
-    #     column_table2 = joined_df.select([column_pairs[1]])
-    #     print(column_table1.count())
-    #     print(column_table2.count())
+    filter_conditions = [F.col(column_names[i]) == F.col('compare_' + compare_cn) for i, compare_cn in enumerate(compare_column_names)]
+    filter_conditions = reduce(lambda a, b: a & b, filter_conditions)
+
+    valid_count = joined_df.filter(filter_conditions).count()
 
     valid_count = joined_df.count()
 
