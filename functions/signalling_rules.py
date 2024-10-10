@@ -72,6 +72,13 @@ signalling_checks_dictionary = {
             'value_list': unit_measures_ecoinvent
         }
     ],
+    'companies_companyinfo_raw': [
+        {
+            'check': 'values have format',
+            'columns': ['sbi_code'],
+            'format': r'^\d{1,6}$'
+        }
+    ],
     # 'inputProducts_raw': [
     #     {
     #         'check': 'values are unique',
@@ -120,7 +127,19 @@ signalling_checks_dictionary = {
             'check': 'values within list',
             'columns': ['country_un'],
             'value_list': ['NL', 'AT', 'IT', 'ES', 'FR', 'DE', 'GB']
-        }
+        },
+        {
+            'check': 'values are consistent',
+            'columns': [('company_description', 'Bedrijfsomschrijving'), ('address', 'Vestigingsadres'), ('company_city', 'Vestigingsadres_plaats'), ('postcode', 'Vestigingsadres_postcode')],
+            'compare_table': 'companies_companyinfo_raw',
+            'join_columns': [('company_id', "Kamer_van_Koophandel_nummer_12_cijferig")]
+        },
+        {
+            'check': 'values are consistent',
+            'columns': [('company_description', 'information'), ('address', 'address'), ('company_city', 'company_city')],
+            'compare_table': 'companies_europages_raw',
+            'join_columns': [('company_id', "id")]
+        } 
     ],
     'ecoinvent_product_datamodel': [
         {
@@ -778,6 +797,10 @@ signalling_checks_dictionary = {
     ],
     'company_product_indicators_enriched': [
         {
+            'check': 'values are unique',
+            'columns': ['company_id']
+        },
+        {
             'check': 'values within list',
             'columns': ['country'],
             'value_list': ['IT', 'FR', 'GB', 'NL', 'ES', 'DE', 'AT']
@@ -847,6 +870,10 @@ signalling_checks_dictionary = {
         }
     ],
     'company_indicators_enriched': [
+        {
+            'check': 'values are unique',
+            'columns': ['company_id']
+        },
         {
             'check': 'values within list',
             'columns': ['country'],

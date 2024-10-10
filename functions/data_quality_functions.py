@@ -142,7 +142,8 @@ def check_values_format(dataframe: DataFrame, **kwargs: dict) -> int:
     return valid_count
 
 
-def check_values_consistent(dataframe: DataFrame, column_name: list, compare_df: DataFrame, join_columns: list) -> int:
+def check_values_consistent(dataframe: DataFrame, **kwargs: dict) -> int:
+# def check_values_consistent(dataframe: DataFrame, column_name: list, compare_df: DataFrame, join_columns: list) -> int:
     """
     Checks the consistency of values in a specified column between the input DataFrame and a comparison table.
 
@@ -162,16 +163,39 @@ def check_values_consistent(dataframe: DataFrame, column_name: list, compare_df:
         - Rows where the values match are counted, and the count is returned as an integer.
 
     """
-    compare_df = compare_df.select(
-        join_columns + [F.col(cn).alias('compare_' + cn) for cn in column_name])
+    # Extracting elements from kwargs
+    column_comparison = kwargs.get('columns')
 
-    joined_df = dataframe.select(
-        column_name + join_columns).join(compare_df, on=join_columns, how='left')
-    # valid_count = joined_df.filter(
-        # F.col(column_name[0]) == F.col('compare_' + column_name[0])).count()
+    # [("Ä", "B"), ("C", "D")]
+    compare_df = kwargs.get('compare_table')
+    join_columns = kwargs.get('join_columns')
+    print(column_comparison)
+    print(join_columns)
+
+    # Body of the function
+    compare_df = compare_df.select(
+        *([F.col(jc[1]) for jc in join_columns] + [F.col(cn_tup[1]).alias('compare_' + cn_tup[1]) for cn_tup in column_comparison]))
+    # Flattening the list of tuples
+    # flattened_list = [item for tup in column_comparison for item in tup]   
+    print(compare_df.columns)
+    joined_df = dataframe.join(compare_df, on=[dataframe.join_columns[0]==compare_df.join_columns[1]], how='left')
+    joined_df.show()
     
-    for cn in column_name:
-        joined_df = joined_df.filter(F.col(cn) == F.col("compare_" + cn))
+    # .select(
+        # *join_columns, *flattened_list)
+    
+    # print(joined_df.columns)
+    # TODO: fix pseudo
+    valid_count = joined_df.filter([
+        F.col(column_name[0]) == F.col('compare_' + column_name[1])] for column_name in column_comparison).count()
+    
+    # # iterate over column tuples to derive cross-check dataframes
+    # # compare the two columns (items) in a tuple pair
+    # for column_pairs in column_comparison:
+    #     column_table1 = joined_df.select([column_pairs[0]])
+    #     column_table2 = joined_df.select([column_pairs[1]])
+    #     print(column_table1.count())
+    #     print(column_table2.count())
 
     valid_count = joined_df.count()
 
@@ -366,7 +390,7 @@ def calculate_signalling_issues(dataframe: DataFrame, signalling_check_dict: dic
 
         elif check_types == 'values are unique':
 
-            valid_count = check_values_unique(dataframe, **signalling_check)
+            valid_count = check_values_unique(dataframe, **signalling_check) 
             description_string = f"unique values in column `{column_name}`"
             check_id = 'tilt_4'
 
@@ -378,15 +402,17 @@ def calculate_signalling_issues(dataframe: DataFrame, signalling_check_dict: dic
             description_string = f'values have format {check_format}'
             check_id = 'tilt_5'
 
-        # elif check_types == 'values are consistent':
+        elif check_types == 'values are consistent':
 
-        #     table_to_compare = signalling_check.get('compare_table')
-        #     columns_to_join = signalling_check.get('join_columns')
-        #     df_to_compare = read_table(spark_session, table_to_compare)
-        #     valid_count = check_values_consistent(spark_session,dataframe, column_name, df_to_compare, columns_to_join)
-        #     input_list = '","'.join([str(val) for val in columns_to_join])[:100]
-        #     description_string = f'values are consistent with column(s) "{input_list}" from table {table_to_compare}'
-        #     check_id = 'tilt_6'
+            table_to_compare = signalling_check.get('compare_table')
+            columns_to_join = signalling_check.get('join_columns')
+            # TODO: this needs to read compare_df
+            df_to_compare = spark_session.read.table('develop.{0}.{1}'.format(table_to_compare.rsplit("_", 1)[1],table_to_compare.rsplit("_", 1)[0]))
+            signalling_check["compare_table"] = df_to_compare
+            valid_count = check_values_consistent(dataframe, **signalling_check)
+            input_list = '","'.join([str(val) for val in columns_to_join])[:100]
+            description_string = f'values are consistent with column(s) "{input_list}" from table {table_to_compare}'
+            check_id = 'tilt_6'
 
         elif check_types == 'values occur as expected':
 
