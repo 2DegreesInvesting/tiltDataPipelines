@@ -850,6 +850,52 @@ def generate_table(table_name: str) -> None:
 
         company_product_indicators_enriched.write_table()
 
+    elif table_name == 'company_indicators_enriched':
+
+        company_product_indicators = CustomDF(
+            "company_product_indicators_enriched", spark_generate)
+
+        company_information_grouped = company_product_indicators.custom_groupby(['company_id', 'source_id', 'country', 'indicator', 'benchmark'], F.avg('profile_ranking').alias('average_ranking'),
+                                                                                F.sum(F.when(F.col('score') == 'low', 1).otherwise(
+                                                                                    0)).alias('amount_low'),
+                                                                                F.sum(F.when(F.col('score') == 'medium', 1).otherwise(
+                                                                                    0)).alias('amount_medium'),
+                                                                                F.sum(F.when(F.col('score') == 'high', 1).otherwise(
+                                                                                    0)).alias('amount_high'),
+                                                                                F.max('model_certainty').alias(
+            'model_certainty'),
+            F.max('data_source_reliability').alias(
+            'data_source_reliability'),
+            F.max('data_granularity').alias('data_granularity'))
+
+        company_information_grouped.data = company_information_grouped.data.withColumn('company_score',
+                                                                                       F.when(
+                                                                                           F.col('indicator').like("%EP%"), F.when(
+                                                                                               F.col('average_ranking') <= 1/3, 'low')
+                                                                                           .when(F.col('average_ranking') >= 2/3, 'high')
+                                                                                           .otherwise('medium')
+                                                                                       ).otherwise(
+                                                                                           F.when(F.col('benchmark').like("%_2030"),
+                                                                                                  F.when(
+                                                                                               F.col('average_ranking') <= 1/9, 'low')
+                                                                                               .when(F.col('average_ranking') >= 1/3, 'high')
+                                                                                               .otherwise('medium')
+                                                                                           ).otherwise(F.when(
+                                                                                               F.col('average_ranking') <= 2/9, 'low')
+                                                                                               .when(F.col('average_ranking') >= 2/3, 'high')
+                                                                                               .otherwise('medium')
+                                                                                           )
+                                                                                       )
+                                                                                       )
+        company_information_grouped = company_information_grouped.custom_select([
+            'company_id', 'source_id', 'country', 'Indicator', 'benchmark', 'average_ranking', 'company_score', 'amount_low', 'amount_medium', 'amount_high', 'model_certainty', 'data_source_reliability', 'data_granularity'
+        ])
+
+        company_indicators_enriched = CustomDF(
+            'company_indicators_enriched', spark_generate, initial_df=company_information_grouped.data)
+
+        company_indicators_enriched.write_table()
+
     else:
         raise ValueError(
             f'The table: {table_name} is not specified in the processing functions')
