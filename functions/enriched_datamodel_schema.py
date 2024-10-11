@@ -129,7 +129,7 @@ enriched_datamodel_schema = {
         ]
         ),
     'container': 'enriched',
-    'location': 'scope_2_indicator_enriched',
+    'location': 'scope_2_indicator_ledger',
     'type': 'delta',
     'partition_column': '',
     'quality_checks': []
@@ -144,7 +144,7 @@ enriched_datamodel_schema = {
         ]
         ),
     'container': 'enriched',
-    'location': 'scope_3_indicator',
+    'location': 'scope_3_indicator_ledger',
     'type': 'delta',
     'partition_column': '',
     'quality_checks': []

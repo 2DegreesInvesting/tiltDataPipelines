@@ -557,8 +557,8 @@ def generate_table(table_name: str) -> None:
 
         ## CALCULATION
         windowSpec = Window.partitionBy("tiltledger_id")
-        ledgered_scope_1_output.data = ledgered_scope_1_output.data.withColumn("avg_sum_carbon_per_product", F.avg("sum_carbon_per_product").over(windowSpec))
-        ledgered_scope_1_output.data = ledgered_scope_1_output.data.withColumn("avg_sum_carbon_per_product_amount", F.avg("sum_carbon_per_product_amount").over(windowSpec))
+        ledgered_scope_1_output.data = ledgered_scope_1_output.data.withColumn("avg_sum_carbon_per_product", (F.avg("sum_carbon_per_product").over(windowSpec)) / 1000)
+        ledgered_scope_1_output.data = ledgered_scope_1_output.data.withColumn("avg_sum_carbon_per_product_amount", (F.avg("sum_carbon_per_product_amount").over(windowSpec)))
 
         ## PREPPING
         ledgered_scope_1_output = ledgered_scope_1_output.custom_select(["tiltledger_id", "avg_sum_carbon_per_product", "avg_sum_carbon_per_product_amount"]).custom_distinct()
@@ -619,7 +619,7 @@ def generate_table(table_name: str) -> None:
         scope_2_indicator_output = joined_records.custom_select(["activity_uuid_product_uuid", "input_activity_uuid_product_uuid", "input_amount", "input_scope_2_emission"])
 
         ## CALCULATION
-        scope_2_indicator_output.data = scope_2_indicator_output.data.withColumn("total_scope_2_emission_per_input_amount", F.col("input_amount") * F.col("input_scope_2_emission"))
+        scope_2_indicator_output.data = scope_2_indicator_output.data.withColumn("total_scope_2_emission_per_input_amount", (F.col("input_amount") * F.col("input_scope_2_emission")) / 1000)
         windowSpec = Window.partitionBy("activity_uuid_product_uuid")
         scope_2_indicator_output.data = scope_2_indicator_output.data.withColumn("total_scope_2_emission_per_activity_uuid_product_uuid", F.sum("total_scope_2_emission_per_input_amount").over(windowSpec))
         scope_2_indicator_output = scope_2_indicator_output.custom_distinct()
@@ -692,9 +692,10 @@ def generate_table(table_name: str) -> None:
         scope_3_indicator_output = joined_records.custom_select(["activity_uuid_product_uuid", "input_activity_uuid_product_uuid", "input_amount", "input_scope_3_emission"])
 
         ## CALCULATION
-        scope_3_indicator_output.data = scope_3_indicator_output.data.withColumn("total_scope_3_emission_per_input_amount", F.col("input_amount") * F.col("input_scope_3_emission"))
+        scope_3_indicator_output.data = scope_3_indicator_output.data.withColumn("total_scope_3_emission_per_input_amount", (F.col("input_amount") * F.col("input_scope_3_emission")) / 1000)
         windowSpec = Window.partitionBy("activity_uuid_product_uuid")
-        scope_3_indicator_output.data = scope_3_indicator_output.data.withColumn("total_scope_3_emission_per_activity_uuid_product_uuid", F.sum("total_scope_3_emission_per_input_amount").over(windowSpec)).custom_distinct()
+        scope_3_indicator_output.data = scope_3_indicator_output.data.withColumn("total_scope_3_emission_per_activity_uuid_product_uuid", F.sum("total_scope_3_emission_per_input_amount").over(windowSpec))
+        scope_3_indicator_output = scope_3_indicator_output.custom_distinct()
 
         ## PREPPING
         covered_scope_3_output = filtered_ei_record_info.custom_join(scope_3_indicator_output,custom_on="activity_uuid_product_uuid", custom_how="left").custom_select(["activity_uuid_product_uuid", "activity_name", "reference_product_name", "co2_footprint", "geography", "total_scope_3_emission_per_activity_uuid_product_uuid"])
@@ -711,8 +712,6 @@ def generate_table(table_name: str) -> None:
         ## DF CREATION
         scope_3_indicator_enriched = CustomDF("scope_3_indicator_enriched", spark_generate,
                                                 initial_df=covered_scope_3_output_ledger.data)
-        
-        # scope_3_indicator_enriched.data.show()
         
         print(f"Writing data for {table_name}")
         # WRITE
