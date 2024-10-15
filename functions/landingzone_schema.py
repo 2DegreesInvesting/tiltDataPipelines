@@ -1285,6 +1285,25 @@ landingzone_schema = {
         "partition_column": "",
         "quality_checks": [],
     },
+    "scope_2_and_3_mandatory_ghgs_landingzone": {
+        "columns": StructType(
+            [
+                StructField("Activity_Name", StringType(), True),
+                StructField("Geography", StringType(), True),
+                StructField("Reference_Product", StringType(), True),
+                StructField("scope_2kg_CO2_eq_kWh", DoubleType(), True),
+                StructField("scope_3_+_transmission_and_distribution_losseskg_CO2_eq_kWh", DoubleType(), True),
+                StructField("scope_3kg_CO2_eq_kWh", DoubleType(), True),
+                StructField("scope_3_transmission_and_distribution_losseskg_CO2_eq_kWh", DoubleType(), True),
+                StructField("comment", StringType(), True),
+            ]
+        ),
+        "container": "landingzone",
+        "location": "ecoInvent/scope_2_and_3_mandatory_ghgs.csv",
+        "type": "csv",
+        "partition_column": "",
+        "quality_checks": [],
+    },
     "markus_companies_landingzone": {
         "columns": StructType(
             [
@@ -1392,5 +1411,5 @@ landingzone_schema = {
         "type": "csv",
         "partition_column": "",
         "quality_checks": [],
-    },
+    }
 }

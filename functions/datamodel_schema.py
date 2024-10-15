@@ -476,23 +476,60 @@ datamodel_schema = {
         'partition_column': '',
         'quality_checks': []
     },
-    "tiltLedger_mapping_datamodel": {
+
+    'scope_1_emissions_datamodel': {
+        'columns': StructType([
+            StructField('activity_uuid_product_uuid', StringType(), False),
+            StructField('emission', StringType(), True),
+            StructField('amount', DoubleType(), True),
+            StructField('emissions_unit', StringType(), True),
+            StructField('carbon_allocation', DoubleType(), True),
+            StructField('from_date', DateType(), False),
+            StructField('to_date', DateType(), False),
+            StructField('tiltRecordID', StringType(), False)
+        ]
+        ),
+        'container': 'datamodel',
+        'location': 'scope_1_emissions',
+        'type': 'delta',
+        'partition_column': '',
+        'quality_checks': []
+    },
+    "scope_2_emissions_datamodel": {
         "columns": StructType(
             [
-                StructField("tiltLedger_id", StringType(), True),
-                StructField("company_id", StringType(), True),
-                StructField("distance_isic", DoubleType(), True),
-                StructField("distance_cpc", DoubleType(), True),
-                StructField("model_certainty", DoubleType(), True),
+                StructField("activity_name", StringType(), True),
+                StructField("geography", StringType(), True),
+                StructField("reference_product_name", StringType(), True),
+                StructField("scope_2_emission", DoubleType(), True),
                 StructField("from_date", DateType(), False),
                 StructField("to_date", DateType(), False),
                 StructField("tiltRecordID", StringType(), False),
             ]
         ),
         "container": "datamodel",
-        "location": "tiltLedger_mapping",
+        "location": "scope_2_emissions",
         "type": "delta",
         "partition_column": "",
         "quality_checks": [],
     },
+
+    "scope_3_emissions_datamodel": {
+        "columns": StructType(
+            [
+                StructField("activity_name", StringType(), True),
+                StructField("geography", StringType(), True),
+                StructField("reference_product_name", StringType(), True),
+                StructField("scope_3_emission", DoubleType(), True),
+                StructField("from_date", DateType(), False),
+                StructField("to_date", DateType(), False),
+                StructField("tiltRecordID", StringType(), False),
+            ]
+        ),
+        "container": "datamodel",
+        "location": "scope_3_emissions",
+        "type": "delta",
+        "partition_column": "",
+        "quality_checks": [],
+    }
 }

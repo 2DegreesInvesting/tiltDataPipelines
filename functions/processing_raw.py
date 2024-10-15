@@ -810,6 +810,21 @@ def generate_table(table_name: str) -> None:
 
         emissionData_raw.write_table()
 
+
+    elif table_name == "scope_2_and_3_mandatory_ghgs_raw":
+
+        scope_2_mandatory_ghgs_landingzone = CustomDF(
+            "scope_2_and_3_mandatory_ghgs_landingzone", spark_generate
+        )
+
+        scope_2_mandatory_ghgs_raw = CustomDF(
+            "scope_2_and_3_mandatory_ghgs_raw",
+            spark_generate,
+            initial_df=scope_2_mandatory_ghgs_landingzone.data,
+        )
+
+        scope_2_mandatory_ghgs_raw.write_table()
+
     elif table_name == 'markus_companies_raw':
 
         markus_companies_landingzone = CustomDF(

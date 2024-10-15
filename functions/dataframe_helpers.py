@@ -370,7 +370,7 @@ def assign_signalling_id(
 
 
 def ledger_x_ecoinvent_matcher(ledger, ecoinvent):
-
+  
     ledger_cols = ["ledger."+column for column in ledger.columns]
     init_df = ecoinvent.alias("ei").join(ledger.alias("ledger"),
                                          (

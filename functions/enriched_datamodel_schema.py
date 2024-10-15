@@ -97,11 +97,57 @@ enriched_datamodel_schema = {
             StructField('tiltRecordID', StringType(), False)
         ]
         ),
-        'container': 'enriched',
-        'location': 'transition_risk_ledger',
-        'type': 'delta',
-        'partition_column': '',
-        'quality_checks': []
+    'container': 'enriched',
+    'location': 'transition_risk_ledger',
+    'type': 'delta',
+    'partition_column': '',
+    'quality_checks': []
+    },
+    'scope_1_indicator_enriched': {
+        'columns': StructType([
+            StructField('tiltledger_id', StringType(), False),
+            StructField('avg_sum_carbon_per_product', DoubleType(), False),
+            StructField('avg_sum_carbon_per_product_amount', DoubleType(), False),
+            StructField('from_date', DateType(), False),
+            StructField('to_date', DateType(), False),
+            StructField('tiltRecordID', StringType(), False)
+        ]
+        ),
+    'container': 'enriched',
+    'location': 'scope_1_indicator_ledger',
+    'type': 'delta',
+    'partition_column': '',
+    'quality_checks': []
+    },
+    'scope_2_indicator_enriched': {
+        'columns': StructType([
+            StructField('tiltledger_id', StringType(), False),
+            StructField('total_scope_2_emission_per_ledger_id', DoubleType(), True),
+            StructField('from_date', DateType(), False),
+            StructField('to_date', DateType(), False),
+            StructField('tiltRecordID', StringType(), False)
+        ]
+        ),
+    'container': 'enriched',
+    'location': 'scope_2_indicator_ledger',
+    'type': 'delta',
+    'partition_column': '',
+    'quality_checks': []
+    },
+    'scope_3_indicator_enriched': {
+        'columns': StructType([
+            StructField('tiltledger_id', StringType(), False),
+            StructField('total_scope_3_electricity_emission_per_ledger_id', DoubleType(), True),
+            StructField('from_date', DateType(), False),
+            StructField('to_date', DateType(), False),
+            StructField('tiltRecordID', StringType(), False)
+        ]
+        ),
+    'container': 'enriched',
+    'location': 'scope_3_indicator_ledger',
+    'type': 'delta',
+    'partition_column': '',
+    'quality_checks': []
     },
     'company_product_indicators_enriched': {
         'columns': StructType([
@@ -129,12 +175,12 @@ enriched_datamodel_schema = {
             StructField('to_date', DateType(), False),
             StructField('tiltRecordID', StringType(), False)
         ]
-        ),
-        'container': 'enriched',
-        'location': 'company_product_indicators',
-        'type': 'delta',
-        'partition_column': '',
-        'quality_checks': []
+      ),
+    'container': 'enriched',
+    'location': 'company_product_indicators',
+    'type': 'delta',
+    'partition_column': '',
+    'quality_checks': []
     },
     'company_indicators_enriched': {
         'columns': StructType([
@@ -155,11 +201,11 @@ enriched_datamodel_schema = {
             StructField('to_date', DateType(), False),
             StructField('tiltRecordID', StringType(), False)
         ]
-        ),
-        'container': 'enriched',
-        'location': 'company_indicators',
-        'type': 'delta',
-        'partition_column': '',
-        'quality_checks': []
+    ),
+    'container': 'enriched',
+    'location': 'company_indicators',
+    'type': 'delta',
+    'partition_column': '',
+    'quality_checks': []
     }
 }

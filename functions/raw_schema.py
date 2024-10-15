@@ -1360,6 +1360,24 @@ raw_schema = {
         "partition_column": "",
         "quality_checks": [],
     },
+    "tiltLedger_mapping_raw": {
+        "columns": StructType(
+            [
+                StructField("tiltLedger_id", StringType(), True),
+                StructField("company_id", StringType(), True),
+                StructField("distance_isic", DoubleType(), True),
+                StructField("distance_cpc", DoubleType(), True),
+                StructField("from_date", DateType(), False),
+                StructField("to_date", DateType(), False),
+                StructField("tiltRecordID", StringType(), False),
+            ]
+        ),
+        "container": "raw",
+        "location": "tiltLedger_mapping",
+        "type": "delta",
+        "partition_column": "",
+        "quality_checks": [],
+    },
     "emissionData_raw": {
         "columns": StructType(
             [
@@ -1381,20 +1399,24 @@ raw_schema = {
         "partition_column": "",
         "quality_checks": [],
     },
-    "tiltLedger_mapping_raw": {
+    "scope_2_and_3_mandatory_ghgs_raw": {
         "columns": StructType(
             [
-                StructField("tiltLedger_id", StringType(), True),
-                StructField("company_id", StringType(), True),
-                StructField("distance_isic", DoubleType(), True),
-                StructField("distance_cpc", DoubleType(), True),
+                StructField("Activity_Name", StringType(), True),
+                StructField("Geography", StringType(), True),
+                StructField("Reference_Product", StringType(), True),
+                StructField("scope_2kg_CO2_eq_kWh", DoubleType(), True),
+                StructField("scope_3_+_transmission_and_distribution_losseskg_CO2_eq_kWh", DoubleType(), True),
+                StructField("scope_3kg_CO2_eq_kWh", DoubleType(), True),
+                StructField("scope_3_transmission_and_distribution_losseskg_CO2_eq_kWh", DoubleType(), True),
+                StructField("comment", StringType(), True),
                 StructField("from_date", DateType(), False),
                 StructField("to_date", DateType(), False),
                 StructField("tiltRecordID", StringType(), False),
             ]
         ),
         "container": "raw",
-        "location": "tiltLedger_mapping",
+        "location": "scope_2_and_3_mandatory_ghgs",
         "type": "delta",
         "partition_column": "",
         "quality_checks": [],
@@ -1515,5 +1537,5 @@ raw_schema = {
         "type": "delta",
         "partition_column": "",
         "quality_checks": [],
-    },
+    }
 }

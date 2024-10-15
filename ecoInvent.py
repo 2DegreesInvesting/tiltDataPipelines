@@ -41,6 +41,7 @@ if __name__ == '__main__':
 
     generate_table_raw('inputProducts_raw')
     generate_table_raw('emissionData_raw')
+    generate_table_raw('scope_2_and_3_mandatory_ghgs_raw')
 
 
 # datamodel layer
@@ -56,3 +57,6 @@ if __name__ == '__main__':
 
     generate_table_datamodel('ecoinvent_input_data_datamodel') 
     generate_table_datamodel("ledger_ecoinvent_mapping")
+
+    generate_table_datamodel("scope_2_emissions_datamodel")
+    generate_table_datamodel("scope_3_emissions_datamodel")

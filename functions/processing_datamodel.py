@@ -602,6 +602,54 @@ def generate_table(table_name: str) -> None:
 
         ecoinvent_input_data_datamodel.write_table()
 
+    elif table_name == "scope_1_emissions_datamodel":
+            
+        emissions_data_raw = CustomDF("emissionData_raw", spark_generate)
+
+        emissions_data_raw = emissions_data_raw.custom_select(["Activity_UUID_Product_UUID","emission", "amount", "emissions_unit", "carbon_allocation"])
+
+        emissions_data_raw.rename_columns({"Activity_UUID_Product_UUID": "activity_uuid_product_uuid"})
+
+        scope_1_emissions_datamodel = CustomDF(
+            "scope_1_emissions_datamodel",
+            spark_generate,
+            initial_df=emissions_data_raw.data,
+        )
+
+        scope_1_emissions_datamodel.write_table()
+
+    elif table_name == "scope_2_emissions_datamodel":
+
+        scope_2_and_3_emissions_raw = CustomDF("scope_2_and_3_mandatory_ghgs_raw", spark_generate)
+
+        scope_2_emissions_raw = scope_2_and_3_emissions_raw.custom_select(["Activity_Name", "Geography", "Reference_Product", "scope_2kg_CO2_eq_kWh"])
+
+        scope_2_emissions_raw.rename_columns({"Activity_Name": "activity_name", "Geography": "geography", "Reference_Product": "reference_product_name", "scope_2kg_CO2_eq_kWh": "scope_2_emission"})
+
+        scope_2_emissions_datamodel = CustomDF(
+            "scope_2_emissions_datamodel",
+            spark_generate,
+            initial_df=scope_2_emissions_raw.data
+        )
+
+        scope_2_emissions_datamodel.write_table()
+
+    elif table_name == "scope_3_emissions_datamodel":
+
+        scope_2_and_3_emissions_raw = CustomDF("scope_2_and_3_mandatory_ghgs_raw", spark_generate)
+
+        scope_3_emissions_raw = scope_2_and_3_emissions_raw.custom_select(["Activity_Name", "Geography", "Reference_Product", "scope_3kg_CO2_eq_kWh"])
+
+        scope_3_emissions_raw.rename_columns({"Activity_Name": "activity_name", "Geography": "geography", "Reference_Product": "reference_product_name", "scope_3kg_CO2_eq_kWh": "scope_3_emission"})
+
+        scope_3_emissions_datamodel = CustomDF(
+            "scope_3_emissions_datamodel",
+            spark_generate,
+            initial_df=scope_3_emissions_raw.data
+        )
+
+        scope_3_emissions_datamodel.write_table()
+
     # Mappers data
 
     elif table_name == "sources_mapper_datamodel":
