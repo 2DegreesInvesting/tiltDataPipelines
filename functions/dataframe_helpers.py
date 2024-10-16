@@ -877,6 +877,26 @@ def ledger_geography_checker(upstream_data):
         raise ValueError(
             "Any input product should not have more than one NA input priority for an NA input geography")
 
+# Calculate the 33rd and 66th percentiles for each group using a UDF
+def get_quantiles(dataframe, group_column, score_column):
+    # Compute the quantiles using approxQuantile method for each group
+    quantiles = dataframe.groupBy(group_column).agg(
+        F.expr(f'percentile_approx({score_column}, 0.33)').alias('low_threshold'),
+        F.expr(f'percentile_approx({score_column}, 0.66)').alias('high_threshold')
+    )
+    return quantiles
+
+def add_low_high_transition_risk_thresholds(data):
+    # Define a window specification to group by 'benchmark_tr_score'
+    window_spec = Window.partitionBy('benchmark_group')
+
+    # Get the quantile thresholds
+    quantile_thresholds = get_quantiles(data, 'benchmark_group', 'transition_risk_score')
+
+    # Join the original data with the calculated thresholds based on the group
+    data_with_thresholds = data.join(quantile_thresholds, on='benchmark_group', how='left')
+
+    return data_with_thresholds
 
 def transition_risk_compute(transition_risk_product_level_data):
     trs_product = transition_risk_product_level_data.withColumn(
@@ -908,4 +928,15 @@ def transition_risk_compute(transition_risk_product_level_data):
             (trs_product["transition_risk_score"] > 1), 1
         ).otherwise(trs_product["transition_risk_score"])
     )
+
+    trs_product = add_low_high_transition_risk_thresholds(trs_product)
+
+    trs_product = trs_product.withColumn(
+        "risk_category",
+        F.when(F.col("transition_risk_score") <= F.col("low_threshold"), "low")
+        .when((F.col("transition_risk_score") > F.col("low_threshold")) &
+                (F.col("transition_risk_score") <= F.col("high_threshold")), "medium")
+        .otherwise("high")
+    )
+
     return trs_product

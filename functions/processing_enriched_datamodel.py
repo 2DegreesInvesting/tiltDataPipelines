@@ -507,23 +507,19 @@ def generate_table(table_name: str) -> None:
 
         # PREPPING
         trs_product = emission_profile_ledger.custom_join(
-            sector_profile_ledger, custom_on="tiltledger_id", custom_how="inner")
+            sector_profile_ledger, custom_on="tiltledger_id", custom_how="inner").custom_select(
+                ["tiltledger_id", "scenario_year", "benchmark_group", "product_name", "average_profile_ranking", "profile_ranking"])
+            
 
         print(f"Calculating indicators for {table_name}")
         # CALCULATION
         trs_product.data = transition_risk_compute(trs_product.data)
 
         print(f"Preparing data for {table_name}")
-        # PREPPING
-        trs_product = trs_product.custom_drop(
-            ["scenario_year", "risk_category"])
-
-        # PREPPING
-        trs_product.rename_columns({"profile_ranking": "reductions"})
 
         # PREPPING
         trs_product = trs_product.custom_select(
-            ["tiltledger_id", "benchmark_group", "average_profile_ranking", "product_name", "reductions", "transition_risk_score"])
+            ["tiltledger_id", "product_name", "benchmark_group", "transition_risk_score", "risk_category"])
 
         # DF CREATION
         transition_risk_ledger_level = CustomDF("transition_risk_ledger_enriched", spark_generate,

@@ -87,11 +87,10 @@ enriched_datamodel_schema = {
     'transition_risk_ledger_enriched': {
         'columns': StructType([
             StructField('tiltledger_id', StringType(), False),
-            StructField('benchmark_group', StringType(), False),
-            StructField('average_profile_ranking', StringType(), False),
             StructField('product_name', StringType(), False),
-            StructField('reductions', StringType(), False),
+            StructField('benchmark_group', StringType(), False),
             StructField('transition_risk_score', StringType(), False),
+            StructField('risk_category', StringType(), False),
             StructField('from_date', DateType(), False),
             StructField('to_date', DateType(), False),
             StructField('tiltRecordID', StringType(), False)
