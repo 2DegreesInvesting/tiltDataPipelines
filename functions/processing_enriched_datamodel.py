@@ -715,12 +715,14 @@ def generate_table(table_name: str) -> None:
         print("Data written successfully!\n")   
 
     elif table_name == 'company_product_indicators_enriched':
-
+        print(f"Loading data for {table_name}")
+        # ecoinvent
         companies = CustomDF("companies_datamodel", spark_generate)
-        tiltledger_mapping = CustomDF(
-            "tiltLedger_mapping_datamodel", spark_generate)
-        sources_mapper = CustomDF("sources_mapper_datamodel", spark_generate)
+
+        # tilt
         tiltledger = CustomDF("tiltLedger_datamodel", spark_generate)
+        
+        # indicators
         emission_profile_ledger = CustomDF(
             "emission_profile_ledger_enriched", spark_generate)
         emission_profile_ledger_upstream = CustomDF(
@@ -731,6 +733,17 @@ def generate_table(table_name: str) -> None:
             "sector_profile_ledger_upstream_enriched", spark_generate)
         transition_risk_ledger_level = CustomDF(
             "transition_risk_ledger_enriched", spark_generate)
+        scope_1_emissions_ledger = CustomDF(
+            "scope_1_indicator_enriched", spark_generate)
+        scope_2_emissions_ledger = CustomDF(
+            "scope_2_indicator_enriched", spark_generate)
+        scope_3_emissions_ledger = CustomDF(
+            "scope_3_indicator_enriched", spark_generate)
+        
+        # mappers
+        tiltledger_mapping = CustomDF(
+            "tiltLedger_mapping_datamodel", spark_generate)
+        sources_mapper = CustomDF("sources_mapper_datamodel", spark_generate)
         tilt_sector_isic_mapper = CustomDF(
             "tilt_sector_isic_mapper_datamodel", spark_generate)
         # model_certainty_view = CustomDF("model_certainty_view") <- this one is replaced with the model certainty column in the tiltLedger_mapping_datamodel
@@ -754,7 +767,8 @@ def generate_table(table_name: str) -> None:
                     "benchmark"),
                 emission_profile_ledger_upstream.data.risk_category.alias(
                     "score"),
-                emission_profile_ledger_upstream.data.average_input_profile_rank
+                emission_profile_ledger_upstream.data.average_input_profile_rank.alias(
+                "profile_ranking")
             ]
             )
         ).custom_union(
@@ -764,7 +778,8 @@ def generate_table(table_name: str) -> None:
                 sector_profile_ledger.data.benchmark_group.alias(
                     "benchmark"),
                 sector_profile_ledger.data.risk_category.alias("score"),
-                sector_profile_ledger.data.profile_ranking
+                sector_profile_ledger.data.profile_ranking.alias(
+                "profile_ranking")
             ]
             )
         ).custom_union(
@@ -775,11 +790,58 @@ def generate_table(table_name: str) -> None:
                     "benchmark"),
                 sector_profile_ledger_upstream.data.risk_category.alias(
                     "score"),
-                sector_profile_ledger_upstream.data.average_profile_ranking
+                sector_profile_ledger_upstream.data.average_profile_ranking.alias(
+                "profile_ranking")
+            ]
+            )
+        ).custom_union(
+            transition_risk_ledger_level.custom_select([
+                transition_risk_ledger_level.data.tiltledger_id,
+                F.lit('TR').alias('Indicator'),
+                transition_risk_ledger_level.data.benchmark_group.alias(
+                    "benchmark"),
+                transition_risk_ledger_level.data.risk_category.alias(
+                    "score"),
+                transition_risk_ledger_level.data.transition_risk_score.alias(
+                "profile_ranking")
+            ]
+            )
+        ).custom_union(
+            scope_1_emissions_ledger.custom_select([
+                scope_1_emissions_ledger.data.tiltledger_id,
+                F.lit('S1').alias('Indicator'),
+                F.lit('NA').alias(
+                    "benchmark"),
+                F.lit('NA').alias(
+                    "score"),
+                scope_1_emissions_ledger.data.avg_sum_carbon_per_product_amount.alias(
+                "profile_ranking")
+            ]
+            )
+        ).custom_union(
+            scope_2_emissions_ledger.custom_select([
+                scope_2_emissions_ledger.data.tiltledger_id,
+                F.lit('S2').alias('Indicator'),
+                F.lit('NA').alias(
+                    "benchmark"),
+                F.lit('NA').alias(
+                    "score"),
+                scope_2_emissions_ledger.data.total_scope_2_emission_per_ledger_id
+            ]
+            )
+        ).custom_union(
+            scope_3_emissions_ledger.custom_select([
+                scope_3_emissions_ledger.data.tiltledger_id,
+                F.lit('S3').alias('Indicator'),
+                F.lit('NA').alias(
+                    "benchmark"),
+                F.lit('NA').alias(
+                    "score"),
+                scope_3_emissions_ledger.data.total_scope_3_electricity_emission_per_ledger_id.alias(
+                "profile_ranking")
             ]
             )
         )
-
         # Combine Indicator with tiltLedger
         indicator_data = tiltledger.custom_join(
             combined_indicator_data, custom_on=combined_indicator_data.data.tiltledger_id == tiltledger.data.tiltLedger_id, custom_how="left")\
@@ -839,10 +901,13 @@ def generate_table(table_name: str) -> None:
 
         company_product_indicators = company_product_indicators.custom_distinct()
 
+        company_product_indicators.data = company_product_indicators.data.dropna(subset="Indicator")
+
         # Write the data to storage
         company_product_indicators_enriched = CustomDF("company_product_indicators_enriched", spark_generate,
                                                        initial_df=company_product_indicators.data)
 
+        print(f"Writing data for {table_name}")
         company_product_indicators_enriched.write_table()
 
     elif table_name == 'company_indicators_enriched':
