@@ -446,8 +446,8 @@ def generate_table(table_name: str) -> None:
             ['tiltLedger_id', 'input_benchmark_group', 'input_scenario_type', 'input_scenario_name', 'input_year'], F.avg('input_profile_ranking').alias('average_input_profile_ranking'))
 
         # Setting different thresholds for each dataframe
-        low_threshold_2030, high_threshold_2030 = 1/9, 1/3  # thresholds for 2030
-        low_threshold_2050, high_threshold_2050 = 2/9, 2/3   # thresholds for 2050
+        low_threshold_2030, high_threshold_2030 = 1/9, 2/9  # thresholds for 2030
+        low_threshold_2050, high_threshold_2050 = 1/3, 2/3   # thresholds for 2050
 
         input_sector_decarbonisation_enriched_data.data = input_sector_decarbonisation_enriched_data.data.withColumn(
             "risk_category",
