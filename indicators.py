@@ -15,6 +15,19 @@ if __name__ == '__main__':
     # generate_table_enriched_datamodel("scope_3_indicator_enriched")
     # generate_table_enriched_datamodel("scope_2_indicator_enriched")
     # generate_table_enriched_datamodel("scope_1_indicator_enriched")
+    # generate_table_enriched_datamodel("company_product_indicators_enriched")
+    # generate_table_enriched_datamodel("company_indicators_enriched")
+
+    # renaming
+    # generate_table_enriched_datamodel("relative_emission_intensity_enriched")
+    # generate_table_enriched_datamodel("input_relative_emission_intensity_enriched")
+    # generate_table_enriched_datamodel("sector_decarbonisation_enriched")
+    # generate_table_enriched_datamodel("input_sector_decarbonisation_enriched")
+    # generate_table_enriched_datamodel("transition_risk_enriched")
+    # generate_table_enriched_datamodel("scope_1_enriched")
+    # generate_table_enriched_datamodel("scope_2_enriched")
+    # generate_table_enriched_datamodel("scope_3_enriched")
     generate_table_enriched_datamodel("company_product_indicators_enriched")
-    generate_table_enriched_datamodel("company_indicators_enriched")
+    # generate_table_enriched_datamodel("company_indicators_enriched")
+
 

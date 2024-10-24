@@ -32,7 +32,7 @@ def generate_table(table_name: str) -> None:
 
     # Companies data
 
-    if table_name == 'emission_profile_ledger_enriched':
+    if table_name == 'relative_emission_intensity_enriched':
         print(f"Loading data for {table_name}")
         # LOAD
         # ecoinvent
@@ -93,7 +93,7 @@ def generate_table(table_name: str) -> None:
             sector_enriched_ecoinvent_co2.data)
 
         # PREPPING
-        emission_profile_ledger_level = sector_enriched_ecoinvent_co2.custom_select(
+        relative_emission_intensity_ledger_level = sector_enriched_ecoinvent_co2.custom_select(
             ["activity_uuid_product_uuid", "co2_footprint", "reference_product_name", "activity_name", "geography", "isic_code", "tilt_sector", "tilt_subsector", "unit"])
 
         print(f"Calculating indicators for {table_name}")
@@ -102,19 +102,19 @@ def generate_table(table_name: str) -> None:
             relative_emission_intensity_ledger_level.data, ledger_ecoinvent_mapping.data, "combined")
 
         # PREPPING
-        emission_profile_ledger_level = emission_profile_ledger_level.custom_select(
+        relative_emission_intensity_ledger_level = relative_emission_intensity_ledger_level.custom_select(
             ["tiltledger_id", "benchmark_group", "risk_category", "average_profile_ranking", "product_name", "average_co2_footprint"])
 
         # DF CREATION
-        emission_profile_ledger_level = CustomDF("emission_profile_ledger_enriched", spark_generate,
-                                                 initial_df=emission_profile_ledger_level.data)
+        relative_emission_intensity_ledger_level = CustomDF("relative_emission_intensity_ledger_enriched", spark_generate,
+                                                 initial_df=relative_emission_intensity_ledger_level.data)
 
         print(f"Writing data for {table_name}")
         # WRITE
-        emission_profile_ledger_level.write_table()
+        relative_emission_intensity_ledger_level.write_table()
         print("Data written successfully!\n")
 
-    elif table_name == 'emission_profile_ledger_upstream_enriched':
+    elif table_name == 'input_relative_emission_intensity_enriched':
         # The query plans are quite complex, so for the grpc package to work the recursion limit needs to be increased
         sys.setrecursionlimit(2000)
         print(f"Loading data for {table_name}")
@@ -205,7 +205,7 @@ def generate_table(table_name: str) -> None:
             F.col("row_num") <= 1)
         input_ei_mapping_geo_filtered = input_ei_mapping_w_geography.custom_drop(
             ["row_num", "priority", "geography_id", "country"])
-        emission_enriched_ledger_upstream_data = input_ei_mapping_geo_filtered.custom_select(
+        input_relative_emission_intensity_data = input_ei_mapping_geo_filtered.custom_select(
             ["input_activity_uuid_product_uuid", "activity_uuid_product_uuid", "activity_name", "product_geography", "input_product_name", "input_co2_footprint", "input_geography", "input_isic_code", "input_unit", "input_priority"])
         # PREPPING
         input_tilt_sector_isic_mapper = tilt_sector_isic_mapper.custom_select(
@@ -214,24 +214,24 @@ def generate_table(table_name: str) -> None:
             {"isic_code": "input_isic_code", "tilt_sector": "input_tilt_sector", "tilt_subsector": "input_tilt_subsector"})
 
         # PREPPING
-        emission_enriched_ledger_upstream_data = (emission_enriched_ledger_upstream_data.custom_join(input_tilt_sector_isic_mapper,
+        input_relative_emission_intensity_data = (input_relative_emission_intensity_data.custom_join(input_tilt_sector_isic_mapper,
                                                                                                      "input_isic_code",
                                                                                                      custom_how='left')
                                                   )
-        emission_enriched_ledger_upstream_data.data = prepare_co2(
-            emission_enriched_ledger_upstream_data.data)
+        input_relative_emission_intensity_data.data = prepare_co2(
+            input_relative_emission_intensity_data.data)
 
         print("Running checks...")
         # CHECK
         check_nonempty_tiltsectors_for_nonempty_isic_pyspark(
-            emission_enriched_ledger_upstream_data.data)
+            input_relative_emission_intensity_data.data)
 
         # CHECK
         check_null_product_name_pyspark(
-            emission_enriched_ledger_upstream_data.data)
+            input_relative_emission_intensity_data.data)
 
         # CHECK
-        column_check(emission_enriched_ledger_upstream_data.data)
+        column_check(input_relative_emission_intensity_data.data)
 
         print(f"Calculating indicators for {table_name}")
 
@@ -241,21 +241,20 @@ def generate_table(table_name: str) -> None:
 
         # print(f"Preparing data for {table_name}")
         # PREPPING
-        emission_enriched_ledger_upstream_final = emission_enriched_ledger_upstream_final.custom_select(
+        input_relative_emission_intensity_final = input_relative_emission_intensity_final.custom_select(
             ["tiltledger_id", "benchmark_group", "risk_category", "average_input_profile_rank", "average_input_co2_footprint"]).custom_distinct()
 
         print(f"Writing data for {table_name}")
         # DF CREATION
-        emission_profile_ledger_upstream_level = CustomDF("emission_profile_ledger_upstream_enriched", spark_generate,
-                                                          initial_df=emission_enriched_ledger_upstream_final.data)
+        input_relative_emission_intensity_ledger = CustomDF("input_relative_emission_intensity_enriched", spark_generate,
+                                                          initial_df=input_relative_emission_intensity_final.data)
 
         # WRITE
-        emission_profile_ledger_upstream_level.write_table()
+        input_relative_emission_intensity_ledger.write_table()
         print("Data written successfully!")
 
-    elif table_name == 'sector_profile_ledger_enriched':
+    elif table_name == 'sector_decarbonisation_enriched':
         print(f"Loading data for {table_name}")
-        # LOAD
         # LOAD
         # tilt data
         tilt_ledger = CustomDF("tiltLedger_datamodel", spark_generate)
@@ -321,42 +320,42 @@ def generate_table(table_name: str) -> None:
         )
 
         # PREPPING
-        input_sector_profile_ledger = scenario_enriched_ledger.custom_join(combined_scenario_targets,
+        sector_decarbonisation_enriched = scenario_enriched_ledger.custom_join(combined_scenario_targets,
                                                                            (F.col("scenario_type") == F.col("scenario_type_y")) &
                                                                            (F.col("scenario_sector").eqNullSafe(F.col("scenario_sector_y"))) &
                                                                            (F.col("scenario_subsector").eqNullSafe(
                                                                                F.col("scenario_subsector_y"))),
                                                                            custom_how="left")
         # PREPPING
-        input_sector_profile_ledger = input_sector_profile_ledger.custom_select(["tiltledger_id", "tilt_sector", "tilt_subsector", "product_name", "scenario_type",
+        sector_decarbonisation_enriched = sector_decarbonisation_enriched.custom_select(["tiltledger_id", "tilt_sector", "tilt_subsector", "product_name", "scenario_type",
                                                                                 "scenario_sector", "scenario_subsector", "scenario_name", "region", "year",
                                                                                  "value", "reductions"])
 
         print("Running checks...")
         # CHECK
-        check_null_product_name_pyspark(input_sector_profile_ledger.data)
+        check_null_product_name_pyspark(sector_decarbonisation_enriched.data)
 
         print(f"Calculating indicators for {table_name}")
         # CALCULATION
-        input_sector_profile_ledger.data = input_sector_profile_ledger.data.dropna(
+        sector_decarbonisation_enriched.data = sector_decarbonisation_enriched.data.dropna(
             subset="scenario_name")
         sector_decarbonisation_enriched.data = sector_decarbonisation_compute(
             sector_decarbonisation_enriched.data)
 
         print(f"Preparing data for {table_name}")
         # PREPPING
-        input_sector_profile_ledger = input_sector_profile_ledger.custom_select(
+        sector_decarbonisation_enriched = sector_decarbonisation_enriched.custom_select(
             ["tiltledger_id", "benchmark_group", "risk_category", "profile_ranking", "product_name", "tilt_sector", "scenario_name", "scenario_type", "year"]).custom_distinct()
 
         # DF CREATION
-        sector_profile_ledger_level = CustomDF("sector_profile_ledger_enriched", spark_generate,
-                                               initial_df=input_sector_profile_ledger.data)
+        sector_decarbonisation_enriched = CustomDF("sector_decarbonisation_enriched", spark_generate,
+                                               initial_df=sector_decarbonisation_enriched.data)
         print(f"Writing data for {table_name}")
         # WRITE
-        sector_profile_ledger_level.write_table()
+        sector_decarbonisation_enriched.write_table()
         print("Data written successfully!\n")
 
-    elif table_name == 'sector_profile_ledger_upstream_enriched':
+    elif table_name == 'input_sector_decarbonisation_enriched':
         print(f"Loading data for {table_name}")
         # LOAD
         # tilt data
@@ -370,8 +369,8 @@ def generate_table(table_name: str) -> None:
         geography_ecoinvent_mapper = CustomDF("geography_ecoinvent_mapper_datamodel", spark_generate).custom_select([
             "geography_id", "ecoinvent_geography", "priority", "input_priority"])
         # indicators
-        sector_profile = CustomDF(
-            "sector_profile_ledger_enriched", spark_generate)
+        sector_decarbonisation = CustomDF(
+            "sector_decarbonisation_enriched", spark_generate)
 
         print(f"Preparing data for {table_name}")
         # PREPPING
@@ -384,9 +383,9 @@ def generate_table(table_name: str) -> None:
             F.col("cpc_name"))), "<.*?>", "")).withColumn("activity_type", F.lower(F.col("activity_type")))
 
         # PREPPING
-        input_sector_profile = sector_profile.custom_select(
+        input_sector_decarbonisation = sector_decarbonisation.custom_select(
             ["tiltledger_id", "benchmark_group", "risk_category", "profile_ranking", "product_name", "tilt_sector", "scenario_name", "scenario_type", "year"])
-        input_sector_profile.rename_columns({"tiltledger_id": "input_tiltledger_id", "benchmark_group": "input_benchmark_group", "risk_category": "input_risk_category", "profile_ranking": "input_profile_ranking", "product_name": "input_product_name",
+        input_sector_decarbonisation.rename_columns({"tiltledger_id": "input_tiltledger_id", "benchmark_group": "input_benchmark_group", "risk_category": "input_risk_category", "profile_ranking": "input_profile_ranking", "product_name": "input_product_name",
                                              "tilt_sector": "input_tilt_sector", "scenario_name": "input_scenario_name", "scenario_type": "input_scenario_type", "year": "input_year"})
 
         # PREPPING
@@ -408,19 +407,20 @@ def generate_table(table_name: str) -> None:
 
         print(f"Calculating indicators for {table_name}")
         # CALCULATION
-        input_sector_profile_ledger = input_ledger_mapping.custom_join(
-            input_sector_profile, "input_tiltledger_id", custom_how="left")
+        input_sector_decarbonisation = input_ledger_mapping.custom_join(
+            input_sector_decarbonisation, "input_tiltledger_id", custom_how="left")
 
-        input_sector_profile_ledger.data = input_sector_profile_ledger.data.filter(
+        input_sector_decarbonisation.data = input_sector_decarbonisation.data.filter(
             (F.col('input_profile_ranking').isNotNull()))
 
         print(f"Preparing data for {table_name}")
         # PREPPING
-        input_data_filtered = input_sector_profile_ledger.custom_join(geography_ecoinvent_mapper, (F.col(
+        input_data_filtered = input_sector_decarbonisation.custom_join(geography_ecoinvent_mapper, (F.col(
             "input_geography") == F.col("ecoinvent_geography")), custom_how="left")
+
         # Define the window specification
         window_spec = Window.partitionBy(
-            "tiltledger_id", "input_product_name").orderBy(F.col("input_priority").asc())
+            "tiltledger_id", "input_product_name", "input_scenario_type", "input_year").orderBy(F.col("input_priority").asc())
         # Add a row number column within each group
         input_data_filtered.data = input_data_filtered.data.withColumn(
             "row_num", F.row_number().over(window_spec))
@@ -437,19 +437,19 @@ def generate_table(table_name: str) -> None:
 
         print(f"Preparing data for {table_name}")
         # PREPPING
-        sector_enriched_ledger_upstream_data = input_data_filtered.custom_select([
+        input_sector_decarbonisation_enriched_data = input_data_filtered.custom_select([
             "input_tiltledger_id", "tiltledger_id", "input_benchmark_group", "input_risk_category", "input_profile_ranking", "input_product_name", "input_tilt_sector", "input_scenario_name", "input_scenario_type", "input_year"]).custom_distinct()
 
-        sector_enriched_ledger_upstream_data.convert_data_types(
+        input_sector_decarbonisation_enriched_data.convert_data_types(
             ['input_profile_ranking'], DoubleType())
-        sector_enriched_ledger_upstream_data = sector_enriched_ledger_upstream_data.custom_groupby(
+        input_sector_decarbonisation_enriched_data = input_sector_decarbonisation_enriched_data.custom_groupby(
             ['tiltLedger_id', 'input_benchmark_group', 'input_scenario_type', 'input_scenario_name', 'input_year'], F.avg('input_profile_ranking').alias('average_input_profile_ranking'))
 
         # Setting different thresholds for each dataframe
         low_threshold_2030, high_threshold_2030 = 1/9, 1/3  # thresholds for 2030
         low_threshold_2050, high_threshold_2050 = 2/9, 2/3   # thresholds for 2050
 
-        sector_enriched_ledger_upstream_data.data = sector_enriched_ledger_upstream_data.data.withColumn(
+        input_sector_decarbonisation_enriched_data.data = input_sector_decarbonisation_enriched_data.data.withColumn(
             "risk_category",
             F.when(F.col('input_year') == 2030,
                    F.when(F.col("average_input_profile_ranking")
@@ -464,50 +464,49 @@ def generate_table(table_name: str) -> None:
             )
         )
 
-        sector_enriched_ledger_upstream_data.data = sector_enriched_ledger_upstream_data.data.dropna(
+        input_sector_decarbonisation_enriched_data.data = input_sector_decarbonisation_enriched_data.data.dropna(
             subset="input_scenario_name")
-        sector_enriched_ledger_upstream_data.rename_columns(
+        input_sector_decarbonisation_enriched_data.rename_columns(
             {"input_benchmark_group": "benchmark_group", "input_scenario_type": 'scenario_type', "input_scenario_name": "scenario_name", "input_year": "year", "average_input_profile_ranking": "average_profile_ranking"})
 
-        sector_enriched_ledger_upstream_data = sector_enriched_ledger_upstream_data.custom_select(
+        input_sector_decarbonisation_enriched_data = input_sector_decarbonisation_enriched_data.custom_select(
             ['tiltLedger_id', 'benchmark_group', 'scenario_type', 'scenario_name', 'year', 'risk_category', 'average_profile_ranking'])
 
         # DF CREATION
-        sector_profile_ledger_upstream_level = CustomDF("sector_profile_ledger_upstream_enriched", spark_generate,
-                                                        initial_df=sector_enriched_ledger_upstream_data.data)
+        input_sector_decarbonisation_enriched_data = CustomDF("input_sector_decarbonisation_enriched", spark_generate,
+                                                        initial_df=input_sector_decarbonisation_enriched_data.data)
 
         print(f"Writing data for {table_name}")
-        # WRITE
-        print(sector_profile_ledger_upstream_level.data.show())
-        sector_profile_ledger_upstream_level.write_table()
+        #WRITE
+        input_sector_decarbonisation_enriched_data.write_table()
         print("Data written successfully!\n")
 
-    elif table_name == 'transition_risk_ledger_enriched':
+    elif table_name == 'transition_risk_enriched':
         print(f"Loading data for {table_name}")
         # LOAD
-        emission_profile_ledger = CustomDF(
-            "emission_profile_ledger_enriched", spark_generate)
-        sector_profile_ledger = CustomDF(
-            "sector_profile_ledger_enriched", spark_generate)
+        relative_emission_intensity = CustomDF(
+            "relative_emission_intensity_enriched", spark_generate)
+        sector_decarbonisation = CustomDF(
+            "sector_decarbonisation_enriched", spark_generate)
 
         print(f"Preparing data for {table_name}")
         # PREPPING
-        emission_profile_ledger = emission_profile_ledger.custom_select(
+        relative_emission_intensity = relative_emission_intensity.custom_select(
             ["tiltledger_id", "benchmark_group", "risk_category", "average_profile_ranking", "product_name"])
-        sector_profile_ledger = sector_profile_ledger.custom_select(
+        sector_decarbonisation = sector_decarbonisation.custom_select(
             ["tiltledger_id", "scenario_name", "year", "profile_ranking", "product_name"])
 
         # PREPPING
-        sector_profile_ledger.data = sector_profile_ledger.data.withColumn(
+        sector_decarbonisation.data = sector_decarbonisation.data.withColumn(
             "scenario_year",
             F.lower(F.concat_ws("_", F.col("scenario_name"), F.col("year")))
         )
-        sector_profile_ledger = sector_profile_ledger.custom_drop(
+        sector_decarbonisation = sector_decarbonisation.custom_drop(
             ["scenario_name", "year", "product_name"])
 
         # PREPPING
-        trs_product = emission_profile_ledger.custom_join(
-            sector_profile_ledger, custom_on="tiltledger_id", custom_how="inner").custom_select(
+        trs_product = relative_emission_intensity.custom_join(
+            sector_decarbonisation, custom_on="tiltledger_id", custom_how="inner").custom_select(
                 ["tiltledger_id", "scenario_year", "benchmark_group", "product_name", "average_profile_ranking", "profile_ranking"])
             
 
@@ -522,7 +521,7 @@ def generate_table(table_name: str) -> None:
             ["tiltledger_id", "product_name", "benchmark_group", "transition_risk_score", "risk_category"])
 
         # DF CREATION
-        transition_risk_ledger_level = CustomDF("transition_risk_ledger_enriched", spark_generate,
+        transition_risk_ledger_level = CustomDF("transition_risk_enriched", spark_generate,
                                                 initial_df=trs_product.data)
 
         print(f"Writing data for {table_name}")
@@ -530,7 +529,7 @@ def generate_table(table_name: str) -> None:
         transition_risk_ledger_level.write_table()
         print("Data written successfully!\n")
 
-    elif table_name == 'scope_1_indicator_enriched':
+    elif table_name == 'scope_1_enriched':
         print(f"Loading data for {table_name}")
         ## LOAD
         # ecoinvent
@@ -561,7 +560,7 @@ def generate_table(table_name: str) -> None:
         
 
         ## DF CREATION
-        scope_1_indicator_enriched = CustomDF("scope_1_indicator_enriched", spark_generate,
+        scope_1_indicator_enriched = CustomDF("scope_1_enriched", spark_generate,
                                                 initial_df=ledgered_scope_1_output.data)
         
         print(f"Writing data for {table_name}")
@@ -569,7 +568,7 @@ def generate_table(table_name: str) -> None:
         scope_1_indicator_enriched.write_table()
         print("Data written successfully!\n")
         
-    elif table_name == 'scope_2_indicator_enriched':
+    elif table_name == 'scope_2_enriched':
         sys.setrecursionlimit(2000)
         print(f"Loading data for {table_name}")
         ## LOAD
@@ -577,7 +576,6 @@ def generate_table(table_name: str) -> None:
         ecoinvent_product = CustomDF("ecoinvent_product_datamodel", spark_generate)
         ecoinvent_input_data = CustomDF("ecoinvent_input_data_datamodel", spark_generate)
         ecoinvent_activity = CustomDF("ecoinvent_activity_datamodel", spark_generate)
-        ecoinvent_co2 = CustomDF("ecoinvent_co2_datamodel", spark_generate)
         ecoinvent_cut_off = CustomDF("ecoinvent_cut_off_datamodel", spark_generate)
         scope_2_emissions = CustomDF("scope_2_emissions_datamodel", spark_generate)
         # mappers
@@ -594,12 +592,12 @@ def generate_table(table_name: str) -> None:
         )
 
         ## PREPPING
-        ei_record_info = ecoinvent_cut_off.custom_join(ecoinvent_product, "product_uuid", custom_how="left").custom_join(ecoinvent_activity, "activity_uuid", custom_how="left").custom_join(ecoinvent_co2, "activity_uuid_product_uuid", custom_how="left").custom_select(
-            ['activity_uuid_product_uuid','activity_uuid','product_uuid','reference_product_name','unit','cpc_code','cpc_name','activity_name','activity_type','geography','isic_4digit','co2_footprint']
+        ei_record_info = ecoinvent_cut_off.custom_join(ecoinvent_product, "product_uuid", custom_how="left").custom_join(ecoinvent_activity, "activity_uuid", custom_how="left").custom_select(
+            ['activity_uuid_product_uuid','activity_uuid','product_uuid','reference_product_name','unit','cpc_code','cpc_name','activity_name','activity_type','geography','isic_4digit']
         )
         ei_record_info.data = ei_record_info.data.withColumn("geography", F.lower(F.col("geography"))).dropna()
         ei_record_info.rename_columns({"isic_4digit": "isic_code"})
-        ei_record_info = ei_record_info.custom_select(["activity_uuid_product_uuid","activity_name", "reference_product_name", "co2_footprint", "geography"])
+        ei_record_info = ei_record_info.custom_select(["activity_uuid_product_uuid","activity_name", "reference_product_name", "geography"])
         filtered_ei_record_info = ei_record_info.custom_join(covered_geographies, (F.col("geography") == F.col("ecoinvent_geography")), custom_how="inner").custom_drop("ecoinvent_geography")
 
         ## PREPPING
@@ -621,19 +619,19 @@ def generate_table(table_name: str) -> None:
         scope_2_indicator_output = scope_2_indicator_output.custom_distinct()
 
         ## PREPPING
-        covered_scope_2_output = filtered_ei_record_info.custom_join(scope_2_indicator_output,custom_on="activity_uuid_product_uuid", custom_how="left").custom_select(["activity_uuid_product_uuid", "activity_name", "reference_product_name", "co2_footprint", "geography", "total_scope_2_emission_per_activity_uuid_product_uuid"])
+        covered_scope_2_output = filtered_ei_record_info.custom_join(scope_2_indicator_output,custom_on="activity_uuid_product_uuid", custom_how="left").custom_select(["activity_uuid_product_uuid", "activity_name", "reference_product_name", "geography", "total_scope_2_emission_per_activity_uuid_product_uuid"])
 
         ## PREPPING
         covered_scope_2_output_ledger = ledger_ecoinvent_mapping.custom_join(covered_scope_2_output, custom_on="activity_uuid_product_uuid", custom_how="inner").custom_select(["tiltledger_id", "total_scope_2_emission_per_activity_uuid_product_uuid"])
 
         ## CALCULATION
         windowSpec = Window.partitionBy("tiltledger_id")
-        covered_scope_2_output_ledger.data = covered_scope_2_output_ledger.data.withColumn("total_scope_2_emission_per_ledger_id", F.sum("total_scope_2_emission_per_activity_uuid_product_uuid").over(windowSpec))
+        covered_scope_2_output_ledger.data = covered_scope_2_output_ledger.data.withColumn("total_scope_2_emission", F.sum("total_scope_2_emission_per_activity_uuid_product_uuid").over(windowSpec))
         covered_scope_2_output_ledger = covered_scope_2_output_ledger.custom_drop(["total_scope_2_emission_per_activity_uuid_product_uuid"])
-        covered_scope_2_output_ledger = covered_scope_2_output_ledger.custom_select(["tiltledger_id", "total_scope_2_emission_per_ledger_id"]).custom_distinct()
+        covered_scope_2_output_ledger = covered_scope_2_output_ledger.custom_select(["tiltledger_id", "total_scope_2_emission"]).custom_distinct()
 
         ## DF CREATION
-        scope_2_indicator_enriched = CustomDF("scope_2_indicator_enriched", spark_generate,
+        scope_2_indicator_enriched = CustomDF("scope_2_enriched", spark_generate,
                                                 initial_df=covered_scope_2_output_ledger.data)
         
         print(f"Writing data for {table_name}")
@@ -641,7 +639,7 @@ def generate_table(table_name: str) -> None:
         scope_2_indicator_enriched.write_table()
         print("Data written successfully!\n")
           
-    elif table_name == 'scope_3_indicator_enriched':
+    elif table_name == 'scope_3_enriched':
         sys.setrecursionlimit(2000)
         print(f"Loading data for {table_name}")
         ## LOAD
@@ -649,7 +647,6 @@ def generate_table(table_name: str) -> None:
         ecoinvent_product = CustomDF("ecoinvent_product_datamodel", spark_generate)
         ecoinvent_input_data = CustomDF("ecoinvent_input_data_datamodel", spark_generate)
         ecoinvent_activity = CustomDF("ecoinvent_activity_datamodel", spark_generate)
-        ecoinvent_co2 = CustomDF("ecoinvent_co2_datamodel", spark_generate)
         ecoinvent_cut_off = CustomDF("ecoinvent_cut_off_datamodel", spark_generate)
         scope_3_emissions = CustomDF("scope_3_emissions_datamodel", spark_generate)
         
@@ -667,12 +664,12 @@ def generate_table(table_name: str) -> None:
         )
         
         ## PREPPING
-        ei_record_info = ecoinvent_cut_off.custom_join(ecoinvent_product, "product_uuid", custom_how="left").custom_join(ecoinvent_activity, "activity_uuid", custom_how="left").custom_join(ecoinvent_co2, "activity_uuid_product_uuid", custom_how="left").custom_select(
-            ['activity_uuid_product_uuid','activity_uuid','product_uuid','reference_product_name','unit','cpc_code','cpc_name','activity_name','activity_type','geography','isic_4digit','co2_footprint']
+        ei_record_info = ecoinvent_cut_off.custom_join(ecoinvent_product, "product_uuid", custom_how="left").custom_join(ecoinvent_activity, "activity_uuid", custom_how="left").custom_select(
+            ['activity_uuid_product_uuid','activity_uuid','product_uuid','reference_product_name','unit','cpc_code','cpc_name','activity_name','activity_type','geography','isic_4digit']
         )
         ei_record_info.data = ei_record_info.data.withColumn("geography", F.lower(F.col("geography"))).dropna()
         ei_record_info.rename_columns({"isic_4digit": "isic_code"})
-        ei_record_info = ei_record_info.custom_select(["activity_uuid_product_uuid","activity_name", "reference_product_name", "co2_footprint", "geography"])
+        ei_record_info = ei_record_info.custom_select(["activity_uuid_product_uuid","activity_name", "reference_product_name", "geography"])
         filtered_ei_record_info = ei_record_info.custom_join(covered_geographies, (F.col("geography") == F.col("ecoinvent_geography")), custom_how="inner").custom_drop("ecoinvent_geography")
 
         ## PREPPING
@@ -694,19 +691,19 @@ def generate_table(table_name: str) -> None:
         scope_3_indicator_output = scope_3_indicator_output.custom_distinct()
 
         ## PREPPING
-        covered_scope_3_output = filtered_ei_record_info.custom_join(scope_3_indicator_output,custom_on="activity_uuid_product_uuid", custom_how="left").custom_select(["activity_uuid_product_uuid", "activity_name", "reference_product_name", "co2_footprint", "geography", "total_scope_3_emission_per_activity_uuid_product_uuid"])
+        covered_scope_3_output = filtered_ei_record_info.custom_join(scope_3_indicator_output,custom_on="activity_uuid_product_uuid", custom_how="left").custom_select(["activity_uuid_product_uuid", "activity_name", "reference_product_name","geography", "total_scope_3_emission_per_activity_uuid_product_uuid"])
 
         ## PREPPING
         covered_scope_3_output_ledger = ledger_ecoinvent_mapping.custom_join(covered_scope_3_output, custom_on="activity_uuid_product_uuid", custom_how="inner").custom_select(["tiltledger_id", "total_scope_3_emission_per_activity_uuid_product_uuid"])
 
         ## CALCULATION
         windowSpec = Window.partitionBy("tiltledger_id")
-        covered_scope_3_output_ledger.data = covered_scope_3_output_ledger.data.withColumn("total_scope_3_electricity_emission_per_ledger_id", F.sum("total_scope_3_emission_per_activity_uuid_product_uuid").over(windowSpec))
+        covered_scope_3_output_ledger.data = covered_scope_3_output_ledger.data.withColumn("total_scope_3_electricity_emission", F.sum("total_scope_3_emission_per_activity_uuid_product_uuid").over(windowSpec))
         covered_scope_3_output_ledger = covered_scope_3_output_ledger.custom_drop(["total_scope_3_emission_per_activity_uuid_product_uuid"])
-        covered_scope_3_output_ledger = covered_scope_3_output_ledger.custom_select(["tiltledger_id", "total_scope_3_electricity_emission_per_ledger_id"]).custom_distinct()
+        covered_scope_3_output_ledger = covered_scope_3_output_ledger.custom_select(["tiltledger_id", "total_scope_3_electricity_emission"]).custom_distinct()
 
         ## DF CREATION
-        scope_3_indicator_enriched = CustomDF("scope_3_indicator_enriched", spark_generate,
+        scope_3_indicator_enriched = CustomDF("scope_3_enriched", spark_generate,
                                                 initial_df=covered_scope_3_output_ledger.data)
         
         print(f"Writing data for {table_name}")

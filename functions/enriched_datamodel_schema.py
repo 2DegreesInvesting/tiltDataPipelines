@@ -5,7 +5,7 @@ This module contains the definition of the tables used in the datahub from the d
 from pyspark.sql.types import StringType, StructType, StructField, DoubleType, ShortType, DateType, ByteType, DecimalType
 
 enriched_datamodel_schema = {
-    'emission_profile_ledger_enriched': {
+    'relative_emission_intensity_enriched': {
         'columns': StructType([
             StructField('tiltledger_id', StringType(), False),
             StructField('benchmark_group', StringType(), False),
@@ -19,12 +19,12 @@ enriched_datamodel_schema = {
         ]
         ),
         'container': 'enriched',
-        'location': 'emission_profile_ledger',
+        'location': 'relative_emission_intensity',
         'type': 'delta',
         'partition_column': '',
         'quality_checks': []
     },
-    'emission_profile_ledger_upstream_enriched': {
+    'input_relative_emission_intensity_enriched': {
         'columns': StructType([
             StructField('tiltledger_id', StringType(), False),
             StructField('benchmark_group', StringType(), False),
@@ -37,12 +37,12 @@ enriched_datamodel_schema = {
         ]
         ),
         'container': 'enriched',
-        'location': 'emission_profile_ledger_upstream',
+        'location': 'input_relative_emission_intensity',
         'type': 'delta',
         'partition_column': '',
         'quality_checks': []
     },
-    'sector_profile_ledger_enriched': {
+    'sector_decarbonisation_enriched': {
         'columns': StructType([
             StructField('tiltledger_id', StringType(), False),
             StructField('benchmark_group', StringType(), False),
@@ -59,12 +59,12 @@ enriched_datamodel_schema = {
         ]
         ),
         'container': 'enriched',
-        'location': 'sector_profile_ledger',
+        'location': 'sector_decarbonisation',
         'type': 'delta',
         'partition_column': '',
         'quality_checks': []
     },
-    'sector_profile_ledger_upstream_enriched': {
+    'input_sector_decarbonisation_enriched': {
         'columns': StructType([
             StructField('tiltLedger_id', StringType(), False),
             StructField('benchmark_group', StringType(), False),
@@ -79,12 +79,12 @@ enriched_datamodel_schema = {
         ]
         ),
         'container': 'enriched',
-        'location': 'sector_profile_ledger_upstream',
+        'location': 'input_sector_decarbonisation',
         'type': 'delta',
         'partition_column': '',
         'quality_checks': []
     },
-    'transition_risk_ledger_enriched': {
+    'transition_risk_enriched': {
         'columns': StructType([
             StructField('tiltledger_id', StringType(), False),
             StructField('product_name', StringType(), False),
@@ -97,12 +97,12 @@ enriched_datamodel_schema = {
         ]
         ),
     'container': 'enriched',
-    'location': 'transition_risk_ledger',
+    'location': 'transition_risk',
     'type': 'delta',
     'partition_column': '',
     'quality_checks': []
     },
-    'scope_1_indicator_enriched': {
+    'scope_1_enriched': {
         'columns': StructType([
             StructField('tiltledger_id', StringType(), False),
             StructField('avg_sum_carbon_per_product', DoubleType(), False),
@@ -113,37 +113,37 @@ enriched_datamodel_schema = {
         ]
         ),
     'container': 'enriched',
-    'location': 'scope_1_indicator_ledger',
+    'location': 'scope_1',
     'type': 'delta',
     'partition_column': '',
     'quality_checks': []
     },
-    'scope_2_indicator_enriched': {
+    'scope_2_enriched': {
         'columns': StructType([
             StructField('tiltledger_id', StringType(), False),
-            StructField('total_scope_2_emission_per_ledger_id', DoubleType(), True),
+            StructField('total_scope_2_emission', DoubleType(), True),
             StructField('from_date', DateType(), False),
             StructField('to_date', DateType(), False),
             StructField('tiltRecordID', StringType(), False)
         ]
         ),
     'container': 'enriched',
-    'location': 'scope_2_indicator_ledger',
+    'location': 'scope_2',
     'type': 'delta',
     'partition_column': '',
     'quality_checks': []
     },
-    'scope_3_indicator_enriched': {
+    'scope_3_enriched': {
         'columns': StructType([
             StructField('tiltledger_id', StringType(), False),
-            StructField('total_scope_3_electricity_emission_per_ledger_id', DoubleType(), True),
+            StructField('total_scope_3_electricity_emission', DoubleType(), True),
             StructField('from_date', DateType(), False),
             StructField('to_date', DateType(), False),
             StructField('tiltRecordID', StringType(), False)
         ]
         ),
     'container': 'enriched',
-    'location': 'scope_3_indicator_ledger',
+    'location': 'scope_3',
     'type': 'delta',
     'partition_column': '',
     'quality_checks': []
@@ -166,10 +166,12 @@ enriched_datamodel_schema = {
             StructField('model_certainty', StringType(), True),
             StructField('data_source_reliability', StringType(), True),
             StructField('data_granularity', StringType(), True),
-            StructField('Indicator', StringType(), True),
-            StructField('benchmark', StringType(), True),
-            StructField('score', StringType(), True),
+            StructField('indicator', StringType(), True),
+            StructField('benchmark_group', StringType(), True),
+            StructField('risk_category', StringType(), True),
             StructField('profile_ranking', StringType(), True),
+            StructField('unit', StringType(), True),
+            StructField('amount', StringType(), True),
             StructField('from_date', DateType(), False),
             StructField('to_date', DateType(), False),
             StructField('tiltRecordID', StringType(), False)
