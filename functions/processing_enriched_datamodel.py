@@ -98,8 +98,8 @@ def generate_table(table_name: str) -> None:
 
         print(f"Calculating indicators for {table_name}")
         # CALCULATION
-        emission_profile_ledger_level.data = emissions_profile_compute(
-            emission_profile_ledger_level.data, ledger_ecoinvent_mapping.data, "combined")
+        relative_emission_intensity_ledger_level.data = relative_emission_intensity_compute(
+            relative_emission_intensity_ledger_level.data, ledger_ecoinvent_mapping.data, "combined")
 
         # PREPPING
         emission_profile_ledger_level = emission_profile_ledger_level.custom_select(
@@ -236,8 +236,8 @@ def generate_table(table_name: str) -> None:
         print(f"Calculating indicators for {table_name}")
 
         # CALCULATION
-        emission_enriched_ledger_upstream_final = emissions_profile_upstream_compute(
-            emission_enriched_ledger_upstream_data, ledger_ecoinvent_mapping, "combined")
+        input_relative_emission_intensity_final = input_relative_emission_intensity_compute(
+            input_relative_emission_intensity_data, ledger_ecoinvent_mapping, "combined")
 
         # print(f"Preparing data for {table_name}")
         # PREPPING
@@ -340,8 +340,8 @@ def generate_table(table_name: str) -> None:
         # CALCULATION
         input_sector_profile_ledger.data = input_sector_profile_ledger.data.dropna(
             subset="scenario_name")
-        input_sector_profile_ledger.data = sector_profile_compute(
-            input_sector_profile_ledger.data)
+        sector_decarbonisation_enriched.data = sector_decarbonisation_compute(
+            sector_decarbonisation_enriched.data)
 
         print(f"Preparing data for {table_name}")
         # PREPPING

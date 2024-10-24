@@ -517,7 +517,7 @@ def keep_one_name(default_name: str, statutory_name: str) -> str:
     return name
 
 
-def emissions_profile_compute(emission_data, ledger_ecoinvent_mapping,  output_type="combined"):
+def relative_emission_intensity_compute(emission_data, ledger_ecoinvent_mapping,  output_type="combined"):
 
     # define a dictionary with the 6 different benchmark types
     benchmark_types = {
@@ -591,7 +591,7 @@ def emissions_profile_compute(emission_data, ledger_ecoinvent_mapping,  output_t
     return concatenated_df
 
 
-def emissions_profile_upstream_compute(emission_data_upstream, ledger_ecoinvent_mapping, output_type="combined"):
+def input_relative_emission_intensity_compute(input_emission_data, ledger_ecoinvent_mapping, output_type="combined"):
 
     if output_type == "combined":
 
@@ -617,51 +617,51 @@ def emissions_profile_upstream_compute(emission_data_upstream, ledger_ecoinvent_
         window_input_unit_tilt_sector = Window.partitionBy(
             "input_unit", "input_tilt_sector").orderBy("input_co2_footprint")
 
-        emission_data_upstream.data = emission_data_upstream.data.withColumn(
+        input_emission_data.data = input_emission_data.data.withColumn(
             "rank_all", F.dense_rank().over(window_all))
-        emission_data_upstream.data = emission_data_upstream.data.withColumn(
+        input_emission_data.data = input_emission_data.data.withColumn(
             "rank_input_isic_4digit", F.dense_rank().over(window_input_isic_4digit))
-        emission_data_upstream.data = emission_data_upstream.data.withColumn(
+        input_emission_data.data = input_emission_data.data.withColumn(
             "rank_input_tilt_sector", F.dense_rank().over(window_input_tilt_sector))
-        emission_data_upstream.data = emission_data_upstream.data.withColumn(
+        input_emission_data.data = input_emission_data.data.withColumn(
             "rank_input_unit", F.dense_rank().over(window_input_unit))
-        emission_data_upstream.data = emission_data_upstream.data.withColumn(
+        input_emission_data.data = input_emission_data.data.withColumn(
             "rank_input_unit_isic_4digit", F.dense_rank().over(window_input_unit_isic_4digit))
-        emission_data_upstream.data = emission_data_upstream.data.withColumn(
+        input_emission_data.data = input_emission_data.data.withColumn(
             "rank_input_unit_tilt_sector", F.dense_rank().over(window_input_unit_tilt_sector))
 
-        emission_data_upstream.data = emission_data_upstream.data.withColumn(
+        input_emission_data.data = input_emission_data.data.withColumn(
             "rank_all", F.col("rank_all")/F.max("rank_all").over(window_all.rangeBetween(Window.unboundedPreceding, Window.unboundedFollowing)))
-        emission_data_upstream.data = emission_data_upstream.data.withColumn(
+        input_emission_data.data = input_emission_data.data.withColumn(
             "rank_input_isic_4digit", F.col("rank_input_isic_4digit")/F.max("rank_input_isic_4digit").over(window_input_isic_4digit.rangeBetween(Window.unboundedPreceding, Window.unboundedFollowing)))
-        emission_data_upstream.data = emission_data_upstream.data.withColumn(
+        input_emission_data.data = input_emission_data.data.withColumn(
             "rank_input_tilt_sector", F.col("rank_input_tilt_sector")/F.max("rank_input_tilt_sector").over(window_input_tilt_sector.rangeBetween(Window.unboundedPreceding, Window.unboundedFollowing)))
-        emission_data_upstream.data = emission_data_upstream.data.withColumn(
+        input_emission_data.data = input_emission_data.data.withColumn(
             "rank_input_unit", F.col("rank_input_unit")/F.max("rank_input_unit").over(window_input_unit.rangeBetween(Window.unboundedPreceding, Window.unboundedFollowing)))
-        emission_data_upstream.data = emission_data_upstream.data.withColumn(
+        input_emission_data.data = input_emission_data.data.withColumn(
             "rank_input_unit_isic_4digit", F.col("rank_input_unit_isic_4digit")/F.max("rank_input_unit_isic_4digit").over(window_input_unit_isic_4digit.rangeBetween(Window.unboundedPreceding, Window.unboundedFollowing)))
-        emission_data_upstream.data = emission_data_upstream.data.withColumn(
+        input_emission_data.data = input_emission_data.data.withColumn(
             "rank_input_unit_tilt_sector", F.col("rank_input_unit_tilt_sector")/F.max("rank_input_unit_tilt_sector").over(window_input_unit_tilt_sector.rangeBetween(Window.unboundedPreceding, Window.unboundedFollowing)))
 
-        emission_data_upstream.data = emission_data_upstream.data.unpivot(["activity_uuid_product_uuid", "input_activity_uuid_product_uuid", "input_co2_footprint", emission_data_upstream.map_col], [
+        input_emission_data.data = input_emission_data.data.unpivot(["activity_uuid_product_uuid", "input_activity_uuid_product_uuid", "input_co2_footprint", input_emission_data.map_col], [
             "rank_all", "rank_input_isic_4digit", "rank_input_tilt_sector", "rank_input_unit", "rank_input_unit_isic_4digit", "rank_input_unit_tilt_sector"], "benchmark_group", "profile_ranking")
 
-        emission_data_upstream.data = emission_data_upstream.data.withColumn(
+        input_emission_data.data = input_emission_data.data.withColumn(
             "benchmark_group", F.regexp_replace(F.col('benchmark_group'), 'rank_', ''))
 
-        emission_data_upstream = ledger_ecoinvent_mapping.custom_join(
-            emission_data_upstream, custom_on="activity_uuid_product_uuid", custom_how="left")
+        input_emission_data = ledger_ecoinvent_mapping.custom_join(
+            input_emission_data, custom_on="activity_uuid_product_uuid", custom_how="left")
 
-        emission_data_upstream.data = emission_data_upstream.data.filter(
+        input_emission_data.data = input_emission_data.data.filter(
             F.col("benchmark_group").isNotNull())
 
-        emission_data_upstream = emission_data_upstream.custom_select(
+        input_emission_data = input_emission_data.custom_select(
             ["input_activity_uuid_product_uuid", "tiltledger_id", "benchmark_group", "profile_ranking", "input_co2_footprint"])
 
-        emission_data_upstream = emission_data_upstream.custom_groupby(["tiltledger_id", "benchmark_group"], F.avg("profile_ranking").alias("average_input_profile_rank"),
+        input_emission_data = input_emission_data.custom_groupby(["tiltledger_id", "benchmark_group"], F.avg("profile_ranking").alias("average_input_profile_rank"),
                                                                        F.avg("input_co2_footprint").alias("average_input_co2_footprint"))
 
-        emission_data_upstream.data = emission_data_upstream.data.withColumn(
+        input_emission_data.data = input_emission_data.data.withColumn(
             "risk_category",
             F.when(F.col("average_input_profile_rank") <= 1/3, "low")
             .when((F.col("average_input_profile_rank") > 1/3) &
@@ -669,10 +669,10 @@ def emissions_profile_upstream_compute(emission_data_upstream, ledger_ecoinvent_
             .otherwise("high")
         )
 
-        emission_data_upstream = emission_data_upstream.custom_select(
+        input_emission_data = input_emission_data.custom_select(
             ['tiltledger_id', 'benchmark_group', 'average_input_profile_rank', 'average_input_co2_footprint', 'risk_category'])
 
-    return emission_data_upstream
+    return input_emission_data
 
 
 def calculate_reductions(reductions_dataframe, name_replace_dict):
@@ -755,10 +755,10 @@ def get_combined_targets(ipr, weo):
     return combined_targets.custom_drop(["scenario_targets_ipr_id", "scenario_targets_weo_id"])
 
 
-def sector_profile_compute(input_sector_profile_ledger_x):
+def sector_decarbonisation_compute(input_sector_decarbonisation_ledger_x):
     # Splitting the dataframe based on year
-    df_2030 = input_sector_profile_ledger_x.filter(F.col("year") == 2030)
-    df_2050 = input_sector_profile_ledger_x.filter(F.col("year") == 2050)
+    df_2030 = input_sector_decarbonisation_ledger_x.filter(F.col("year") == 2030)
+    df_2050 = input_sector_decarbonisation_ledger_x.filter(F.col("year") == 2050)
 
     # Setting different thresholds for each dataframe
     low_threshold_2030, high_threshold_2030 = 1/9, 1/3  # thresholds for 2030
@@ -793,11 +793,11 @@ def sector_profile_compute(input_sector_profile_ledger_x):
     return combined_df
 
 
-def sector_profile_upstream_compute(input_sector_profile_ledger_upstream_x):
+def input_sector_decarbonisation_compute(input_sector_decarbonisation_x):
     # Splitting the dataframe based on year
-    df_2030 = input_sector_profile_ledger_upstream_x.filter(
+    df_2030 = input_sector_decarbonisation_x.filter(
         F.col("input_year") == 2030)
-    df_2050 = input_sector_profile_ledger_upstream_x.filter(
+    df_2050 = input_sector_decarbonisation_x.filter(
         F.col("input_year") == 2050)
 
     # Setting different thresholds for each dataframe
